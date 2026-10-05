@@ -10,10 +10,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
---ground:#F4F1E8;--card:#FFFDF8;--ink:#1F2416;--ink-2:#5C6150;--line:#E2DDCD;--verde:#4B5A2A;--verde-soft:#E6E9D6;--on-verde:#FFFDF8;--laranja:#E8782E;--laranja-soft:#FBE7D6;--on-laranja:#2B1405;--menta:#4E6B2E;--menta-soft:#E3EAD3;--tomate:#B23A1E;--tomate-soft:#F8DED6;
+--ground:#FFF4EA;--card:#FFFBF6;--ink:#2B1A0E;--ink-2:#6E5444;--line:#F1D9C4;--verde:#C4511A;--verde-soft:#FDE3CF;--on-verde:#FFFBF6;--laranja:#F39A3D;--laranja-soft:#FFEBD6;--on-laranja:#2B1405;--menta:#5E6E32;--menta-soft:#ECEFD9;--tomate:#A3261B;--tomate-soft:#F9DCD6;
 --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;--body:"Figtree","Segoe UI",system-ui,sans-serif}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#15180F;--card:#1F2418;--ink:#F1EEE3;--ink-2:#B4B8A4;--line:#363C2B;--verde:#A9B97A;--verde-soft:#2C3420;--on-verde:#15180F;--laranja:#F29A55;--laranja-soft:#3D2614;--on-laranja:#1E0E03;--menta:#A3C47D;--menta-soft:#26311B;--tomate:#F08A6F;--tomate-soft:#43221A}}
-:root[data-theme="dark"]{--ground:#15180F;--card:#1F2418;--ink:#F1EEE3;--ink-2:#B4B8A4;--line:#363C2B;--verde:#A9B97A;--verde-soft:#2C3420;--on-verde:#15180F;--laranja:#F29A55;--laranja-soft:#3D2614;--on-laranja:#1E0E03;--menta:#A3C47D;--menta-soft:#26311B;--tomate:#F08A6F;--tomate-soft:#43221A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#1C120B;--card:#28190F;--ink:#FBEDE0;--ink-2:#C9AE99;--line:#43301F;--verde:#F28B45;--verde-soft:#3E2414;--on-verde:#1C120B;--laranja:#F7B072;--laranja-soft:#3A2616;--on-laranja:#1E0E03;--menta:#B5C487;--menta-soft:#2A2E1A;--tomate:#F08A6F;--tomate-soft:#43221A}}
+:root[data-theme="dark"]{--ground:#1C120B;--card:#28190F;--ink:#FBEDE0;--ink-2:#C9AE99;--line:#43301F;--verde:#F28B45;--verde-soft:#3E2414;--on-verde:#1C120B;--laranja:#F7B072;--laranja-soft:#3A2616;--on-laranja:#1E0E03;--menta:#B5C487;--menta-soft:#2A2E1A;--tomate:#F08A6F;--tomate-soft:#43221A}
 html{height:100%}*{box-sizing:border-box}
 body{margin:0;min-height:100%;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
 button{font:inherit;color:inherit;cursor:pointer}
@@ -35,8 +35,8 @@ textarea{min-height:80px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .erro{color:var(--tomate);font-size:13px;margin:6px 0 0;min-height:1em}
 .toldo{position:relative;height:120px;overflow:hidden;border-radius:20px 20px 0 0}
-.toldo .l{position:absolute;inset:0 0 13px 0;background:repeating-linear-gradient(90deg,#4B5A2A 0 26px,#E8782E 26px 52px)}
-.toldo .f{position:absolute;left:0;right:0;top:calc(100% - 26px);height:26px;background:radial-gradient(circle at 13px 0,#4B5A2A 12.5px,transparent 13px) 0 0/52px 26px repeat-x,radial-gradient(circle at 39px 0,#E8782E 12.5px,transparent 13px) 0 0/52px 26px repeat-x}
+.toldo .l{position:absolute;inset:0 0 13px 0;background:repeating-linear-gradient(90deg,#C4511A 0 26px,#F6B57A 26px 52px)}
+.toldo .f{position:absolute;left:0;right:0;top:calc(100% - 26px);height:26px;background:radial-gradient(circle at 13px 0,#C4511A 12.5px,transparent 13px) 0 0/52px 26px repeat-x,radial-gradient(circle at 39px 0,#F6B57A 12.5px,transparent 13px) 0 0/52px 26px repeat-x}
 .data{position:absolute;top:12px;left:12px;background:var(--card);border-radius:14px;padding:6px 12px;text-align:center;min-width:56px}
 .data b{display:block;font-family:var(--display);font-size:26px;line-height:1}.data span{font-size:12px;color:var(--ink-2);font-weight:600}
 .selo{position:absolute;top:14px;right:12px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--card);color:var(--menta)}
@@ -58,10 +58,10 @@ textarea{min-height:80px}
 .fotos .x{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;border:0;background:var(--card)}
 .mapawrap{position:relative;border-radius:14px;overflow:hidden;background:var(--verde-soft);touch-action:manipulation}
 .mapawrap img{width:100%;display:block;user-select:none;-webkit-user-drag:none}
-.vg{position:absolute;border:2px solid var(--verde);background:rgba(255,253,248,.9);color:#2E3818;border-radius:6px;font-size:11px;font-weight:700;padding:0;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%)}
-.vg.oc{background:rgba(95,100,80,.78);border-color:transparent;color:#fff}
+.vg{position:absolute;border:2px solid var(--verde);background:rgba(255,251,246,.92);color:#5A250B;border-radius:6px;font-size:11px;font-weight:700;padding:0;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%)}
+.vg.oc{background:rgba(110,84,68,.75);border-color:transparent;color:#fff}
 .vg.out{border-style:dashed;opacity:.5}
-.vg.minha{background:#E8782E;border-color:#B85A18;color:#2B1405}
+.vg.minha{background:#5E6E32;border-color:#3B4420;color:#FFFBF6}
 .vg.sel{outline:3px solid var(--tomate)}
 .expo{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
 .cartao{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
@@ -86,8 +86,8 @@ nav.baixo button[aria-current="page"]{color:var(--verde);background:var(--verde-
 
 .marcatopo{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:17px;color:var(--verde);margin:0 0 10px}
 .berg{display:inline-block;flex:none}
-.hero{position:relative;padding:22px 18px 18px;background:var(--verde);color:var(--on-verde);border-radius:22px;overflow:hidden;margin-top:12px}
-.hero h1{color:var(--on-verde);margin:10px 0 4px}.hero p{margin:0;opacity:.85}
+.hero{position:relative;padding:22px 18px 18px;background:linear-gradient(135deg,#B8471A 0%,#E06A26 100%);color:#FFFBF6;border-radius:22px;overflow:hidden;margin-top:12px}
+.hero h1{color:#FFFBF6;margin:10px 0 4px}.hero p{margin:0;opacity:.85}
 .hero .b1{position:absolute;right:-14px;top:-10px;opacity:.95}.hero .b2{position:absolute;right:58px;top:40px;opacity:.9}
 .vazio{text-align:center;padding:26px 10px}.vazio .berg{margin-bottom:8px}
 .resumo{display:flex;gap:12px;align-items:center}.resumo img{width:56px;height:56px;border-radius:14px;object-fit:cover;flex:none;background:var(--verde-soft)}
@@ -122,7 +122,7 @@ function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');c
 function erroMsg(e){const m=(e&&e.message)||String(e);if(/Invalid login/i.test(m))return'E-mail ou senha incorretos.';if(/already registered/i.test(m))return'Esse e-mail já tem conta. Use "Entrar".';if(/Password should/i.test(m))return'A senha precisa ter pelo menos 6 caracteres.';return m}
 
 
-function berg(t=28){return `<svg class="berg" width="${t}" height="${t}" viewBox="0 0 40 40" aria-hidden="true"><path d="M21 9c3-5 9-6 12-4-2 4-7 6-12 4z" fill="#5E6E32"/><path d="M20 10c0-2 0-3-1-5" stroke="#3B4420" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="20" cy="23" r="13" fill="#E8782E"/><path d="M12 20c2-4 6-6 10-5" stroke="#F6B27A" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".8"/><circle cx="20" cy="11.5" r="1.6" fill="#B85A18"/><g fill="#C9601F" opacity=".5"><circle cx="15" cy="27" r=".9"/><circle cx="24" cy="29" r=".9"/><circle cx="27" cy="22" r=".9"/><circle cx="19" cy="31" r=".9"/></g></svg>`}
+function berg(t=28){return `<svg class="berg" width="${t}" height="${t}" viewBox="0 0 40 40" aria-hidden="true"><path d="M21 9c3-5 9-6 12-4-2 4-7 6-12 4z" fill="#5E6E32"/><path d="M20 10c0-2 0-3-1-5" stroke="#3B4420" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="20" cy="23" r="13" fill="#F28A35"/><path d="M12 20c2-4 6-6 10-5" stroke="#F6B27A" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".8"/><circle cx="20" cy="11.5" r="1.6" fill="#B85A18"/><g fill="#C9601F" opacity=".5"><circle cx="15" cy="27" r=".9"/><circle cx="24" cy="29" r=".9"/><circle cx="27" cy="22" r=".9"/><circle cx="19" cy="31" r=".9"/></g></svg>`}
 const topo=()=>`<div class="marcatopo">${berg(26)}Feira Bêrga</div>`;
 const S={sessao:null,papel:'expositor',marca:null,segs:[],tela:'inicio',edicao:null,orgEdicao:null,canal:null,mapaSel:null,vagaSel:null};
 

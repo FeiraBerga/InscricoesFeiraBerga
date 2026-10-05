@@ -193,9 +193,16 @@ async function inicioBase(){
   if(ins.status==='encerrada')return cab+`<div class="painel"><span class="status n">Vagas preenchidas</span><p style="margin:10px 0 0">As vagas dessa edição foram preenchidas. Seu perfil continua salvo, e você recebe convite se abrir uma vaga ou quando a próxima edição abrir.</p></div>`;
   const {data:mont}=await sb.from('montagem').select('inscricao_id').eq('inscricao_id',ins.id).maybeSingle();
   const conf=ins.status==='confirmada';
-  const passos=[['Inscrição recebida',`${ins.tamanho.replace('m',' m')} · a organização confirma as presenças quando as inscrições fecharem`,true],['Presença confirmada',conf?'Você está na feira!':'Aguardando a organização',conf],['Pagamento do espaço',ins.pago?'Pagamento confirmado':'Pix ou link de pagamento com a organização',ins.pago],['Escolher sua vaga no mapa',ins.vaga_id?'Vaga escolhida':'Libera depois do pagamento',!!ins.vaga_id],['Dados da montagem',mont?'Enviados':'Mesas, cadeiras, placa e quem vai montar',!!mont]];
+  const passos=[['Inscrição recebida',`${ins.tamanho.replace('m',' m')} · a organização confirma as presenças quando as inscrições fecharem`,true],['Presença confirmada',conf?'Você está na feira!':'Aguardando a organização',conf],['Pagamento do espaço',ins.pago?'Pagamento confirmado':ins.comprovante_path?'Comprovante enviado, aguardando a organização conferir':'Pague e envie o comprovante aqui no app',ins.pago],['Escolher sua vaga no mapa',ins.vaga_id?'Vaga escolhida':'Libera depois do pagamento',!!ins.vaga_id],['Dados da montagem',mont?'Enviados':'Mesas, cadeiras, placa e quem vai montar',!!mont]];
   const ag=passos.findIndex(p=>!p[2]);
   let acao='';
+  if(conf&&!ins.pago){const valor=ins.tamanho==='2m'?e.preco_2m:e.preco_3m;
+    acao+=`<div class="painel" style="background:var(--laranja-soft);border-color:transparent"><b>Pagamento do espaço ${ins.tamanho.replace('m',' m')}${valor!=null?': '+money(valor):''}</b>
+    ${e.chave_pix?`<div class="kv" style="border:0;margin-top:6px;align-items:center"><span>Chave Pix</span><b style="word-break:break-all;text-align:right">${esc(e.chave_pix)}</b></div><button class="mini" id="copiar-pix" style="width:100%;margin-top:4px">Copiar chave Pix</button>`:''}
+    ${e.link_pagamento?`<a class="btn sec" href="${esc(e.link_pagamento)}" target="_blank" rel="noopener" style="text-decoration:none;margin-top:8px">Pagar pelo link</a>`:''}
+    ${!e.chave_pix&&!e.link_pagamento?'<p class="sub" style="margin:6px 0 0">A organização vai passar os dados de pagamento.</p>':''}
+    <p class="sub" style="margin:12px 0 6px">${ins.comprovante_path?'Comprovante enviado. Assim que a organização conferir, o mapa de vagas libera.':'Depois de pagar, envie o comprovante (foto, print ou PDF).'}</p>
+    <label class="btn ${ins.comprovante_path?'sec':'pri'}" for="comp-file" style="font-weight:600">${ins.comprovante_path?'Enviar outro comprovante':'Enviar comprovante'}</label><input id="comp-file" type="file" accept="image/*,application/pdf" hidden></div>`}
   if(conf&&ins.pago&&e.mapa_id)acao+=`<button class="btn ${ins.vaga_id?'sec':'pri'}" data-go="mapa" style="margin-bottom:8px">${ins.vaga_id?'Ver minha vaga no mapa':'Escolher minha vaga'}</button>`;
   if(conf)acao+=`<button class="btn ${mont?'sec':'amarelo'}" data-go="montagem">${mont?'Revisar dados da montagem':'Preencher dados da montagem'}</button>`;
   return cab+`<div class="painel"><span class="status ${conf?'ok':''}">${conf?'Presença confirmada':'Inscrição recebida'}</span><ol class="passos">${passos.map((p,i)=>`<li class="${p[2]?'feito':i===ag?'agora':''}"><span class="bola">${p[2]?'✓':i+1}</span><div><b>${p[0]}</b><small>${p[1]}</small></div></li>`).join('')}</ol></div>${acao}<h2>Informações da edição</h2>${info}${e.regras?`<div class="painel"><b>Regras do local</b><p style="margin:6px 0 0;white-space:pre-line">${esc(e.regras)}</p></div>`:''}${e.link_fotos?`<a class="btn sec" href="${esc(e.link_fotos)}" target="_blank" rel="noopener" style="text-decoration:none">Ver fotos da feira</a>`:''}`;
@@ -276,6 +283,7 @@ TELAS['org-edicao-form']=async()=>{
   <div class="g2"><div><label for="e-hm">Montagem</label><input id="e-hm" value="${v('horario_montagem')}" placeholder="8h às 9h30"></div><div><label for="e-hf">Feira aberta</label><input id="e-hf" value="${v('horario_feira')}"></div></div>
   <label for="e-hd">Desmontagem</label><input id="e-hd" value="${v('horario_desmontagem')}">
   <div class="g2"><div><label for="e-p2">Valor 2 m (R$)</label><input id="e-p2" type="number" step="0.01" value="${v('preco_2m')}"></div><div><label for="e-p3">Valor 3 m (R$)</label><input id="e-p3" type="number" step="0.01" value="${v('preco_3m')}"></div></div>
+  <div class="g2"><div><label for="e-pix">Chave Pix</label><input id="e-pix" value="${v('chave_pix')}"></div><div><label for="e-link">Link de pagamento (opcional)</label><input id="e-link" type="url" value="${v('link_pagamento')}"></div></div>
   <label for="e-est">Estacionamento (R$, deixe vazio se não tiver)</label><input id="e-est" type="number" step="0.01" value="${v('valor_estacionamento')}">
   <label for="e-mapa">Mapa</label><select id="e-mapa"><option value="">Sem mapa</option>${(mp.data||[]).map(m=>`<option value="${m.id}" ${e.mapa_id===m.id?'selected':''}>${esc(m.nome)}</option>`).join('')}</select>
   <label for="e-prazo">Prazo pra escolher vaga</label><input id="e-prazo" type="datetime-local" value="${e.prazo_escolha_vaga?new Date(new Date(e.prazo_escolha_vaga).getTime()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16):''}">
@@ -293,6 +301,8 @@ TELAS['org-selecao']=async()=>{
   const e=ed.find(x=>x.id===S.orgEdicao);
   const [ins,ct]=await Promise.all([sb.from('inscricoes').select('*, marcas(*), decisoes(decisao)').eq('edicao_id',S.orgEdicao).order('criado_em'),sb.from('edicao_cotas').select('*').eq('edicao_id',S.orgEdicao)]);
   if(ins.error)throw ins.error;
+  const paths=(ins.data||[]).filter(i=>i.comprovante_path&&!i.pago).map(i=>i.comprovante_path);const urls={};
+  if(paths.length){const {data:su}=await sb.storage.from('comprovantes').createSignedUrls(paths,3600);(su||[]).forEach(x=>{if(x.signedUrl)urls[x.path]=x.signedUrl})}
   const lista=ins.data||[],cot=Object.fromEntries((ct.data||[]).map(c=>[c.segmento,c.limite]));
   const conf={};lista.forEach(i=>{if(i.status==='confirmada'){const s=i.marcas?.segmento;conf[s]=(conf[s]||0)+1}});
   const total=lista.filter(i=>i.status==='confirmada').length;
@@ -306,6 +316,7 @@ TELAS['org-selecao']=async()=>{
     <div class="i"><b>${esc(m.nome)}</b><small>${esc(segNome(m.segmento))} · ${i.tamanho.replace('m',' m')}${m.instagram?' · '+esc(m.instagram):''}</small>
     ${i.status==='encerrada'?'<span class="status n">Não dessa vez (avisado)</span>':d==='confirmada'?'<span class="status ok">Confirmado</span>':d==='reserva'?'<span class="status">Na sua reserva</span>':d==='nao_desta_vez'?'<span class="status n">Não dessa vez</span>':''}
     ${i.status==='encerrada'?`<button class="mini" data-dec="convidar" data-id="${i.id}">Convidar (abriu vaga)</button>`:`<div class="row"><button class="mini pri" data-dec="confirmada" data-id="${i.id}">Confirmar</button></div><div class="row"><button class="mini" data-dec="reserva" data-id="${i.id}">Reserva</button><button class="mini" data-dec="nao_desta_vez" data-id="${i.id}">Não dessa vez</button></div>`}
+    ${i.status==='confirmada'&&!i.pago&&i.comprovante_path?`<span class="status" style="background:var(--laranja-soft);color:var(--ink)">Comprovante enviado</span>${urls[i.comprovante_path]?`<a class="mini" href="${esc(urls[i.comprovante_path])}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Ver comprovante</a>`:''}`:''}
     ${i.status==='confirmada'?`<label class="check" style="font-size:13px;margin:0"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> Pagamento recebido</label>`:''}
     </div></div>`}).join('')||'<p class="sub">Nenhuma inscrição ainda.</p>'}</div>
   <p class="sub" style="margin-top:14px">O expositor só vê "inscrição recebida". Quando você encerrar a seleção, quem não foi confirmado recebe a mensagem de vagas preenchidas.</p>
@@ -411,6 +422,7 @@ document.addEventListener('click',async ev=>{
   if(d.escolher){if(b.getAttribute('aria-disabled')){toast(b.classList.contains('oc')?'Essa vaga já foi escolhida':'Essa vaga é de outro tamanho');return}
     const r=await sb.rpc('escolher_vaga',{p_inscricao:S.ins.id,p_vaga:d.escolher});if(r.error){toast(erroMsg(r.error));return}
     S.ins.vaga_id=d.escolher;const v=S.vagas.find(x=>x.id===d.escolher);toast(`Vaga ${v?.numero} reservada`);render();return}
+  if(b.id==='copiar-pix'){try{await navigator.clipboard.writeText(S.edicao.chave_pix);toast('Chave Pix copiada')}catch{toast('Não deu pra copiar. Segure a chave pra copiar manualmente.')}return}
   if(b.id==='mt-add'){S.montadores.push({nome:'',cpf:''});desenhaMontadores();return}
   if(d.mtrm){S.montadores.splice(+d.mtrm,1);if(!S.montadores.length)S.montadores.push({nome:'',cpf:''});desenhaMontadores();return}
   if(b.id==='mo-ok'){const err=$('#mo-err');const pessoas=S.montadores.filter(p=>p.nome.trim());if(!pessoas.length){err.textContent='Informe ao menos uma pessoa que vai montar.';return}
@@ -431,7 +443,7 @@ document.addEventListener('click',async ev=>{
   if(d.selecionar){S.orgEdicao=d.selecionar;go('org-selecao');return}
   if(b.id==='e-ok'){const err=$('#e-err');err.textContent='';const data=$('#e-data').value;if(!data){err.textContent='Informe a data.';return}
     const num=id=>{const v=$(id).value;return v===''?null:Number(v)};const prazo=$('#e-prazo').value;
-    const reg={titulo:$('#e-tit').value.trim()||'Feira Bêrga',data,local:$('#e-local').value.trim(),horario_montagem:$('#e-hm').value.trim(),horario_feira:$('#e-hf').value.trim(),horario_desmontagem:$('#e-hd').value.trim(),preco_2m:num('#e-p2'),preco_3m:num('#e-p3'),valor_estacionamento:num('#e-est'),mapa_id:$('#e-mapa').value||null,prazo_escolha_vaga:prazo?new Date(prazo).toISOString():null,regras:$('#e-regras').value.trim(),link_fotos:$('#e-fotos').value.trim()||null,inscricoes_abertas:$('#e-aberta').checked};
+    const reg={titulo:$('#e-tit').value.trim()||'Feira Bêrga',data,local:$('#e-local').value.trim(),horario_montagem:$('#e-hm').value.trim(),horario_feira:$('#e-hf').value.trim(),horario_desmontagem:$('#e-hd').value.trim(),preco_2m:num('#e-p2'),preco_3m:num('#e-p3'),valor_estacionamento:num('#e-est'),mapa_id:$('#e-mapa').value||null,prazo_escolha_vaga:prazo?new Date(prazo).toISOString():null,regras:$('#e-regras').value.trim(),link_fotos:$('#e-fotos').value.trim()||null,chave_pix:$('#e-pix').value.trim()||null,link_pagamento:$('#e-link').value.trim()||null,inscricoes_abertas:$('#e-aberta').checked};
     b.disabled=true;const r=S.edForm?.id?await sb.from('edicoes').update(reg).eq('id',S.edForm.id).select().single():await sb.from('edicoes').insert(reg).select().single();
     if(r.error){b.disabled=false;err.textContent=erroMsg(r.error);return}
     const eid=r.data.id;await sb.from('edicao_cotas').delete().eq('edicao_id',eid);
@@ -472,13 +484,17 @@ document.addEventListener('change',async ev=>{const t=ev.target;
   if(t.id==='sel-ed'||t.id==='lista-ed'){S.orgEdicao=t.value;render();return}
   if(t.id==='fb-ed'){S.fbEd=t.value;render();return}
   if(t.id==='mp-sel'){S.mapaSel=t.value;S.vagaSel=null;render();return}
-  if(t.dataset.pago){const r=await sb.from('inscricoes').update({pago:t.checked}).eq('id',t.dataset.pago);toast(r.error?erroMsg(r.error):t.checked?'Pagamento registrado. O mapa foi liberado pro expositor.':'Pagamento desmarcado');return}
+  if(t.dataset.pago){const r=await sb.from('inscricoes').update({pago:t.checked}).eq('id',t.dataset.pago);toast(r.error?erroMsg(r.error):t.checked?'Pagamento registrado. O mapa foi liberado pro expositor.':'Pagamento desmarcado');if(!r.error)render();return}
   if(t.dataset.pst){await sb.from('propostas_espacos').update({status:t.value}).eq('id',t.dataset.pst);toast('Status atualizado');return}
   if(t.id==='m-file'){const files=[...t.files];if(!files.length)return;toast('Enviando fotos…');
     for(const f of files){if(f.size>5*1024*1024){toast(`${f.name} passa de 5 MB`);continue}
       const path=`${S.sessao.user.id}/${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;const r=await sb.storage.from('fotos-marcas').upload(path,f);
       if(r.error){toast(erroMsg(r.error));continue}S.fotos.push(sb.storage.from('fotos-marcas').getPublicUrl(path).data.publicUrl)}
     t.value='';desenhaFotos();return}
+  if(t.id==='comp-file'){const f=t.files[0];if(!f)return;if(f.size>10*1024*1024){toast('O arquivo passa de 10 MB');return}toast('Enviando comprovante…');
+    const path=`${S.sessao.user.id}/${S.ins.id}-${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;const r=await sb.storage.from('comprovantes').upload(path,f);
+    if(r.error){toast(erroMsg(r.error));return}const r2=await sb.rpc('enviar_comprovante',{p_inscricao:S.ins.id,p_path:path});
+    if(r2.error){toast(erroMsg(r2.error));return}toast('Comprovante enviado!');render();return}
   if(t.id==='mp-file'){const f=t.files[0];if(!f)return;toast('Enviando planta…');const path=`${S.mapaSel}/${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;
     const r=await sb.storage.from('mapas').upload(path,f);if(r.error){toast(erroMsg(r.error));return}
     const url=sb.storage.from('mapas').getPublicUrl(path).data.publicUrl;const r2=await sb.from('mapas').update({imagem_url:url}).eq('id',S.mapaSel);if(r2.error){toast(erroMsg(r2.error));return}toast('Planta atualizada');render();return}

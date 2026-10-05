@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Feira Bêrga · Inscrições</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎪</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--ground:#F1EEF5;--card:#fff;--ink:#22182E;--ink-2:#5E5470;--line:#E0DAE8;--uva:#5B2A86;--uva-soft:#EAE0F4;--mostarda:#F2B134;--menta:#1A7A5E;--menta-soft:#DDF2EA;--tomate:#B8401F;--tomate-soft:#FBE3DC;
+--display:"Bricolage Grotesque","Trebuchet MS",sans-serif;--body:"Figtree","Segoe UI",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#17121D;--card:#221B2B;--ink:#F3EEF8;--ink-2:#B7ACC6;--line:#3A3146;--uva:#B98BE3;--uva-soft:#34254A;--menta:#5CCFA8;--menta-soft:#173A2F;--tomate:#F08A6F;--tomate-soft:#43221A}}
+:root[data-theme="dark"]{--ground:#17121D;--card:#221B2B;--ink:#F3EEF8;--ink-2:#B7ACC6;--line:#3A3146;--uva:#B98BE3;--uva-soft:#34254A;--menta:#5CCFA8;--menta-soft:#173A2F;--tomate:#F08A6F;--tomate-soft:#43221A}
+html{height:100%}*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--uva);outline-offset:2px}
+.wrap{max-width:720px;margin:0 auto;padding:16px 16px 110px}
+h1{font-family:var(--display);font-weight:800;font-size:32px;line-height:1.05;letter-spacing:-.02em;margin:6px 0 4px}
+h2{font-family:var(--display);font-weight:700;font-size:20px;margin:22px 0 10px}
+.sub{color:var(--ink-2);margin:0 0 14px;font-size:14px}
+.painel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px 16px;margin-bottom:12px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}.kv:first-child{border-top:0}.kv span{color:var(--ink-2)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;border-radius:14px;border:0;font-weight:600}
+.btn.pri{background:var(--uva);color:#fff}.btn.sec{background:var(--card);border:1px solid var(--line)}.btn.amarelo{background:var(--mostarda);color:#2A1D00}
+.btn:disabled{opacity:.5;cursor:default}
+.mini{min-height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:13px;font-weight:600;padding:0 12px}
+.mini.pri{background:var(--uva);border-color:var(--uva);color:#fff}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+input,select,textarea{width:100%;min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 12px;font:inherit}
+textarea{min-height:80px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.erro{color:var(--tomate);font-size:13px;margin:6px 0 0;min-height:1em}
+.toldo{position:relative;height:120px;overflow:hidden;border-radius:20px 20px 0 0}
+.toldo .l{position:absolute;inset:0 0 13px 0;background:repeating-linear-gradient(90deg,#5B2A86 0 26px,#F2B134 26px 52px)}
+.toldo .f{position:absolute;left:0;right:0;top:calc(100% - 26px);height:26px;background:radial-gradient(circle at 13px 0,#5B2A86 12.5px,transparent 13px) 0 0/52px 26px repeat-x,radial-gradient(circle at 39px 0,#F2B134 12.5px,transparent 13px) 0 0/52px 26px repeat-x}
+.data{position:absolute;top:12px;left:12px;background:var(--card);border-radius:14px;padding:6px 12px;text-align:center;min-width:56px}
+.data b{display:block;font-family:var(--display);font-size:26px;line-height:1}.data span{font-size:12px;color:var(--ink-2);font-weight:600}
+.selo{position:absolute;top:14px;right:12px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--card);color:var(--menta)}
+.cardfeira{background:var(--card);border:1px solid var(--line);border-radius:20px;margin-bottom:14px}
+.cardfeira .c{padding:12px 16px 16px}
+.status{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--uva-soft);color:var(--uva)}
+.status.ok{background:var(--menta-soft);color:var(--menta)}.status.n{background:var(--line);color:var(--ink-2)}.status.t{background:var(--tomate-soft);color:var(--tomate)}
+.opcoes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.op{border:1.5px solid var(--line);background:var(--card);border-radius:16px;padding:12px;text-align:left;min-height:68px}
+.op b{font-family:var(--display);font-size:22px;display:block}.op small{color:var(--ink-2)}
+.op[aria-pressed="true"]{border-color:var(--uva);background:var(--uva-soft)}
+.passos{list-style:none;margin:8px 0 0;padding:0}.passos li{display:flex;gap:12px;padding:8px 0}
+.bola{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--uva-soft);color:var(--uva)}
+.feito .bola{background:var(--menta);color:#fff}.agora .bola{background:var(--mostarda);color:#2A1D00}
+.passos small{display:block;color:var(--ink-2)}
+.fotos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.fotos .ft{aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--uva-soft);position:relative}
+.fotos img{width:100%;height:100%;object-fit:cover;display:block}
+.fotos .x{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;border:0;background:var(--card)}
+.mapawrap{position:relative;border-radius:14px;overflow:hidden;background:var(--uva-soft);touch-action:manipulation}
+.mapawrap img{width:100%;display:block;user-select:none;-webkit-user-drag:none}
+.vg{position:absolute;border:2px solid var(--uva);background:rgba(255,255,255,.85);color:#3a1a58;border-radius:6px;font-size:11px;font-weight:700;padding:0;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%)}
+.vg.oc{background:rgba(120,110,130,.75);border-color:transparent;color:#fff}
+.vg.out{border-style:dashed;opacity:.5}
+.vg.minha{background:var(--mostarda);border-color:#c98c10;color:#2A1D00}
+.vg.sel{outline:3px solid var(--tomate)}
+.expo{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.cartao{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.cartao .foto{height:110px;background:var(--uva-soft);position:relative}
+.cartao .foto img{width:100%;height:100%;object-fit:cover}
+.cartao .ord{position:absolute;top:6px;left:6px;background:var(--card);border-radius:999px;font-size:11px;font-weight:700;padding:2px 8px}
+.cartao .av{position:absolute;bottom:6px;left:6px;right:6px;background:var(--card);border-radius:8px;font-size:11px;font-weight:600;color:var(--tomate);text-align:center}
+.cartao .i{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.cartao small{color:var(--ink-2);font-size:12px}
+.row{display:flex;gap:6px;flex-wrap:wrap}.row>*{flex:1}
+.cota{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.cota:first-child{border-top:0}
+.barra{height:6px;border-radius:999px;background:var(--uva-soft);overflow:hidden;margin-top:4px}.barra i{display:block;height:100%;background:var(--uva)}
+.tabwrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--ink-2);padding:6px 8px 6px 0}td{padding:8px 8px 8px 0;border-top:1px solid var(--line)}
+nav.baixo{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:3}
+nav.baixo .in{display:flex;width:100%;max-width:720px}
+nav.baixo button{flex:1;border:0;background:transparent;font-size:12px;font-weight:600;color:var(--ink-2);min-height:50px;border-radius:12px}
+nav.baixo button[aria-current="page"]{color:var(--uva);background:var(--uva-soft)}
+.topo{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);background:var(--ink);color:var(--ground);border-radius:14px;padding:12px 16px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:9;max-width:90vw}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.check{display:flex;align-items:center;gap:10px;font-weight:500}.check input{width:20px;min-height:20px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="tela"><p class="sub">Carregando…</p></div>
+<nav class="baixo" id="nav" hidden><div class="in" id="navin"></div></nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+const SUPABASE_URL='https://dpjqqbtexbdmjqeecssq.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwanFxYnRleGJkbWpxZWVjc3NxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMDE2ODAsImV4cCI6MjEwNjc3NzY4MH0.AwUT8KNwL2tzE39wzHTQxq73kt2Sh1noNA6hOeIBEM4';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=v=>v==null?'a definir':Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const dataBR=d=>{if(!d)return'';const[a,m,dd]=d.split('-');return `${dd}/${m}/${a}`};
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),2800)}
+function erroMsg(e){const m=(e&&e.message)||String(e);if(/Invalid login/i.test(m))return'E-mail ou senha incorretos.';if(/already registered/i.test(m))return'Esse e-mail já tem conta. Use "Entrar".';if(/Password should/i.test(m))return'A senha precisa ter pelo menos 6 caracteres.';return m}
+
+const S={sessao:null,papel:'expositor',marca:null,segs:[],tela:'inicio',edicao:null,orgEdicao:null,canal:null,mapaSel:null,vagaSel:null};
+
+async function iniciar(){
+  const {data}=await sb.auth.getSession();S.sessao=data.session;
+  sb.auth.onAuthStateChange((ev,s)=>{const antes=!!S.sessao;S.sessao=s;if(ev==='PASSWORD_RECOVERY'){S.tela='novasenha';render();return}if(!!s!==antes)carregarUsuario()});
+  const r=await sb.from('segmentos').select('*').order('ordem');S.segs=r.data||[];
+  await carregarUsuario();
+}
+async function carregarUsuario(){
+  if(!S.sessao){S.papel='expositor';S.marca=null;S.tela=location.hash==='#proposta'?'proposta':'auth';return render()}
+  const uid=S.sessao.user.id;
+  const [p,m]=await Promise.all([sb.from('perfis').select('papel').eq('id',uid).maybeSingle(),sb.from('marcas').select('*').eq('dono',uid).maybeSingle()]);
+  S.papel=p.data?.papel||'expositor';S.marca=m.data;
+  S.tela=S.papel==='organizadora'?'org-edicoes':'inicio';render();
+}
+const segNome=s=>S.segs.find(x=>x.slug===s)?.nome||s;
+
+function nav(){
+  const n=$('#nav');if(!S.sessao){n.hidden=true;return}n.hidden=false;
+  const itens=S.papel==='organizadora'?[['org-edicoes','Edições'],['org-selecao','Seleção'],['org-mapas','Mapas'],['org-lista','Lista'],['org-propostas','Espaços']]:[['inicio','Feira'],['marca','Minha marca'],['conta','Conta']];
+  $('#navin').innerHTML=itens.map(([t,l])=>`<button data-go="${t}" ${S.tela===t||(t==='inicio'&&['mapa','montagem'].includes(S.tela))?'aria-current="page"':''}>${l}</button>`).join('');
+}
+async function render(){
+  nav();const T=TELAS[S.tela]||TELAS.inicio;
+  try{$('#tela').innerHTML=await T()}catch(e){$('#tela').innerHTML=`<h1>Ops</h1><p class="sub">${esc(erroMsg(e))}</p><button class="btn sec" data-go="inicio">Voltar</button>`}
+  window.scrollTo(0,0);if(AFTER[S.tela])AFTER[S.tela]();
+}
+function go(t){if(S.canal){sb.removeChannel(S.canal);S.canal=null}S.tela=t;render()}
+
+/* ================= AUTENTICAÇÃO ================= */
+let modoAuth='entrar';
+const TELAS={};const AFTER={};
+TELAS.auth=()=>`<div class="cardfeira" style="margin-top:12px"><div class="toldo"><div class="l"></div><div class="f"></div></div><div class="c">
+<h1>Feira Bêrga</h1><p class="sub">${modoAuth==='entrar'?'Entre pra se inscrever nas edições.':'Crie sua conta. Leva um minuto.'}</p>
+<label for="a-email">E-mail</label><input id="a-email" type="email" autocomplete="email">
+<label for="a-senha">Senha</label><input id="a-senha" type="password" autocomplete="${modoAuth==='entrar'?'current-password':'new-password'}">
+<p class="erro" id="a-err"></p>
+<button class="btn pri" id="a-ok">${modoAuth==='entrar'?'Entrar':'Criar conta'}</button>
+<button class="btn sec" id="a-troca" style="margin-top:8px">${modoAuth==='entrar'?'Ainda não tenho conta':'Já tenho conta'}</button>
+${modoAuth==='entrar'?'<button class="mini" id="a-esqueci" style="margin-top:12px;border:0;background:none;color:var(--ink-2)">Esqueci minha senha</button>':''}
+</div></div>
+<div class="painel" style="background:var(--uva-soft);border-color:transparent"><b>Tem um espaço e quer receber a Feira Bêrga?</b><p class="sub" style="margin:4px 0 10px">Shopping, empresa, condomínio ou praça.</p><button class="btn sec" data-go="proposta">Enviar proposta</button></div>`;
+TELAS.novasenha=()=>`<h1>Nova senha</h1><label for="ns">Nova senha</label><input id="ns" type="password" autocomplete="new-password"><p class="erro" id="ns-err"></p><button class="btn pri" id="ns-ok">Salvar senha</button>`;
+
+/* ================= PROPOSTA (pública) ================= */
+TELAS.proposta=()=>`<button class="mini" data-go="${S.sessao?'inicio':'auth'}" style="border:0;background:none">← Voltar</button>
+<h1>Leve a feira até você</h1><p class="sub">Conta pra organização o que o seu espaço oferece.</p><div class="painel">
+<label for="p-nome">Nome do espaço</label><input id="p-nome">
+<label for="p-tipo">Tipo de lugar</label><select id="p-tipo"><option>Shopping</option><option>Empresa</option><option>Condomínio</option><option>Escola</option><option>Praça ou espaço público</option><option>Outro</option></select>
+<div class="g2"><div><label for="p-cid">Cidade</label><input id="p-cid"></div><div><label for="p-area">Área aproximada</label><input id="p-area" placeholder="Ex.: 300 m², coberta"></div></div>
+<label for="p-acordo">Tipo de acordo</label><select id="p-acordo"><option>Cedo o espaço</option><option>Cobro aluguel</option><option>Divido a receita</option><option>A combinar</option></select>
+<label for="p-cont">Contato (WhatsApp ou e-mail)</label><input id="p-cont">
+<p class="erro" id="p-err"></p></div><button class="btn pri" id="p-ok">Enviar proposta</button>`;
+
+/* ================= EXPOSITOR ================= */
+async function proximaEdicao(){
+  const hoje=new Date().toISOString().slice(0,10);
+  const {data,error}=await sb.from('edicoes').select('*').gte('data',hoje).order('data').limit(5);if(error)throw error;
+  return (data||[]).find(e=>e.inscricoes_abertas)||(data||[])[0]||null;
+}
+function toldo(e,status){const[,m,d]=e.data.split('-');return `<div class="toldo"><div class="l"></div><div class="f"></div><div class="data"><b>${d}</b><span>${MES[+m-1]}</span></div>${status?`<span class="selo">${status}</span>`:''}</div>`}
+
+TELAS.inicio=async()=>{
+  const e=await proximaEdicao();S.edicao=e;
+  if(!S.marca)return `<h1>Bem-vinda!</h1><p class="sub">Antes de se inscrever, cadastre sua marca. Fica salvo pras próximas edições.</p><button class="btn pri" data-go="marca">Cadastrar minha marca</button>`;
+  if(!e)return `<h1>${esc(S.marca.nome)}</h1><p class="sub">Ainda não tem edição marcada. Assim que a próxima abrir, ela aparece aqui.</p>`;
+  const {data:ins}=await sb.from('inscricoes').select('*').eq('edicao_id',e.id).eq('marca_id',S.marca.id).maybeSingle();
+  S.ins=ins;
+  let tam=ins?.tamanho||S.tamEscolhido||'2m';S.tamEscolhido=tam;
+  const info=`<div class="painel"><div class="kv"><span>Local</span><b>${esc(e.local||'a definir')}</b></div><div class="kv"><span>Montagem</span><b>${esc(e.horario_montagem||'a definir')}</b></div><div class="kv"><span>Feira aberta</span><b>${esc(e.horario_feira||'a definir')}</b></div><div class="kv"><span>Desmontagem</span><b>${esc(e.horario_desmontagem||'a definir')}</b></div>${e.valor_estacionamento!=null?`<div class="kv"><span>Estacionamento</span><b>${money(e.valor_estacionamento)}, com placa</b></div>`:''}</div>`;
+  const cab=`<p class="sub" style="margin:0">Próxima edição</p><div class="cardfeira" style="margin-top:6px">${toldo(e,e.inscricoes_abertas?'Inscrições abertas':ins?null:'Inscrições em breve')}<div class="c"><p style="font-family:var(--display);font-size:24px;font-weight:700;margin:0">${esc(e.titulo)}</p><p class="sub" style="margin:0">${dataBR(e.data)}</p></div></div>`;
+  if(!ins){
+    if(!e.inscricoes_abertas)return cab+info+`<p class="sub">As inscrições ainda não abriram. Você recebe aviso pelo grupo quando abrirem.</p>`;
+    return cab+info+`<h2>Tamanho do espaço</h2><div class="opcoes">${['2m','3m'].map(t=>`<button class="op" data-tam="${t}" aria-pressed="${tam===t}"><b>${t.replace('m',' m')}</b><small>${money(t==='2m'?e.preco_2m:e.preco_3m)}</small></button>`).join('')}</div><button class="btn pri" id="inscrever" style="margin-top:16px">Quero participar</button>`;
+  }
+  if(ins.status==='encerrada')return cab+`<div class="painel"><span class="status n">Vagas preenchidas</span><p style="margin:10px 0 0">As vagas dessa edição foram preenchidas. Seu perfil continua salvo, e você recebe convite se abrir uma vaga ou quando a próxima edição abrir.</p></div>`;
+  const {data:mont}=await sb.from('montagem').select('inscricao_id').eq('inscricao_id',ins.id).maybeSingle();
+  const conf=ins.status==='confirmada';
+  const passos=[['Inscrição recebida',`${ins.tamanho.replace('m',' m')} · a organização confirma as presenças quando as inscrições fecharem`,true],['Presença confirmada',conf?'Você está na feira!':'Aguardando a organização',conf],['Pagamento do espaço',ins.pago?'Pagamento confirmado':'Pix ou link de pagamento com a organização',ins.pago],['Escolher sua vaga no mapa',ins.vaga_id?'Vaga escolhida':'Libera depois do pagamento',!!ins.vaga_id],['Dados da montagem',mont?'Enviados':'Mesas, cadeiras, placa e quem vai montar',!!mont]];
+  const ag=passos.findIndex(p=>!p[2]);
+  let acao='';
+  if(conf&&ins.pago&&e.mapa_id)acao+=`<button class="btn ${ins.vaga_id?'sec':'pri'}" data-go="mapa" style="margin-bottom:8px">${ins.vaga_id?'Ver minha vaga no mapa':'Escolher minha vaga'}</button>`;
+  if(conf)acao+=`<button class="btn ${mont?'sec':'amarelo'}" data-go="montagem">${mont?'Revisar dados da montagem':'Preencher dados da montagem'}</button>`;
+  return cab+`<div class="painel"><span class="status ${conf?'ok':''}">${conf?'Presença confirmada':'Inscrição recebida'}</span><ol class="passos">${passos.map((p,i)=>`<li class="${p[2]?'feito':i===ag?'agora':''}"><span class="bola">${p[2]?'✓':i+1}</span><div><b>${p[0]}</b><small>${p[1]}</small></div></li>`).join('')}</ol></div>${acao}<h2>Informações da edição</h2>${info}${e.regras?`<div class="painel"><b>Regras do local</b><p style="margin:6px 0 0;white-space:pre-line">${esc(e.regras)}</p></div>`:''}${e.link_fotos?`<a class="btn sec" href="${esc(e.link_fotos)}" target="_blank" rel="noopener" style="text-decoration:none">Ver fotos da feira</a>`:''}`;
+};
+
+TELAS.marca=()=>{const m=S.marca||{};S.fotos=[...(m.fotos||[])];return `<h1>${m.id?'Minha marca':'Cadastre sua marca'}</h1><p class="sub">Preenche uma vez e fica salvo pras próximas edições.</p><div class="painel">
+<label for="m-nome">Nome da marca</label><input id="m-nome" value="${esc(m.nome)}">
+<label for="m-seg">Segmento</label><select id="m-seg">${S.segs.map(s=>`<option value="${s.slug}" ${m.segmento===s.slug?'selected':''}>${esc(s.nome)}</option>`).join('')}</select>
+<div class="g2"><div><label for="m-insta">Instagram</label><input id="m-insta" value="${esc(m.instagram)}" placeholder="@suamarca"></div><div><label for="m-zap">WhatsApp</label><input id="m-zap" inputmode="tel" value="${esc(m.whatsapp)}"></div></div>
+<label for="m-desc">Sobre a marca (opcional)</label><textarea id="m-desc">${esc(m.descricao)}</textarea>
+<label>Fotos do trabalho (mínimo 3)</label><p class="sub" style="margin:0 0 8px;font-size:13px">Usadas na divulgação da feira.</p>
+<div class="fotos" id="fotos"></div>
+<label class="btn sec" for="m-file" style="margin-top:10px;font-weight:600">Adicionar fotos</label><input id="m-file" type="file" accept="image/*" multiple hidden>
+<p class="erro" id="m-err"></p></div><button class="btn pri" id="m-ok">Salvar marca</button>`};
+function desenhaFotos(){const el=$('#fotos');if(!el)return;el.innerHTML=S.fotos.map((u,i)=>`<div class="ft"><img src="${esc(u)}" alt="Foto ${i+1} do trabalho"><button class="x" data-rmfoto="${i}" aria-label="Remover foto ${i+1}">✕</button></div>`).join('')||'<p class="sub" style="grid-column:1/-1;margin:0">Nenhuma foto ainda.</p>'}
+AFTER.marca=desenhaFotos;
+
+TELAS.conta=()=>`<h1>Conta</h1><div class="painel"><div class="kv"><span>E-mail</span><b>${esc(S.sessao.user.email)}</b></div></div><button class="btn sec" id="sair">Sair</button>`;
+
+TELAS.mapa=async()=>{
+  const e=S.edicao,ins=S.ins;if(!e||!ins)return `<p class="sub">Volte pra tela da feira.</p><button class="btn sec" data-go="inicio">Feira</button>`;
+  const [mp,vg,oc,bl]=await Promise.all([sb.from('mapas').select('*').eq('id',e.mapa_id).single(),sb.from('mapa_vagas').select('*').eq('mapa_id',e.mapa_id).order('numero'),sb.from('vagas_ocupadas').select('vaga_id').eq('edicao_id',e.id),sb.from('edicao_vagas_bloqueadas').select('vaga_id').eq('edicao_id',e.id)]);
+  S.vagas=vg.data||[];S.ocup=new Set((oc.data||[]).map(x=>x.vaga_id));S.bloq=new Set((bl.data||[]).map(x=>x.vaga_id));S.mapaImg=mp.data?.imagem_url;
+  const minha=S.vagas.find(v=>v.id===ins.vaga_id);
+  return `<button class="mini" data-go="inicio" style="border:0;background:none">← Feira</button><h1>Escolha sua vaga</h1><p class="sub">Você contratou ${ins.tamanho.replace('m',' m')}. Vagas de outro tamanho ficam tracejadas.</p>
+  ${e.prazo_escolha_vaga&&!minha?`<div class="painel" style="background:var(--mostarda);border-color:transparent;color:#2A1D00">Escolha até ${new Date(e.prazo_escolha_vaga).toLocaleString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}. Depois disso, a organização define por você.</div>`:''}
+  <div class="mapawrap" id="mapa"></div>
+  <p class="sub" style="margin-top:10px">${minha?`Sua vaga: <b>${minha.numero}</b>. Dá pra trocar enquanto o prazo estiver aberto.`:'Toque numa vaga livre pra reservar.'}</p>`;
+};
+function desenhaMapaExpositor(){
+  const w=$('#mapa');if(!w)return;const ins=S.ins;
+  w.innerHTML=(S.mapaImg?`<img src="${esc(S.mapaImg)}" alt="Planta da feira">`:'<div style="padding:40px;text-align:center" class="sub">Mapa sem imagem</div>')+S.vagas.filter(v=>!S.bloq.has(v.id)).map(v=>{const minha=v.id===ins.vaga_id,oc=S.ocup.has(v.id)&&!minha,out=v.tamanho!==ins.tamanho;
+  return `<button class="vg ${oc?'oc':out?'out':''} ${minha?'minha':''}" style="left:${v.x}%;top:${v.y}%;width:${v.largura}%;height:${v.altura}%" data-escolher="${v.id}" ${oc||out?'aria-disabled="true"':''} aria-label="Vaga ${v.numero}, ${v.tamanho}${oc?', ocupada':''}">${v.numero}</button>`}).join('');
+}
+AFTER.mapa=()=>{desenhaMapaExpositor();if(!S.edicao)return;
+  S.canal=sb.channel('ocupadas-'+S.edicao.id).on('postgres_changes',{event:'*',schema:'public',table:'vagas_ocupadas',filter:'edicao_id=eq.'+S.edicao.id},async()=>{const {data}=await sb.from('vagas_ocupadas').select('vaga_id').eq('edicao_id',S.edicao.id);S.ocup=new Set((data||[]).map(x=>x.vaga_id));desenhaMapaExpositor()}).subscribe();};
+
+TELAS.montagem=async()=>{
+  const ins=S.ins,e=S.edicao;if(!ins)return `<button class="btn sec" data-go="inicio">Feira</button>`;
+  const [mo,mt]=await Promise.all([sb.from('montagem').select('*').eq('inscricao_id',ins.id).maybeSingle(),sb.from('montadores').select('*').eq('inscricao_id',ins.id)]);
+  const m=mo.data||{mesas:0,cadeiras:0,usa_estacionamento:false,placa:''};S.montadores=(mt.data&&mt.data.length?mt.data:[{nome:'',cpf:''}]).map(x=>({nome:x.nome,cpf:x.cpf}));
+  return `<button class="mini" data-go="inicio" style="border:0;background:none">← Feira</button><h1>Dados da montagem</h1><p class="sub">Vão pra lista que a organização envia ao local. Os CPFs são apagados depois da edição.</p>
+  <div class="painel"><div class="g2"><div><label for="mo-mesa">Mesas</label><input id="mo-mesa" type="number" min="0" value="${m.mesas}"></div><div><label for="mo-cad">Cadeiras</label><input id="mo-cad" type="number" min="0" value="${m.cadeiras}"></div></div>
+  ${e?.valor_estacionamento!=null?`<label class="check" style="margin-top:14px"><input type="checkbox" id="mo-est" ${m.usa_estacionamento?'checked':''}> Vou usar o estacionamento (${money(e.valor_estacionamento)})</label><div id="mo-placa-w" ${m.usa_estacionamento?'':'hidden'}><label for="mo-placa">Placa do carro</label><input id="mo-placa" value="${esc(m.placa)}" style="text-transform:uppercase"></div>`:''}</div>
+  <div class="painel"><b>Quem vai montar</b><div id="mts"></div><button class="mini" id="mt-add" style="margin-top:10px">+ Adicionar pessoa</button></div>
+  <p class="erro" id="mo-err"></p><button class="btn pri" id="mo-ok">Salvar dados</button>`;
+};
+function desenhaMontadores(){const el=$('#mts');if(!el)return;el.innerHTML=S.montadores.map((p,i)=>`<div class="g2" style="margin-top:8px;grid-template-columns:1.4fr 1fr auto"><input aria-label="Nome completo ${i+1}" data-mtn="${i}" value="${esc(p.nome)}" placeholder="Nome completo"><input aria-label="CPF ${i+1}" data-mtc="${i}" value="${esc(p.cpf)}" inputmode="numeric" placeholder="CPF"><button class="mini" data-mtrm="${i}" aria-label="Remover pessoa ${i+1}">✕</button></div>`).join('')}
+AFTER.montagem=desenhaMontadores;
+
+/* ================= ORGANIZADORA ================= */
+async function listaEdicoes(){const {data,error}=await sb.from('edicoes').select('*').order('data',{ascending:false});if(error)throw error;return data||[]}
+TELAS['org-edicoes']=async()=>{const ed=await listaEdicoes();S.edicoes=ed;
+  return `<div class="topo"><h1>Edições</h1><button class="mini pri" data-editar="nova">+ Nova</button></div><p class="sub">Toque numa edição pra editar.</p>
+  ${ed.map(e=>`<div class="painel"><div class="topo"><div><b>${esc(e.titulo)}</b><div class="sub" style="margin:0">${dataBR(e.data)} · ${esc(e.local||'')}</div></div><span class="status ${e.inscricoes_abertas?'ok':'n'}">${e.inscricoes_abertas?'Abertas':'Fechadas'}</span></div><div class="row" style="margin-top:10px"><button class="mini" data-editar="${e.id}">Editar</button><button class="mini" data-selecionar="${e.id}">Seleção</button></div></div>`).join('')||'<p class="sub">Nenhuma edição ainda. Crie a primeira.</p>'}`};
+
+TELAS['org-edicao-form']=async()=>{
+  const e=S.edForm||{titulo:'Feira Bêrga',data:'',inscricoes_abertas:false};
+  const [mp,ct]=await Promise.all([sb.from('mapas').select('id,nome'),e.id?sb.from('edicao_cotas').select('*').eq('edicao_id',e.id):{data:[]}]);
+  const cot=Object.fromEntries((ct.data||[]).map(c=>[c.segmento,c.limite]));
+  const v=k=>esc(e[k]??'');
+  return `<button class="mini" data-go="org-edicoes" style="border:0;background:none">← Edições</button><h1>${e.id?'Editar edição':'Nova edição'}</h1><div class="painel">
+  <label for="e-tit">Nome</label><input id="e-tit" value="${v('titulo')}">
+  <div class="g2"><div><label for="e-data">Data</label><input id="e-data" type="date" value="${v('data')}"></div><div><label for="e-local">Local</label><input id="e-local" value="${v('local')}"></div></div>
+  <div class="g2"><div><label for="e-hm">Montagem</label><input id="e-hm" value="${v('horario_montagem')}" placeholder="8h às 9h30"></div><div><label for="e-hf">Feira aberta</label><input id="e-hf" value="${v('horario_feira')}"></div></div>
+  <label for="e-hd">Desmontagem</label><input id="e-hd" value="${v('horario_desmontagem')}">
+  <div class="g2"><div><label for="e-p2">Valor 2 m (R$)</label><input id="e-p2" type="number" step="0.01" value="${v('preco_2m')}"></div><div><label for="e-p3">Valor 3 m (R$)</label><input id="e-p3" type="number" step="0.01" value="${v('preco_3m')}"></div></div>
+  <label for="e-est">Estacionamento (R$, deixe vazio se não tiver)</label><input id="e-est" type="number" step="0.01" value="${v('valor_estacionamento')}">
+  <label for="e-mapa">Mapa</label><select id="e-mapa"><option value="">Sem mapa</option>${(mp.data||[]).map(m=>`<option value="${m.id}" ${e.mapa_id===m.id?'selected':''}>${esc(m.nome)}</option>`).join('')}</select>
+  <label for="e-prazo">Prazo pra escolher vaga</label><input id="e-prazo" type="datetime-local" value="${e.prazo_escolha_vaga?new Date(new Date(e.prazo_escolha_vaga).getTime()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16):''}">
+  <label for="e-regras">Regras do local</label><textarea id="e-regras">${v('regras')}</textarea>
+  <label for="e-fotos">Link das fotos pós-feira</label><input id="e-fotos" type="url" value="${v('link_fotos')}" placeholder="https://drive.google.com/...">
+  <label class="check" style="margin-top:14px"><input type="checkbox" id="e-aberta" ${e.inscricoes_abertas?'checked':''}> Inscrições abertas</label></div>
+  <div class="painel"><b>Vagas por segmento</b><p class="sub" style="margin:2px 0 6px">Deixe vazio pra não limitar.</p>${S.segs.map(s=>`<div class="cota"><span style="flex:1">${esc(s.nome)}</span><input type="number" min="0" data-cota="${s.slug}" value="${cot[s.slug]??''}" style="width:90px" aria-label="Limite de ${esc(s.nome)}"></div>`).join('')}</div>
+  <p class="erro" id="e-err"></p><button class="btn pri" id="e-ok">Salvar edição</button>`;
+};
+
+TELAS['org-selecao']=async()=>{
+  const ed=S.edicoes||await listaEdicoes();S.edicoes=ed;
+  if(!S.orgEdicao&&ed.length)S.orgEdicao=ed[0].id;
+  if(!S.orgEdicao)return `<h1>Seleção</h1><p class="sub">Crie uma edição primeiro.</p>`;
+  const e=ed.find(x=>x.id===S.orgEdicao);
+  const [ins,ct]=await Promise.all([sb.from('inscricoes').select('*, marcas(*), decisoes(decisao)').eq('edicao_id',S.orgEdicao).order('criado_em'),sb.from('edicao_cotas').select('*').eq('edicao_id',S.orgEdicao)]);
+  if(ins.error)throw ins.error;
+  const lista=ins.data||[],cot=Object.fromEntries((ct.data||[]).map(c=>[c.segmento,c.limite]));
+  const conf={};lista.forEach(i=>{if(i.status==='confirmada'){const s=i.marcas?.segmento;conf[s]=(conf[s]||0)+1}});
+  const total=lista.filter(i=>i.status==='confirmada').length;
+  const segsUsados=S.segs.filter(s=>cot[s.slug]!=null||conf[s.slug]);
+  return `<h1>Seleção</h1><select id="sel-ed" aria-label="Edição">${ed.map(x=>`<option value="${x.id}" ${x.id===S.orgEdicao?'selected':''}>${esc(x.titulo)} · ${dataBR(x.data)}</option>`).join('')}</select>
+  <p class="sub" style="margin-top:8px">${total} presenças confirmadas · ${lista.length} inscrições</p>
+  ${segsUsados.length?`<div class="painel"><b>Vagas por segmento</b>${segsUsados.map(s=>{const a=conf[s.slug]||0,c=cot[s.slug];return `<div class="cota"><div style="flex:1">${esc(s.nome)} <span style="color:var(--ink-2)">${a}${c!=null?'/'+c:''}</span>${c?`<div class="barra"><i style="width:${Math.min(100,a/c*100)}%;${a>=c?'background:var(--menta)':''}"></i></div>`:''}</div></div>`}).join('')}</div>`:''}
+  <h2>Inscrições, por ordem de chegada</h2>
+  <div class="expo">${lista.map((i,n)=>{const m=i.marcas||{};const d=i.decisoes?.decisao;const cheio=cot[m.segmento]!=null&&(conf[m.segmento]||0)>=cot[m.segmento]&&i.status!=='confirmada';
+    return `<div class="cartao"><div class="foto">${m.fotos?.[0]?`<img src="${esc(m.fotos[0])}" alt="Trabalho de ${esc(m.nome)}">`:''}<span class="ord">#${n+1}</span>${cheio&&!d?'<span class="av">Segmento completo</span>':''}</div>
+    <div class="i"><b>${esc(m.nome)}</b><small>${esc(segNome(m.segmento))} · ${i.tamanho.replace('m',' m')}${m.instagram?' · '+esc(m.instagram):''}</small>
+    ${i.status==='encerrada'?'<span class="status n">Não dessa vez (avisado)</span>':d==='confirmada'?'<span class="status ok">Confirmado</span>':d==='reserva'?'<span class="status">Na sua reserva</span>':d==='nao_desta_vez'?'<span class="status n">Não dessa vez</span>':''}
+    ${i.status==='encerrada'?`<button class="mini" data-dec="convidar" data-id="${i.id}">Convidar (abriu vaga)</button>`:`<div class="row"><button class="mini pri" data-dec="confirmada" data-id="${i.id}">Confirmar</button></div><div class="row"><button class="mini" data-dec="reserva" data-id="${i.id}">Reserva</button><button class="mini" data-dec="nao_desta_vez" data-id="${i.id}">Não dessa vez</button></div>`}
+    ${i.status==='confirmada'?`<label class="check" style="font-size:13px;margin:0"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> Pagamento recebido</label>`:''}
+    </div></div>`}).join('')||'<p class="sub">Nenhuma inscrição ainda.</p>'}</div>
+  <p class="sub" style="margin-top:14px">O expositor só vê "inscrição recebida". Quando você encerrar a seleção, quem não foi confirmado recebe a mensagem de vagas preenchidas.</p>
+  ${e?.inscricoes_abertas||lista.some(i=>i.status==='recebida')?`<button class="btn sec" id="encerrar">Encerrar seleção</button>`:''}`;
+};
+
+TELAS['org-mapas']=async()=>{
+  const {data}=await sb.from('mapas').select('*').order('criado_em');S.mapas=data||[];
+  if(!S.mapaSel&&S.mapas.length)S.mapaSel=S.mapas[0].id;
+  const m=S.mapas.find(x=>x.id===S.mapaSel);
+  let corpo='<p class="sub">Crie um mapa: dê um nome e suba a planta exportada do Canva.</p>';
+  if(m){const {data:v}=await sb.from('mapa_vagas').select('*').eq('mapa_id',m.id).order('numero');S.vagasEd=v||[];
+    corpo=`<div class="painel"><div class="g2"><div><label for="mv-tam">Tamanho da próxima vaga</label><select id="mv-tam"><option value="2m">2 m</option><option value="3m">3 m</option></select></div><div><label for="mv-w">Largura / altura (%)</label><div class="g2"><input id="mv-w" type="number" value="${S.mvw||6}" min="1" max="40" aria-label="Largura"><input id="mv-h" type="number" value="${S.mvh||6}" min="1" max="40" aria-label="Altura"></div></div></div>
+    <p class="sub" style="margin:10px 0 0">Toque na planta pra criar uma vaga. Toque numa vaga pra selecionar.</p></div>
+    <div class="mapawrap" id="mapaed" style="cursor:crosshair"></div>
+    <div class="painel" id="vg-acoes" style="margin-top:10px"></div>
+    <label class="btn sec" for="mp-file" style="margin-top:6px">${m.imagem_url?'Trocar imagem da planta':'Subir imagem da planta'}</label><input id="mp-file" type="file" accept="image/*" hidden>`}
+  return `<h1>Mapas</h1>${S.mapas.length?`<select id="mp-sel" aria-label="Mapa">${S.mapas.map(x=>`<option value="${x.id}" ${x.id===S.mapaSel?'selected':''}>${esc(x.nome)}</option>`).join('')}</select>`:''}
+  <div class="row" style="margin:10px 0"><input id="mp-nome" placeholder="Nome do novo mapa (ex.: Shopping, 1º andar)" style="flex:3"><button class="mini pri" id="mp-novo">Criar</button></div>${corpo}`;
+};
+function desenhaEditor(){
+  const w=$('#mapaed');if(!w)return;const m=S.mapas.find(x=>x.id===S.mapaSel);
+  w.innerHTML=(m.imagem_url?`<img src="${esc(m.imagem_url)}" alt="Planta">`:'<div style="height:360px"></div>')+S.vagasEd.map(v=>`<button class="vg ${v.id===S.vagaSel?'sel':''}" style="left:${v.x}%;top:${v.y}%;width:${v.largura}%;height:${v.altura}%" data-vsel="${v.id}" aria-label="Vaga ${v.numero}">${v.numero}</button>`).join('');
+  const v=S.vagasEd.find(x=>x.id===S.vagaSel);const a=$('#vg-acoes');
+  a.innerHTML=v?`<b>Vaga ${v.numero} · ${v.tamanho}</b><div class="row" style="margin-top:8px"><button class="mini" data-vtam="${v.id}">Trocar pra ${v.tamanho==='2m'?'3 m':'2 m'}</button><button class="mini" data-vdel="${v.id}">Apagar</button></div>`:`<span class="sub">${S.vagasEd.length} vagas · nenhuma selecionada</span>`;
+}
+AFTER['org-mapas']=desenhaEditor;
+
+TELAS['org-lista']=async()=>{
+  const ed=S.edicoes||await listaEdicoes();S.edicoes=ed;if(!S.orgEdicao&&ed.length)S.orgEdicao=ed[0].id;
+  if(!S.orgEdicao)return `<h1>Lista pro local</h1><p class="sub">Crie uma edição primeiro.</p>`;
+  const {data,error}=await sb.from('inscricoes').select('id,status,marcas(nome),montagem(mesas,cadeiras,usa_estacionamento,placa),montadores(nome,cpf),mapa_vagas(numero)').eq('edicao_id',S.orgEdicao).eq('status','confirmada');if(error)throw error;
+  S.listaLinhas=[];let pend=0,carros=0;
+  (data||[]).forEach(i=>{const mo=Array.isArray(i.montagem)?i.montagem[0]:i.montagem;if(!mo)pend++;if(mo?.usa_estacionamento)carros++;
+    (i.montadores||[]).forEach(p=>S.listaLinhas.push([p.nome,p.cpf,i.marcas?.nome||'',i.mapa_vagas?.numero??'',mo?.usa_estacionamento?(mo.placa||''):'']));
+    if(!(i.montadores||[]).length&&mo?.usa_estacionamento)S.listaLinhas.push(['','',i.marcas?.nome||'',i.mapa_vagas?.numero??'',mo.placa||'']);});
+  return `<h1>Lista pro local</h1><select id="lista-ed" aria-label="Edição">${ed.map(x=>`<option value="${x.id}" ${x.id===S.orgEdicao?'selected':''}>${esc(x.titulo)} · ${dataBR(x.data)}</option>`).join('')}</select>
+  <div class="painel" style="margin-top:10px"><div class="kv"><span>Montadores</span><b>${S.listaLinhas.filter(l=>l[0]).length}</b></div><div class="kv"><span>Carros</span><b>${carros}</b></div><div class="kv"><span>Expositores sem dados</span><b style="color:${pend?'var(--tomate)':'inherit'}">${pend}</b></div></div>
+  <div class="painel tabwrap"><table><thead><tr><th>Nome</th><th>CPF</th><th>Marca</th><th>Vaga</th><th>Placa</th></tr></thead><tbody>${S.listaLinhas.map(l=>`<tr>${l.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')||'<tr><td colspan="5" class="sub">Nada ainda.</td></tr>'}</tbody></table></div>
+  <button class="btn pri" id="baixar">Baixar planilha (CSV)</button>
+  <button class="btn sec" id="apagar-sens" style="margin-top:8px">Apagar CPFs e placas desta edição</button>`;
+};
+
+TELAS['org-propostas']=async()=>{const {data,error}=await sb.from('propostas_espacos').select('*').order('criado_em',{ascending:false});if(error)throw error;
+  return `<h1>Propostas de espaços</h1>${(data||[]).map(p=>`<div class="painel"><div class="topo"><b>${esc(p.nome)}</b><select data-pst="${p.id}" style="width:auto;min-height:36px" aria-label="Status"><option value="nova" ${p.status==='nova'?'selected':''}>Nova</option><option value="em_conversa" ${p.status==='em_conversa'?'selected':''}>Em conversa</option><option value="arquivada" ${p.status==='arquivada'?'selected':''}>Arquivada</option></select></div><p class="sub" style="margin:4px 0 0">${esc(p.tipo)} · ${esc(p.cidade)} · ${esc(p.area)}<br>${esc(p.acordo)} · ${esc(p.contato)}</p></div>`).join('')||'<p class="sub">Nenhuma proposta ainda.</p>'}`};
+
+/* ================= EVENTOS ================= */
+document.addEventListener('click',async ev=>{
+  const b=ev.target.closest('button,[data-go]');if(!b)return;const d=b.dataset;
+  try{
+  if(d.go){if(d.go==='proposta')location.hash='proposta';go(d.go);return}
+  if(b.id==='a-troca'){modoAuth=modoAuth==='entrar'?'criar':'entrar';render();return}
+  if(b.id==='a-ok'){const email=$('#a-email').value.trim(),senha=$('#a-senha').value;const err=$('#a-err');err.textContent='';if(!email||!senha){err.textContent='Preencha e-mail e senha.';return}b.disabled=true;
+    const r=modoAuth==='entrar'?await sb.auth.signInWithPassword({email,password:senha}):await sb.auth.signUp({email,password:senha,options:{emailRedirectTo:location.origin+location.pathname}});
+    b.disabled=false;if(r.error){err.textContent=erroMsg(r.error);return}
+    if(modoAuth==='criar'&&!r.data.session){err.style.color='var(--menta)';err.textContent='Conta criada! Confirme pelo link que enviamos pro seu e-mail.'}return}
+  if(b.id==='a-esqueci'){const email=$('#a-email').value.trim();if(!email){$('#a-err').textContent='Digite seu e-mail acima primeiro.';return}const r=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});$('#a-err').textContent=r.error?erroMsg(r.error):'Enviamos um link pra redefinir a senha.';return}
+  if(b.id==='ns-ok'){const r=await sb.auth.updateUser({password:$('#ns').value});if(r.error){$('#ns-err').textContent=erroMsg(r.error);return}toast('Senha atualizada');carregarUsuario();return}
+  if(b.id==='sair'){await sb.auth.signOut();return}
+  if(b.id==='p-ok'){const nome=$('#p-nome').value.trim();if(!nome){$('#p-err').textContent='Informe o nome do espaço.';return}b.disabled=true;
+    const r=await sb.from('propostas_espacos').insert({nome,tipo:$('#p-tipo').value,cidade:$('#p-cid').value,area:$('#p-area').value,acordo:$('#p-acordo').value,contato:$('#p-cont').value});b.disabled=false;
+    if(r.error){$('#p-err').textContent=erroMsg(r.error);return}toast('Proposta enviada. Obrigada!');location.hash='';go(S.sessao?'inicio':'auth');return}
+  if(d.tam){S.tamEscolhido=d.tam;document.querySelectorAll('[data-tam]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.tam===d.tam));return}
+  if(b.id==='inscrever'){b.disabled=true;const r=await sb.rpc('inscrever',{p_edicao:S.edicao.id,p_tamanho:S.tamEscolhido});b.disabled=false;if(r.error){toast(erroMsg(r.error));return}toast('Inscrição recebida!');render();return}
+  if(d.rmfoto){S.fotos.splice(+d.rmfoto,1);desenhaFotos();return}
+  if(b.id==='m-ok'){const nome=$('#m-nome').value.trim(),err=$('#m-err');err.textContent='';if(!nome){err.textContent='Informe o nome da marca.';return}if(S.fotos.length<3){err.textContent='Adicione pelo menos 3 fotos do trabalho.';return}
+    b.disabled=true;const reg={nome,segmento:$('#m-seg').value,instagram:$('#m-insta').value.trim(),whatsapp:$('#m-zap').value.trim(),descricao:$('#m-desc').value.trim(),fotos:S.fotos};
+    const r=S.marca?await sb.from('marcas').update(reg).eq('id',S.marca.id).select().single():await sb.from('marcas').insert({...reg,dono:S.sessao.user.id}).select().single();b.disabled=false;
+    if(r.error){err.textContent=erroMsg(r.error);return}S.marca=r.data;toast('Marca salva');go('inicio');return}
+  if(d.escolher){if(b.getAttribute('aria-disabled')){toast(b.classList.contains('oc')?'Essa vaga já foi escolhida':'Essa vaga é de outro tamanho');return}
+    const r=await sb.rpc('escolher_vaga',{p_inscricao:S.ins.id,p_vaga:d.escolher});if(r.error){toast(erroMsg(r.error));return}
+    S.ins.vaga_id=d.escolher;const v=S.vagas.find(x=>x.id===d.escolher);toast(`Vaga ${v?.numero} reservada`);render();return}
+  if(b.id==='mt-add'){S.montadores.push({nome:'',cpf:''});desenhaMontadores();return}
+  if(d.mtrm){S.montadores.splice(+d.mtrm,1);if(!S.montadores.length)S.montadores.push({nome:'',cpf:''});desenhaMontadores();return}
+  if(b.id==='mo-ok'){const err=$('#mo-err');const pessoas=S.montadores.filter(p=>p.nome.trim());if(!pessoas.length){err.textContent='Informe ao menos uma pessoa que vai montar.';return}
+    if(pessoas.some(p=>p.cpf.replace(/\D/g,'').length!==11)){err.textContent='Confira os CPFs: cada um precisa ter 11 números.';return}
+    const usa=!!$('#mo-est')?.checked,placa=($('#mo-placa')?.value||'').trim().toUpperCase();if(usa&&!placa){err.textContent='Informe a placa do carro.';return}
+    b.disabled=true;const id=S.ins.id;
+    const r1=await sb.from('montagem').upsert({inscricao_id:id,mesas:+$('#mo-mesa').value||0,cadeiras:+$('#mo-cad').value||0,usa_estacionamento:usa,placa:usa?placa:null,atualizado_em:new Date().toISOString()});
+    if(r1.error){b.disabled=false;err.textContent=erroMsg(r1.error);return}
+    await sb.from('montadores').delete().eq('inscricao_id',id);
+    const r2=await sb.from('montadores').insert(pessoas.map(p=>({inscricao_id:id,nome:p.nome.trim(),cpf:p.cpf.replace(/\D/g,'')})));b.disabled=false;
+    if(r2.error){err.textContent=erroMsg(r2.error);return}toast('Dados da montagem salvos');go('inicio');return}
+  /* organizadora */
+  if(d.editar){S.edForm=d.editar==='nova'?null:S.edicoes.find(x=>x.id===d.editar);go('org-edicao-form');return}
+  if(d.selecionar){S.orgEdicao=d.selecionar;go('org-selecao');return}
+  if(b.id==='e-ok'){const err=$('#e-err');err.textContent='';const data=$('#e-data').value;if(!data){err.textContent='Informe a data.';return}
+    const num=id=>{const v=$(id).value;return v===''?null:Number(v)};const prazo=$('#e-prazo').value;
+    const reg={titulo:$('#e-tit').value.trim()||'Feira Bêrga',data,local:$('#e-local').value.trim(),horario_montagem:$('#e-hm').value.trim(),horario_feira:$('#e-hf').value.trim(),horario_desmontagem:$('#e-hd').value.trim(),preco_2m:num('#e-p2'),preco_3m:num('#e-p3'),valor_estacionamento:num('#e-est'),mapa_id:$('#e-mapa').value||null,prazo_escolha_vaga:prazo?new Date(prazo).toISOString():null,regras:$('#e-regras').value.trim(),link_fotos:$('#e-fotos').value.trim()||null,inscricoes_abertas:$('#e-aberta').checked};
+    b.disabled=true;const r=S.edForm?.id?await sb.from('edicoes').update(reg).eq('id',S.edForm.id).select().single():await sb.from('edicoes').insert(reg).select().single();
+    if(r.error){b.disabled=false;err.textContent=erroMsg(r.error);return}
+    const eid=r.data.id;await sb.from('edicao_cotas').delete().eq('edicao_id',eid);
+    const cotas=[...document.querySelectorAll('[data-cota]')].filter(i=>i.value!=='').map(i=>({edicao_id:eid,segmento:i.dataset.cota,limite:+i.value}));
+    if(cotas.length){const r2=await sb.from('edicao_cotas').insert(cotas);if(r2.error){b.disabled=false;err.textContent=erroMsg(r2.error);return}}
+    S.edicoes=null;toast('Edição salva');go('org-edicoes');return}
+  if(d.dec){const id=d.id,dec=d.dec;
+    if(dec==='convidar'){const r=await sb.from('inscricoes').update({status:'recebida'}).eq('id',id);if(r.error){toast(erroMsg(r.error));return}await sb.from('decisoes').delete().eq('inscricao_id',id);toast('Convite reaberto: a inscrição volta pra fila');render();return}
+    const r=await sb.from('decisoes').upsert({inscricao_id:id,decisao:dec,atualizado_em:new Date().toISOString()});if(r.error){toast(erroMsg(r.error));return}
+    await sb.from('inscricoes').update({status:dec==='confirmada'?'confirmada':'recebida'}).eq('id',id);
+    toast(dec==='confirmada'?'Presença confirmada':dec==='reserva'?'Guardado na sua reserva':'Marcado como não dessa vez');render();return}
+  if(b.id==='encerrar'){if(!confirm('Encerrar a seleção? As inscrições fecham e quem não foi confirmado recebe a mensagem de vagas preenchidas.'))return;const r=await sb.rpc('encerrar_selecao',{p_edicao:S.orgEdicao});if(r.error){toast(erroMsg(r.error));return}S.edicoes=null;toast('Seleção encerrada');render();return}
+  if(b.id==='mp-novo'){const nome=$('#mp-nome').value.trim();if(!nome){toast('Dê um nome pro mapa');return}const r=await sb.from('mapas').insert({nome}).select().single();if(r.error){toast(erroMsg(r.error));return}S.mapaSel=r.data.id;render();return}
+  if(d.vsel){ev.stopPropagation();S.vagaSel=S.vagaSel===d.vsel?null:d.vsel;desenhaEditor();return}
+  if(d.vtam){const v=S.vagasEd.find(x=>x.id===d.vtam);const t=v.tamanho==='2m'?'3m':'2m';const r=await sb.from('mapa_vagas').update({tamanho:t}).eq('id',v.id);if(r.error){toast(erroMsg(r.error));return}v.tamanho=t;desenhaEditor();return}
+  if(d.vdel){const r=await sb.from('mapa_vagas').delete().eq('id',d.vdel);if(r.error){toast(erroMsg(r.error));return}S.vagasEd=S.vagasEd.filter(x=>x.id!==d.vdel);S.vagaSel=null;desenhaEditor();return}
+  if(b.id==='baixar'){const linhas=[['Nome','CPF','Marca','Vaga','Placa'],...S.listaLinhas];const csv=linhas.map(l=>l.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));a.download='lista-montagem.csv';a.click();return}
+  if(b.id==='apagar-sens'){if(!confirm('Apagar CPFs e placas desta edição? Faça isso só depois que a feira acontecer.'))return;const r=await sb.rpc('apagar_dados_sensiveis',{p_edicao:S.orgEdicao});if(r.error){toast(erroMsg(r.error));return}toast('Dados apagados');render();return}
+  }catch(e){toast(erroMsg(e))}
+});
+
+/* clique na planta (criar vaga) */
+document.addEventListener('click',async ev=>{
+  const w=ev.target.closest('#mapaed');if(!w||ev.target.closest('.vg'))return;
+  const r=w.getBoundingClientRect();const x=+((ev.clientX-r.left)/r.width*100).toFixed(2),y=+((ev.clientY-r.top)/r.height*100).toFixed(2);
+  S.mvw=+$('#mv-w').value||6;S.mvh=+$('#mv-h').value||6;
+  const numero=(S.vagasEd.reduce((m,v)=>Math.max(m,v.numero),0))+1;
+  const res=await sb.from('mapa_vagas').insert({mapa_id:S.mapaSel,numero,tamanho:$('#mv-tam').value,x,y,largura:S.mvw,altura:S.mvh}).select().single();
+  if(res.error){toast(erroMsg(res.error));return}S.vagasEd.push(res.data);S.vagaSel=null;desenhaEditor();
+});
+
+document.addEventListener('input',ev=>{const t=ev.target;
+  if(t.dataset.mtn)S.montadores[+t.dataset.mtn].nome=t.value;
+  if(t.dataset.mtc)S.montadores[+t.dataset.mtc].cpf=t.value;});
+document.addEventListener('change',async ev=>{const t=ev.target;
+  if(t.id==='mo-est'){$('#mo-placa-w').hidden=!t.checked;return}
+  if(t.id==='sel-ed'||t.id==='lista-ed'){S.orgEdicao=t.value;render();return}
+  if(t.id==='mp-sel'){S.mapaSel=t.value;S.vagaSel=null;render();return}
+  if(t.dataset.pago){const r=await sb.from('inscricoes').update({pago:t.checked}).eq('id',t.dataset.pago);toast(r.error?erroMsg(r.error):t.checked?'Pagamento registrado. O mapa foi liberado pro expositor.':'Pagamento desmarcado');return}
+  if(t.dataset.pst){await sb.from('propostas_espacos').update({status:t.value}).eq('id',t.dataset.pst);toast('Status atualizado');return}
+  if(t.id==='m-file'){const files=[...t.files];if(!files.length)return;toast('Enviando fotos…');
+    for(const f of files){if(f.size>5*1024*1024){toast(`${f.name} passa de 5 MB`);continue}
+      const path=`${S.sessao.user.id}/${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;const r=await sb.storage.from('fotos-marcas').upload(path,f);
+      if(r.error){toast(erroMsg(r.error));continue}S.fotos.push(sb.storage.from('fotos-marcas').getPublicUrl(path).data.publicUrl)}
+    t.value='';desenhaFotos();return}
+  if(t.id==='mp-file'){const f=t.files[0];if(!f)return;toast('Enviando planta…');const path=`${S.mapaSel}/${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;
+    const r=await sb.storage.from('mapas').upload(path,f);if(r.error){toast(erroMsg(r.error));return}
+    const url=sb.storage.from('mapas').getPublicUrl(path).data.publicUrl;const r2=await sb.from('mapas').update({imagem_url:url}).eq('id',S.mapaSel);if(r2.error){toast(erroMsg(r2.error));return}toast('Planta atualizada');render();return}
+});
+window.addEventListener('hashchange',()=>{if(location.hash==='#proposta')go('proposta')});
+iniciar();
+</script>
+</body>
+</html>

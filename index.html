@@ -189,6 +189,12 @@ TELAS.proposta=()=>`<button class="mini" data-go="${S.sessao?'inicio':'auth'}" s
 
 /* ================= EXPOSITOR ================= */
 const fimEd=e=>e.data_fim||e.data;
+const hfmt=t=>{if(!t)return'';const[h,m]=t.split(':');return `${+h}h${m!=='00'?m:''}`};
+const hparse=txt=>{const r=[];String(txt||'').replace(/(\d{1,2})h(\d{2})?/g,(_,h,m)=>{r.push(`${String(h).padStart(2,'0')}:${m||'00'}`)});return r};
+const faixa=(a,b)=>a&&b?`${hfmt(a)} às ${hfmt(b)}`:a?`a partir das ${hfmt(a)}`:'';
+const moedaTxt=v=>v==null||v===''?'':Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const moedaNum=t=>{const d=String(t||'').replace(/\D/g,'');return d?Number(d)/100:null};
+const diaCurto=d=>{if(!d)return'';const[a,m,dd]=d.split('-');return `${dd}/${m}`};
 const periodo=e=>e.data_fim&&e.data_fim!==e.data?`${dataBR(e.data).slice(0,5)} a ${dataBR(e.data_fim)}`:dataBR(e.data);
 async function listarProximas(){
   const hoje=new Date().toISOString().slice(0,10);
@@ -204,8 +210,11 @@ async function inicioBase(){
   if(!ins&&!S.tamEscolhido){const {data:ult}=await sb.from('inscricoes').select('tamanho').eq('dono',S.sessao.user.id).order('criado_em',{ascending:false}).limit(1);S.tamEscolhido=ult?.[0]?.tamanho;S.jaParticipou=!!ult?.length}
   let tam=ins?.tamanho||S.tamEscolhido||'2m';S.tamEscolhido=tam;
   const mk=S.marca;const resumo=`<div class="painel"><div class="resumo">${mk.fotos?.[0]?`<img src="${esc(mk.fotos[0])}" alt="">`:''}<div style="flex:1"><b>${esc(mk.nome)}</b><div class="sub" style="margin:0">${esc(segNome(mk.segmento))}${mk.instagram?' · '+esc(mk.instagram):''}</div></div><button class="mini" data-go="marca">Revisar</button></div><p class="sub" style="margin:10px 0 0;font-size:13px">${S.jaParticipou?'Seus dados da última participação já estão aqui. Confira se mudou algo antes de se inscrever.':'Esses dados vão junto com a sua inscrição.'}</p></div>`;
-  const info=`<div class="painel"><div class="kv"><span>Local</span><b>${esc(e.local||'a definir')}</b></div><div class="kv"><span>Montagem</span><b>${esc(e.horario_montagem||'a definir')}</b></div><div class="kv"><span>Feira aberta</span><b>${esc(e.horario_feira||'a definir')}</b></div><div class="kv"><span>Desmontagem</span><b>${esc(e.horario_desmontagem||'a definir')}</b></div>${e.valor_estacionamento!=null?`<div class="kv"><span>Estacionamento</span><b>${money(e.valor_estacionamento)}, com placa</b></div>`:''}</div>`;
+  const info=`<div class="painel"><div class="kv"><span>Local</span><b>${esc(e.local||'a definir')}</b></div><div class="kv"><span>Montagem</span><b>${e.data_montagem?diaCurto(e.data_montagem)+(e.horario_montagem?', ':''):''}${esc(e.horario_montagem||(e.data_montagem?'':'a definir'))}</b></div><div class="kv"><span>Feira aberta</span><b>${esc(e.horario_feira||'a definir')}</b></div><div class="kv"><span>Desmontagem</span><b>${esc(e.horario_desmontagem||'a definir')}</b></div>${e.valor_estacionamento!=null?`<div class="kv"><span>Estacionamento</span><b>${money(e.valor_estacionamento)}, com placa</b></div>`:''}</div>`;
   const cab=`<button class="mini" data-go="inicio" style="border:0;background:none">← Edições</button><div class="cardfeira" style="margin-top:6px">${toldo(e,e.inscricoes_abertas?'Inscrições abertas':ins?null:'Inscrições em breve')}<div class="c"><p style="font-family:var(--display);font-size:24px;font-weight:700;margin:0">${esc(e.titulo)}</p><p class="sub" style="margin:0">${periodo(e)}</p></div></div>`;
+  let segFora=false;
+  if(!ins){const {data:cz}=await sb.from('edicao_cotas').select('limite').eq('edicao_id',e.id).eq('segmento',S.marca.segmento).maybeSingle();segFora=cz?.limite===0}
+  if(!ins&&segFora)return cab+`<div class="painel"><span class="status n">Fora dessa edição</span><p style="margin:10px 0 0">Essa edição não vai receber expositores de ${esc(segNome(S.marca.segmento))}. Fica de olho nas próximas!</p></div>`+info;
   if(!ins){
     if(!e.inscricoes_abertas)return cab+info+`<p class="sub">As inscrições ainda não abriram. Você recebe aviso pelo grupo quando abrirem.</p>`;
     return cab+resumo+`<h2>Tamanho do espaço</h2>${S.jaParticipou?'<p class="sub" style="margin-top:-6px">Deixamos marcado o tamanho que você usou da última vez.</p>':''}<div class="opcoes">${['2m','3m'].map(t=>`<button class="op" data-tam="${t}" aria-pressed="${tam===t}"><b>${t.replace('m',' m')}</b><small>${money(t==='2m'?e.preco_2m:e.preco_3m)}</small></button>`).join('')}</div>${S.pend?`<button class="btn sec" data-go="feedback" style="margin-top:16px">Responda o feedback da edição anterior pra liberar</button>`:`<button class="btn pri" id="inscrever" style="margin-top:16px">Quero participar</button>`}<h2>Informações da edição</h2>`+info;
@@ -237,7 +246,8 @@ TELAS.inicio=async()=>{
   if(!eds.length)return cardPend()+`<div class="vazio">${berg(64)}<h1>${esc(S.marca.nome)}</h1><p class="sub">Ainda não tem edição marcada. Assim que a próxima abrir, ela aparece aqui.</p></div>`;
   const {data:minhas}=await sb.from('inscricoes').select('edicao_id,status,pago').eq('marca_id',S.marca.id).in('edicao_id',eds.map(e=>e.id));
   const st=Object.fromEntries((minhas||[]).map(i=>[i.edicao_id,i]));
-  const selo=(e,i)=>!i?(e.inscricoes_abertas?['Inscrições abertas','ok']:['Em breve','n']):i.status==='encerrada'?['Vagas preenchidas','n']:i.status==='confirmada'?(i.pago?['Presença confirmada','ok']:['Pagamento pendente','t']):['Inscrição recebida',''];
+  const {data:zs}=await sb.from('edicao_cotas').select('edicao_id').eq('segmento',S.marca.segmento).eq('limite',0).in('edicao_id',eds.map(e=>e.id));const fora=new Set((zs||[]).map(z=>z.edicao_id));
+  const selo=(e,i)=>!i&&fora.has(e.id)?['Fora dessa edição','n']:!i?(e.inscricoes_abertas?['Inscrições abertas','ok']:['Em breve','n']):i.status==='encerrada'?['Vagas preenchidas','n']:i.status==='confirmada'?(i.pago?['Presença confirmada','ok']:['Pagamento pendente','t']):['Inscrição recebida',''];
   return cardPend()+`<h1>Edições</h1><p class="sub">Toque numa edição pra se inscrever ou acompanhar.</p>`+eds.map(e=>{const [t,c]=selo(e,st[e.id]);return `<button class="cardfeira" data-ed="${e.id}" style="width:100%;text-align:left;padding:0;display:block">${toldo(e,null)}<div class="c"><div class="topo"><p style="font-family:var(--display);font-size:21px;font-weight:700;margin:0">${esc(e.titulo)}</p><span class="status ${c}">${t}</span></div><p class="sub" style="margin:2px 0 0">${periodo(e)}${e.local?' · '+esc(e.local):''}</p></div></button>`}).join('');
 };
 TELAS.edicao=async()=>{
@@ -310,20 +320,28 @@ TELAS['org-edicao-form']=async()=>{
   const v=k=>esc(e[k]??'');
   return `<button class="mini" data-go="org-edicoes" style="border:0;background:none">← Edições</button><h1>${e.id?'Editar edição':'Nova edição'}</h1><div class="painel">
   <label for="e-tit">Nome</label><input id="e-tit" value="${v('titulo')}">
-  <div class="g2"><div><label for="e-data">Data (início)</label><input id="e-data" type="date" value="${v('data')}"></div><div><label for="e-fim">Último dia (se tiver mais de um)</label><input id="e-fim" type="date" value="${v('data_fim')}"></div></div>
+  <div class="g2"><div><label for="e-data">Primeiro dia</label><input id="e-data" type="date" value="${v('data')}"></div><div><label for="e-fim">Último dia</label><input id="e-fim" type="date" value="${v('data_fim')}"></div></div>
   <label for="e-local">Local</label><input id="e-local" value="${v('local')}">
-  <div class="g2"><div><label for="e-hm">Montagem</label><input id="e-hm" value="${v('horario_montagem')}" placeholder="8h às 9h30"></div><div><label for="e-hf">Feira aberta</label><input id="e-hf" value="${v('horario_feira')}"></div></div>
-  <label for="e-hd">Desmontagem</label><input id="e-hd" value="${v('horario_desmontagem')}">
-  <div class="g2"><div><label for="e-p2">Valor 2 m (R$)</label><input id="e-p2" type="number" step="0.01" value="${v('preco_2m')}"></div><div><label for="e-p3">Valor 3 m (R$)</label><input id="e-p3" type="number" step="0.01" value="${v('preco_3m')}"></div></div>
+  ${(()=>{const hm=hparse(e.horario_montagem),hf=hparse(e.horario_feira),hd=hparse(e.horario_desmontagem);return `
+  <h2 style="font-size:17px;margin:20px 0 0">Montagem</h2>
+  <label for="e-dm">Dia</label><input id="e-dm" type="date" value="${v('data_montagem')}">
+  <p class="sub" style="margin:4px 0 0;font-size:12px">Deixe vazio se for no mesmo dia da feira.</p>
+  <div class="g2"><div><label for="e-hm1">Das</label><input id="e-hm1" type="time" value="${hm[0]||''}"></div><div><label for="e-hm2">Até</label><input id="e-hm2" type="time" value="${hm[1]||''}"></div></div>
+  <h2 style="font-size:17px;margin:20px 0 0">Feira aberta</h2>
+  <div class="g2"><div><label for="e-hf1">Das</label><input id="e-hf1" type="time" value="${hf[0]||''}"></div><div><label for="e-hf2">Até</label><input id="e-hf2" type="time" value="${hf[1]||''}"></div></div>
+  <h2 style="font-size:17px;margin:20px 0 0">Desmontagem</h2>
+  <label for="e-hd1">A partir das</label><input id="e-hd1" type="time" value="${hd[0]||''}">
+  <h2 style="font-size:17px;margin:20px 0 0">Valores</h2>`})()}
+  <div class="g2"><div><label for="e-p2">Espaço 2 m (R$)</label><input id="e-p2" class="moeda" inputmode="numeric" placeholder="0,00" value="${moedaTxt(e.preco_2m)}"></div><div><label for="e-p3">Espaço 3 m (R$)</label><input id="e-p3" class="moeda" inputmode="numeric" placeholder="0,00" value="${moedaTxt(e.preco_3m)}"></div></div>
   <div class="g2"><div><label for="e-pix">Chave Pix</label><input id="e-pix" value="${v('chave_pix')}"></div><div><label for="e-link">Link de pagamento (opcional)</label><input id="e-link" type="url" value="${v('link_pagamento')}"></div></div>
-  <label for="e-est">Estacionamento (R$, deixe vazio se não tiver)</label><input id="e-est" type="number" step="0.01" value="${v('valor_estacionamento')}">
+  <label for="e-est">Estacionamento (R$)</label><input id="e-est" class="moeda" inputmode="numeric" placeholder="Deixe vazio se não tiver" value="${moedaTxt(e.valor_estacionamento)}">
   <label for="e-mapa">Mapa</label><select id="e-mapa"><option value="">Sem mapa</option>${(mp.data||[]).map(m=>`<option value="${m.id}" ${e.mapa_id===m.id?'selected':''}>${esc(m.nome)}</option>`).join('')}</select>
   <label for="e-prazo">Prazo pra escolher vaga</label><input id="e-prazo" type="datetime-local" value="${e.prazo_escolha_vaga?new Date(new Date(e.prazo_escolha_vaga).getTime()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16):''}">
   <label for="e-regras">Regras do local</label><textarea id="e-regras">${v('regras')}</textarea>
   <label for="e-fotos">Link das fotos pós-feira</label><input id="e-fotos" type="url" value="${v('link_fotos')}" placeholder="https://drive.google.com/...">
   <label class="check" style="margin-top:14px"><input type="checkbox" id="e-aberta" ${e.inscricoes_abertas?'checked':''}> Inscrições abertas</label></div>
-  <div class="painel"><b>Vagas por segmento</b><p class="sub" style="margin:2px 0 6px">Deixe vazio pra não limitar.</p>${S.segs.map(s=>`<div class="cota"><span style="flex:1">${esc(s.nome)}</span><input type="number" min="0" data-cota="${s.slug}" value="${cot[s.slug]??''}" style="width:90px" aria-label="Limite de ${esc(s.nome)}"></div>`).join('')}</div>
-  <p class="erro" id="e-err"></p><button class="btn pri" id="e-ok">Salvar edição</button>`;
+  <div class="painel"><b>Vagas por segmento</b><p class="sub" style="margin:2px 0 6px">Vazio = sem limite. Zero = o segmento não participa dessa edição.</p>${S.segs.map(s=>`<div class="cota"><span style="flex:1">${esc(s.nome)}</span><input type="number" min="0" data-cota="${s.slug}" value="${cot[s.slug]??''}" style="width:90px" aria-label="Limite de ${esc(s.nome)}"></div>`).join('')}</div>
+  <p class="erro" id="e-err"></p><button class="btn pri" id="e-ok">Salvar edição</button>${e.id?`<button class="btn sec" id="e-del" style="margin-top:10px;color:var(--tomate);border-color:var(--tomate-soft)">Excluir edição</button><p class="sub" style="margin-top:6px;font-size:12px;text-align:center">Só dá pra excluir enquanto ninguém tiver se inscrito.</p>`:''}`;
 };
 
 TELAS['org-selecao']=async()=>{
@@ -338,7 +356,7 @@ TELAS['org-selecao']=async()=>{
   const lista=ins.data||[],cot=Object.fromEntries((ct.data||[]).map(c=>[c.segmento,c.limite]));
   const conf={};lista.forEach(i=>{if(i.status==='confirmada'){const s=i.marcas?.segmento;conf[s]=(conf[s]||0)+1}});
   const total=lista.filter(i=>i.status==='confirmada').length;
-  const segsUsados=S.segs.filter(s=>cot[s.slug]!=null||conf[s.slug]);
+  const segsUsados=S.segs.filter(s=>(cot[s.slug]!=null&&cot[s.slug]>0)||conf[s.slug]);
   return `<h1>Seleção</h1><select id="sel-ed" aria-label="Edição">${ed.map(x=>`<option value="${x.id}" ${x.id===S.orgEdicao?'selected':''}>${esc(x.titulo)} · ${periodo(x)}</option>`).join('')}</select>
   <p class="sub" style="margin-top:8px">${total} presenças confirmadas · ${lista.length} inscrições</p>
   ${segsUsados.length?`<div class="painel"><b>Vagas por segmento</b>${segsUsados.map(s=>{const a=conf[s.slug]||0,c=cot[s.slug];return `<div class="cota"><div style="flex:1">${esc(s.nome)} <span style="color:var(--ink-2)">${a}${c!=null?'/'+c:''}</span>${c?`<div class="barra"><i style="width:${Math.min(100,a/c*100)}%;${a>=c?'background:var(--menta)':''}"></i></div>`:''}</div></div>`}).join('')}</div>`:''}
@@ -480,13 +498,16 @@ document.addEventListener('click',async ev=>{
   if(b.id==='e-ok'){const err=$('#e-err');err.textContent='';const data=$('#e-data').value;if(!data){err.textContent='Informe a data.';return}
     const num=id=>{const v=$(id).value;return v===''?null:Number(v)};const prazo=$('#e-prazo').value;
     const fimV=$('#e-fim').value||null;if(fimV&&fimV<data){err.textContent='O último dia não pode ser antes do início.';return}
-    const reg={titulo:$('#e-tit').value.trim()||'Feira Bêrga',data,data_fim:fimV&&fimV!==data?fimV:null,local:$('#e-local').value.trim(),horario_montagem:$('#e-hm').value.trim(),horario_feira:$('#e-hf').value.trim(),horario_desmontagem:$('#e-hd').value.trim(),preco_2m:num('#e-p2'),preco_3m:num('#e-p3'),valor_estacionamento:num('#e-est'),mapa_id:$('#e-mapa').value||null,prazo_escolha_vaga:prazo?new Date(prazo).toISOString():null,regras:$('#e-regras').value.trim(),link_fotos:$('#e-fotos').value.trim()||null,chave_pix:$('#e-pix').value.trim()||null,link_pagamento:$('#e-link').value.trim()||null,inscricoes_abertas:$('#e-aberta').checked};
+    const reg={titulo:$('#e-tit').value.trim()||'Feira Bêrga',data,data_fim:fimV&&fimV!==data?fimV:null,local:$('#e-local').value.trim(),data_montagem:$('#e-dm').value&&$('#e-dm').value!==data?$('#e-dm').value:null,horario_montagem:faixa($('#e-hm1').value,$('#e-hm2').value),horario_feira:faixa($('#e-hf1').value,$('#e-hf2').value),horario_desmontagem:$('#e-hd1').value?'a partir das '+hfmt($('#e-hd1').value):'',preco_2m:moedaNum($('#e-p2').value),preco_3m:moedaNum($('#e-p3').value),valor_estacionamento:moedaNum($('#e-est').value),mapa_id:$('#e-mapa').value||null,prazo_escolha_vaga:prazo?new Date(prazo).toISOString():null,regras:$('#e-regras').value.trim(),link_fotos:$('#e-fotos').value.trim()||null,chave_pix:$('#e-pix').value.trim()||null,link_pagamento:$('#e-link').value.trim()||null,inscricoes_abertas:$('#e-aberta').checked};
     b.disabled=true;const r=S.edForm?.id?await sb.from('edicoes').update(reg).eq('id',S.edForm.id).select().single():await sb.from('edicoes').insert(reg).select().single();
     if(r.error){b.disabled=false;err.textContent=erroMsg(r.error);return}
     const eid=r.data.id;await sb.from('edicao_cotas').delete().eq('edicao_id',eid);
     const cotas=[...document.querySelectorAll('[data-cota]')].filter(i=>i.value!=='').map(i=>({edicao_id:eid,segmento:i.dataset.cota,limite:+i.value}));
     if(cotas.length){const r2=await sb.from('edicao_cotas').insert(cotas);if(r2.error){b.disabled=false;err.textContent=erroMsg(r2.error);return}}
     S.edicoes=null;toast('Edição salva');go('org-edicoes');return}
+  if(b.id==='e-del'){const e=S.edForm;if(!confirm(`Excluir a edição "${e.titulo}" de ${periodo(e)}? Isso não pode ser desfeito.`))return;
+    b.disabled=true;const r=await sb.from('edicoes').delete().eq('id',e.id);b.disabled=false;
+    if(r.error){$('#e-err').textContent=erroMsg(r.error);return}if(S.orgEdicao===e.id)S.orgEdicao=null;S.edicoes=null;toast('Edição excluída');go('org-edicoes');return}
   if(d.dec){const id=d.id,dec=d.dec;
     if(dec==='convidar'){const r=await sb.from('inscricoes').update({status:'recebida'}).eq('id',id);if(r.error){toast(erroMsg(r.error));return}await sb.from('decisoes').delete().eq('inscricao_id',id);toast('Convite reaberto: a inscrição volta pra fila');render();return}
     const r=await sb.from('decisoes').upsert({inscricao_id:id,decisao:dec,atualizado_em:new Date().toISOString()});if(r.error){toast(erroMsg(r.error));return}
@@ -514,6 +535,7 @@ document.addEventListener('click',async ev=>{
 });
 
 document.addEventListener('input',ev=>{const t=ev.target;
+  if(t.classList&&t.classList.contains('moeda')){const n=moedaNum(t.value);t.value=n==null?'':moedaTxt(n);return}
   if(t.dataset.mtn)S.montadores[+t.dataset.mtn].nome=t.value;
   if(t.dataset.mtc)S.montadores[+t.dataset.mtc].cpf=t.value;});
 document.addEventListener('change',async ev=>{const t=ev.target;

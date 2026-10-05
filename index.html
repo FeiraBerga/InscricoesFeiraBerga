@@ -10,14 +10,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
---ground:#F1EEF5;--card:#fff;--ink:#22182E;--ink-2:#5E5470;--line:#E0DAE8;--uva:#5B2A86;--uva-soft:#EAE0F4;--mostarda:#F2B134;--menta:#1A7A5E;--menta-soft:#DDF2EA;--tomate:#B8401F;--tomate-soft:#FBE3DC;
+--ground:#F4F1E8;--card:#FFFDF8;--ink:#1F2416;--ink-2:#5C6150;--line:#E2DDCD;--verde:#4B5A2A;--verde-soft:#E6E9D6;--on-verde:#FFFDF8;--laranja:#E8782E;--laranja-soft:#FBE7D6;--on-laranja:#2B1405;--menta:#4E6B2E;--menta-soft:#E3EAD3;--tomate:#B23A1E;--tomate-soft:#F8DED6;
 --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;--body:"Figtree","Segoe UI",system-ui,sans-serif}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#17121D;--card:#221B2B;--ink:#F3EEF8;--ink-2:#B7ACC6;--line:#3A3146;--uva:#B98BE3;--uva-soft:#34254A;--menta:#5CCFA8;--menta-soft:#173A2F;--tomate:#F08A6F;--tomate-soft:#43221A}}
-:root[data-theme="dark"]{--ground:#17121D;--card:#221B2B;--ink:#F3EEF8;--ink-2:#B7ACC6;--line:#3A3146;--uva:#B98BE3;--uva-soft:#34254A;--menta:#5CCFA8;--menta-soft:#173A2F;--tomate:#F08A6F;--tomate-soft:#43221A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ground:#15180F;--card:#1F2418;--ink:#F1EEE3;--ink-2:#B4B8A4;--line:#363C2B;--verde:#A9B97A;--verde-soft:#2C3420;--on-verde:#15180F;--laranja:#F29A55;--laranja-soft:#3D2614;--on-laranja:#1E0E03;--menta:#A3C47D;--menta-soft:#26311B;--tomate:#F08A6F;--tomate-soft:#43221A}}
+:root[data-theme="dark"]{--ground:#15180F;--card:#1F2418;--ink:#F1EEE3;--ink-2:#B4B8A4;--line:#363C2B;--verde:#A9B97A;--verde-soft:#2C3420;--on-verde:#15180F;--laranja:#F29A55;--laranja-soft:#3D2614;--on-laranja:#1E0E03;--menta:#A3C47D;--menta-soft:#26311B;--tomate:#F08A6F;--tomate-soft:#43221A}
 html{height:100%}*{box-sizing:border-box}
 body{margin:0;min-height:100%;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
 button{font:inherit;color:inherit;cursor:pointer}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--uva);outline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--verde);outline-offset:2px}
 .wrap{max-width:720px;margin:0 auto;padding:16px 16px 110px}
 h1{font-family:var(--display);font-weight:800;font-size:32px;line-height:1.05;letter-spacing:-.02em;margin:6px 0 4px}
 h2{font-family:var(--display);font-weight:700;font-size:20px;margin:22px 0 10px}
@@ -25,47 +25,47 @@ h2{font-family:var(--display);font-weight:700;font-size:20px;margin:22px 0 10px}
 .painel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px 16px;margin-bottom:12px}
 .kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}.kv:first-child{border-top:0}.kv span{color:var(--ink-2)}
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;border-radius:14px;border:0;font-weight:600}
-.btn.pri{background:var(--uva);color:#fff}.btn.sec{background:var(--card);border:1px solid var(--line)}.btn.amarelo{background:var(--mostarda);color:#2A1D00}
+.btn.pri{background:var(--verde);color:var(--on-verde)}.btn.sec{background:var(--card);border:1px solid var(--line)}.btn.amarelo{background:var(--laranja);color:var(--on-laranja)}
 .btn:disabled{opacity:.5;cursor:default}
 .mini{min-height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:13px;font-weight:600;padding:0 12px}
-.mini.pri{background:var(--uva);border-color:var(--uva);color:#fff}
+.mini.pri{background:var(--verde);border-color:var(--verde);color:var(--on-verde)}
 label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
 input,select,textarea{width:100%;min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 12px;font:inherit}
 textarea{min-height:80px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .erro{color:var(--tomate);font-size:13px;margin:6px 0 0;min-height:1em}
 .toldo{position:relative;height:120px;overflow:hidden;border-radius:20px 20px 0 0}
-.toldo .l{position:absolute;inset:0 0 13px 0;background:repeating-linear-gradient(90deg,#5B2A86 0 26px,#F2B134 26px 52px)}
-.toldo .f{position:absolute;left:0;right:0;top:calc(100% - 26px);height:26px;background:radial-gradient(circle at 13px 0,#5B2A86 12.5px,transparent 13px) 0 0/52px 26px repeat-x,radial-gradient(circle at 39px 0,#F2B134 12.5px,transparent 13px) 0 0/52px 26px repeat-x}
+.toldo .l{position:absolute;inset:0 0 13px 0;background:repeating-linear-gradient(90deg,#4B5A2A 0 26px,#E8782E 26px 52px)}
+.toldo .f{position:absolute;left:0;right:0;top:calc(100% - 26px);height:26px;background:radial-gradient(circle at 13px 0,#4B5A2A 12.5px,transparent 13px) 0 0/52px 26px repeat-x,radial-gradient(circle at 39px 0,#E8782E 12.5px,transparent 13px) 0 0/52px 26px repeat-x}
 .data{position:absolute;top:12px;left:12px;background:var(--card);border-radius:14px;padding:6px 12px;text-align:center;min-width:56px}
 .data b{display:block;font-family:var(--display);font-size:26px;line-height:1}.data span{font-size:12px;color:var(--ink-2);font-weight:600}
 .selo{position:absolute;top:14px;right:12px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--card);color:var(--menta)}
 .cardfeira{background:var(--card);border:1px solid var(--line);border-radius:20px;margin-bottom:14px}
 .cardfeira .c{padding:12px 16px 16px}
-.status{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--uva-soft);color:var(--uva)}
+.status{display:inline-block;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--verde-soft);color:var(--verde)}
 .status.ok{background:var(--menta-soft);color:var(--menta)}.status.n{background:var(--line);color:var(--ink-2)}.status.t{background:var(--tomate-soft);color:var(--tomate)}
 .opcoes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .op{border:1.5px solid var(--line);background:var(--card);border-radius:16px;padding:12px;text-align:left;min-height:68px}
 .op b{font-family:var(--display);font-size:22px;display:block}.op small{color:var(--ink-2)}
-.op[aria-pressed="true"]{border-color:var(--uva);background:var(--uva-soft)}
+.op[aria-pressed="true"]{border-color:var(--verde);background:var(--verde-soft)}
 .passos{list-style:none;margin:8px 0 0;padding:0}.passos li{display:flex;gap:12px;padding:8px 0}
-.bola{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--uva-soft);color:var(--uva)}
-.feito .bola{background:var(--menta);color:#fff}.agora .bola{background:var(--mostarda);color:#2A1D00}
+.bola{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--verde-soft);color:var(--verde)}
+.feito .bola{background:var(--verde);color:var(--on-verde)}.agora .bola{background:var(--laranja);color:var(--on-laranja)}
 .passos small{display:block;color:var(--ink-2)}
 .fotos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.fotos .ft{aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--uva-soft);position:relative}
+.fotos .ft{aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--verde-soft);position:relative}
 .fotos img{width:100%;height:100%;object-fit:cover;display:block}
 .fotos .x{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;border:0;background:var(--card)}
-.mapawrap{position:relative;border-radius:14px;overflow:hidden;background:var(--uva-soft);touch-action:manipulation}
+.mapawrap{position:relative;border-radius:14px;overflow:hidden;background:var(--verde-soft);touch-action:manipulation}
 .mapawrap img{width:100%;display:block;user-select:none;-webkit-user-drag:none}
-.vg{position:absolute;border:2px solid var(--uva);background:rgba(255,255,255,.85);color:#3a1a58;border-radius:6px;font-size:11px;font-weight:700;padding:0;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%)}
-.vg.oc{background:rgba(120,110,130,.75);border-color:transparent;color:#fff}
+.vg{position:absolute;border:2px solid var(--verde);background:rgba(255,253,248,.9);color:#2E3818;border-radius:6px;font-size:11px;font-weight:700;padding:0;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%)}
+.vg.oc{background:rgba(95,100,80,.78);border-color:transparent;color:#fff}
 .vg.out{border-style:dashed;opacity:.5}
-.vg.minha{background:var(--mostarda);border-color:#c98c10;color:#2A1D00}
+.vg.minha{background:#E8782E;border-color:#B85A18;color:#2B1405}
 .vg.sel{outline:3px solid var(--tomate)}
 .expo{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
 .cartao{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
-.cartao .foto{height:110px;background:var(--uva-soft);position:relative}
+.cartao .foto{height:110px;background:var(--verde-soft);position:relative}
 .cartao .foto img{width:100%;height:100%;object-fit:cover}
 .cartao .ord{position:absolute;top:6px;left:6px;background:var(--card);border-radius:999px;font-size:11px;font-weight:700;padding:2px 8px}
 .cartao .av{position:absolute;bottom:6px;left:6px;right:6px;background:var(--card);border-radius:8px;font-size:11px;font-weight:600;color:var(--tomate);text-align:center}
@@ -73,16 +73,24 @@ textarea{min-height:80px}
 .cartao small{color:var(--ink-2);font-size:12px}
 .row{display:flex;gap:6px;flex-wrap:wrap}.row>*{flex:1}
 .cota{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.cota:first-child{border-top:0}
-.barra{height:6px;border-radius:999px;background:var(--uva-soft);overflow:hidden;margin-top:4px}.barra i{display:block;height:100%;background:var(--uva)}
+.barra{height:6px;border-radius:999px;background:var(--verde-soft);overflow:hidden;margin-top:4px}.barra i{display:block;height:100%;background:var(--verde)}
 .tabwrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--ink-2);padding:6px 8px 6px 0}td{padding:8px 8px 8px 0;border-top:1px solid var(--line)}
 nav.baixo{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:3}
 nav.baixo .in{display:flex;width:100%;max-width:720px}
 nav.baixo button{flex:1;border:0;background:transparent;font-size:12px;font-weight:600;color:var(--ink-2);min-height:50px;border-radius:12px}
-nav.baixo button[aria-current="page"]{color:var(--uva);background:var(--uva-soft)}
+nav.baixo button[aria-current="page"]{color:var(--verde);background:var(--verde-soft)}
 .topo{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);background:var(--ink);color:var(--ground);border-radius:14px;padding:12px 16px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:9;max-width:90vw}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .check{display:flex;align-items:center;gap:10px;font-weight:500}.check input{width:20px;min-height:20px}
+
+.marcatopo{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:17px;color:var(--verde);margin:0 0 10px}
+.berg{display:inline-block;flex:none}
+.hero{position:relative;padding:22px 18px 18px;background:var(--verde);color:var(--on-verde);border-radius:22px;overflow:hidden;margin-top:12px}
+.hero h1{color:var(--on-verde);margin:10px 0 4px}.hero p{margin:0;opacity:.85}
+.hero .b1{position:absolute;right:-14px;top:-10px;opacity:.95}.hero .b2{position:absolute;right:58px;top:40px;opacity:.9}
+.vazio{text-align:center;padding:26px 10px}.vazio .berg{margin-bottom:8px}
+.resumo{display:flex;gap:12px;align-items:center}.resumo img{width:56px;height:56px;border-radius:14px;object-fit:cover;flex:none;background:var(--verde-soft)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -103,6 +111,9 @@ const dataBR=d=>{if(!d)return'';const[a,m,dd]=d.split('-');return `${dd}/${m}/${
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),2800)}
 function erroMsg(e){const m=(e&&e.message)||String(e);if(/Invalid login/i.test(m))return'E-mail ou senha incorretos.';if(/already registered/i.test(m))return'Esse e-mail já tem conta. Use "Entrar".';if(/Password should/i.test(m))return'A senha precisa ter pelo menos 6 caracteres.';return m}
 
+
+function berg(t=28){return `<svg class="berg" width="${t}" height="${t}" viewBox="0 0 40 40" aria-hidden="true"><path d="M21 9c3-5 9-6 12-4-2 4-7 6-12 4z" fill="#5E6E32"/><path d="M20 10c0-2 0-3-1-5" stroke="#3B4420" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="20" cy="23" r="13" fill="#E8782E"/><path d="M12 20c2-4 6-6 10-5" stroke="#F6B27A" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".8"/><circle cx="20" cy="11.5" r="1.6" fill="#B85A18"/><g fill="#C9601F" opacity=".5"><circle cx="15" cy="27" r=".9"/><circle cx="24" cy="29" r=".9"/><circle cx="27" cy="22" r=".9"/><circle cx="19" cy="31" r=".9"/></g></svg>`}
+const topo=()=>`<div class="marcatopo">${berg(26)}Feira Bêrga</div>`;
 const S={sessao:null,papel:'expositor',marca:null,segs:[],tela:'inicio',edicao:null,orgEdicao:null,canal:null,mapaSel:null,vagaSel:null};
 
 async function iniciar(){
@@ -122,12 +133,12 @@ const segNome=s=>S.segs.find(x=>x.slug===s)?.nome||s;
 
 function nav(){
   const n=$('#nav');if(!S.sessao){n.hidden=true;return}n.hidden=false;
-  const itens=S.papel==='organizadora'?[['org-edicoes','Edições'],['org-selecao','Seleção'],['org-mapas','Mapas'],['org-lista','Lista'],['org-propostas','Espaços']]:[['inicio','Feira'],['marca','Minha marca'],['conta','Conta']];
-  $('#navin').innerHTML=itens.map(([t,l])=>`<button data-go="${t}" ${S.tela===t||(t==='inicio'&&['mapa','montagem'].includes(S.tela))?'aria-current="page"':''}>${l}</button>`).join('');
+  const itens=S.papel==='organizadora'?[['org-edicoes','Edições'],['org-selecao','Seleção'],['org-mapas','Mapas'],['org-lista','Lista'],['org-feedback','Feedback'],['org-propostas','Espaços']]:[['inicio','Feira'],['marca','Minha marca'],['conta','Conta']];
+  $('#navin').innerHTML=itens.map(([t,l])=>`<button data-go="${t}" ${S.tela===t||(t==='inicio'&&['mapa','montagem','feedback'].includes(S.tela))?'aria-current="page"':''}>${l}</button>`).join('');
 }
 async function render(){
   nav();const T=TELAS[S.tela]||TELAS.inicio;
-  try{$('#tela').innerHTML=await T()}catch(e){$('#tela').innerHTML=`<h1>Ops</h1><p class="sub">${esc(erroMsg(e))}</p><button class="btn sec" data-go="inicio">Voltar</button>`}
+  try{const h=await T();$('#tela').innerHTML=(S.sessao&&!['auth','novasenha'].includes(S.tela)?topo():'')+h}catch(e){$('#tela').innerHTML=`<h1>Ops</h1><p class="sub">${esc(erroMsg(e))}</p><button class="btn sec" data-go="inicio">Voltar</button>`}
   window.scrollTo(0,0);if(AFTER[S.tela])AFTER[S.tela]();
 }
 function go(t){if(S.canal){sb.removeChannel(S.canal);S.canal=null}S.tela=t;render()}
@@ -135,16 +146,15 @@ function go(t){if(S.canal){sb.removeChannel(S.canal);S.canal=null}S.tela=t;rende
 /* ================= AUTENTICAÇÃO ================= */
 let modoAuth='entrar';
 const TELAS={};const AFTER={};
-TELAS.auth=()=>`<div class="cardfeira" style="margin-top:12px"><div class="toldo"><div class="l"></div><div class="f"></div></div><div class="c">
-<h1>Feira Bêrga</h1><p class="sub">${modoAuth==='entrar'?'Entre pra se inscrever nas edições.':'Crie sua conta. Leva um minuto.'}</p>
+TELAS.auth=()=>`<div class="hero"><span class="b1">${berg(96)}</span><span class="b2">${berg(44)}</span><p style="font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:12px">Inscrições</p><h1>Feira<br>Bêrga</h1><p>${modoAuth==='entrar'?'Entre pra se inscrever nas edições.':'Crie sua conta. Leva um minuto.'}</p></div><div class="painel" style="margin-top:12px">
 <label for="a-email">E-mail</label><input id="a-email" type="email" autocomplete="email">
 <label for="a-senha">Senha</label><input id="a-senha" type="password" autocomplete="${modoAuth==='entrar'?'current-password':'new-password'}">
 <p class="erro" id="a-err"></p>
 <button class="btn pri" id="a-ok">${modoAuth==='entrar'?'Entrar':'Criar conta'}</button>
 <button class="btn sec" id="a-troca" style="margin-top:8px">${modoAuth==='entrar'?'Ainda não tenho conta':'Já tenho conta'}</button>
 ${modoAuth==='entrar'?'<button class="mini" id="a-esqueci" style="margin-top:12px;border:0;background:none;color:var(--ink-2)">Esqueci minha senha</button>':''}
-</div></div>
-<div class="painel" style="background:var(--uva-soft);border-color:transparent"><b>Tem um espaço e quer receber a Feira Bêrga?</b><p class="sub" style="margin:4px 0 10px">Shopping, empresa, condomínio ou praça.</p><button class="btn sec" data-go="proposta">Enviar proposta</button></div>`;
+</div>
+<div class="painel" style="background:var(--laranja-soft);border-color:transparent"><b>Tem um espaço e quer receber a Feira Bêrga?</b><p class="sub" style="margin:4px 0 10px">Shopping, empresa, condomínio ou praça.</p><button class="btn sec" data-go="proposta">Enviar proposta</button></div>`;
 TELAS.novasenha=()=>`<h1>Nova senha</h1><label for="ns">Nova senha</label><input id="ns" type="password" autocomplete="new-password"><p class="erro" id="ns-err"></p><button class="btn pri" id="ns-ok">Salvar senha</button>`;
 
 /* ================= PROPOSTA (pública) ================= */
@@ -165,18 +175,20 @@ async function proximaEdicao(){
 }
 function toldo(e,status){const[,m,d]=e.data.split('-');return `<div class="toldo"><div class="l"></div><div class="f"></div><div class="data"><b>${d}</b><span>${MES[+m-1]}</span></div>${status?`<span class="selo">${status}</span>`:''}</div>`}
 
-TELAS.inicio=async()=>{
+async function inicioBase(){
   const e=await proximaEdicao();S.edicao=e;
-  if(!S.marca)return `<h1>Bem-vinda!</h1><p class="sub">Antes de se inscrever, cadastre sua marca. Fica salvo pras próximas edições.</p><button class="btn pri" data-go="marca">Cadastrar minha marca</button>`;
-  if(!e)return `<h1>${esc(S.marca.nome)}</h1><p class="sub">Ainda não tem edição marcada. Assim que a próxima abrir, ela aparece aqui.</p>`;
+  if(!S.marca)return `<div class="vazio" style="padding-bottom:6px">${berg(64)}</div><h1>Boas-vindas!</h1><p class="sub">Antes de se inscrever, cadastre sua marca. Fica salvo pras próximas edições.</p><button class="btn pri" data-go="marca">Cadastrar minha marca</button>`;
+  if(!e)return `<div class="vazio">${berg(64)}<h1>${esc(S.marca.nome)}</h1><p class="sub">Ainda não tem edição marcada. Assim que a próxima abrir, ela aparece aqui.</p></div>`;
   const {data:ins}=await sb.from('inscricoes').select('*').eq('edicao_id',e.id).eq('marca_id',S.marca.id).maybeSingle();
   S.ins=ins;
+  if(!ins&&!S.tamEscolhido){const {data:ult}=await sb.from('inscricoes').select('tamanho').eq('dono',S.sessao.user.id).order('criado_em',{ascending:false}).limit(1);S.tamEscolhido=ult?.[0]?.tamanho;S.jaParticipou=!!ult?.length}
   let tam=ins?.tamanho||S.tamEscolhido||'2m';S.tamEscolhido=tam;
+  const mk=S.marca;const resumo=`<div class="painel"><div class="resumo">${mk.fotos?.[0]?`<img src="${esc(mk.fotos[0])}" alt="">`:''}<div style="flex:1"><b>${esc(mk.nome)}</b><div class="sub" style="margin:0">${esc(segNome(mk.segmento))}${mk.instagram?' · '+esc(mk.instagram):''}</div></div><button class="mini" data-go="marca">Revisar</button></div><p class="sub" style="margin:10px 0 0;font-size:13px">${S.jaParticipou?'Seus dados da última participação já estão aqui. Confira se mudou algo antes de se inscrever.':'Esses dados vão junto com a sua inscrição.'}</p></div>`;
   const info=`<div class="painel"><div class="kv"><span>Local</span><b>${esc(e.local||'a definir')}</b></div><div class="kv"><span>Montagem</span><b>${esc(e.horario_montagem||'a definir')}</b></div><div class="kv"><span>Feira aberta</span><b>${esc(e.horario_feira||'a definir')}</b></div><div class="kv"><span>Desmontagem</span><b>${esc(e.horario_desmontagem||'a definir')}</b></div>${e.valor_estacionamento!=null?`<div class="kv"><span>Estacionamento</span><b>${money(e.valor_estacionamento)}, com placa</b></div>`:''}</div>`;
   const cab=`<p class="sub" style="margin:0">Próxima edição</p><div class="cardfeira" style="margin-top:6px">${toldo(e,e.inscricoes_abertas?'Inscrições abertas':ins?null:'Inscrições em breve')}<div class="c"><p style="font-family:var(--display);font-size:24px;font-weight:700;margin:0">${esc(e.titulo)}</p><p class="sub" style="margin:0">${dataBR(e.data)}</p></div></div>`;
   if(!ins){
     if(!e.inscricoes_abertas)return cab+info+`<p class="sub">As inscrições ainda não abriram. Você recebe aviso pelo grupo quando abrirem.</p>`;
-    return cab+info+`<h2>Tamanho do espaço</h2><div class="opcoes">${['2m','3m'].map(t=>`<button class="op" data-tam="${t}" aria-pressed="${tam===t}"><b>${t.replace('m',' m')}</b><small>${money(t==='2m'?e.preco_2m:e.preco_3m)}</small></button>`).join('')}</div><button class="btn pri" id="inscrever" style="margin-top:16px">Quero participar</button>`;
+    return cab+resumo+`<h2>Tamanho do espaço</h2>${S.jaParticipou?'<p class="sub" style="margin-top:-6px">Deixamos marcado o tamanho que você usou da última vez.</p>':''}<div class="opcoes">${['2m','3m'].map(t=>`<button class="op" data-tam="${t}" aria-pressed="${tam===t}"><b>${t.replace('m',' m')}</b><small>${money(t==='2m'?e.preco_2m:e.preco_3m)}</small></button>`).join('')}</div>${S.pend?`<button class="btn sec" data-go="feedback" style="margin-top:16px">Responda o feedback pra liberar a inscrição</button>`:`<button class="btn pri" id="inscrever" style="margin-top:16px">Quero participar</button>`}<h2>Informações da edição</h2>`+info;
   }
   if(ins.status==='encerrada')return cab+`<div class="painel"><span class="status n">Vagas preenchidas</span><p style="margin:10px 0 0">As vagas dessa edição foram preenchidas. Seu perfil continua salvo, e você recebe convite se abrir uma vaga ou quando a próxima edição abrir.</p></div>`;
   const {data:mont}=await sb.from('montagem').select('inscricao_id').eq('inscricao_id',ins.id).maybeSingle();
@@ -187,6 +199,14 @@ TELAS.inicio=async()=>{
   if(conf&&ins.pago&&e.mapa_id)acao+=`<button class="btn ${ins.vaga_id?'sec':'pri'}" data-go="mapa" style="margin-bottom:8px">${ins.vaga_id?'Ver minha vaga no mapa':'Escolher minha vaga'}</button>`;
   if(conf)acao+=`<button class="btn ${mont?'sec':'amarelo'}" data-go="montagem">${mont?'Revisar dados da montagem':'Preencher dados da montagem'}</button>`;
   return cab+`<div class="painel"><span class="status ${conf?'ok':''}">${conf?'Presença confirmada':'Inscrição recebida'}</span><ol class="passos">${passos.map((p,i)=>`<li class="${p[2]?'feito':i===ag?'agora':''}"><span class="bola">${p[2]?'✓':i+1}</span><div><b>${p[0]}</b><small>${p[1]}</small></div></li>`).join('')}</ol></div>${acao}<h2>Informações da edição</h2>${info}${e.regras?`<div class="painel"><b>Regras do local</b><p style="margin:6px 0 0;white-space:pre-line">${esc(e.regras)}</p></div>`:''}${e.link_fotos?`<a class="btn sec" href="${esc(e.link_fotos)}" target="_blank" rel="noopener" style="text-decoration:none">Ver fotos da feira</a>`:''}`;
+};
+
+TELAS.inicio=async()=>{
+  S.pend=null;
+  if(S.marca){const r=await sb.rpc('feedback_pendente');S.pend=(r.data||[])[0]||null}
+  const base=await inicioBase();
+  const card=S.pend?`<div class="painel" style="background:var(--laranja-soft);border-color:var(--laranja);color:var(--ink)"><b>Como foi a ${esc(S.pend.titulo)} de ${dataBR(S.pend.data)}?</b><p style="margin:4px 0 10px">Conta pra gente em menos de um minuto. A inscrição na próxima edição libera depois do seu feedback.</p><button class="btn pri" data-go="feedback">Responder agora</button></div>`:'';
+  return card+base;
 };
 
 TELAS.marca=()=>{const m=S.marca||{};S.fotos=[...(m.fotos||[])];return `<h1>${m.id?'Minha marca':'Cadastre sua marca'}</h1><p class="sub">Preenche uma vez e fica salvo pras próximas edições.</p><div class="painel">
@@ -209,7 +229,7 @@ TELAS.mapa=async()=>{
   S.vagas=vg.data||[];S.ocup=new Set((oc.data||[]).map(x=>x.vaga_id));S.bloq=new Set((bl.data||[]).map(x=>x.vaga_id));S.mapaImg=mp.data?.imagem_url;
   const minha=S.vagas.find(v=>v.id===ins.vaga_id);
   return `<button class="mini" data-go="inicio" style="border:0;background:none">← Feira</button><h1>Escolha sua vaga</h1><p class="sub">Você contratou ${ins.tamanho.replace('m',' m')}. Vagas de outro tamanho ficam tracejadas.</p>
-  ${e.prazo_escolha_vaga&&!minha?`<div class="painel" style="background:var(--mostarda);border-color:transparent;color:#2A1D00">Escolha até ${new Date(e.prazo_escolha_vaga).toLocaleString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}. Depois disso, a organização define por você.</div>`:''}
+  ${e.prazo_escolha_vaga&&!minha?`<div class="painel" style="background:var(--laranja-soft);border-color:var(--laranja);color:var(--ink)">Escolha até ${new Date(e.prazo_escolha_vaga).toLocaleString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}. Depois disso, a organização define por você.</div>`:''}
   <div class="mapawrap" id="mapa"></div>
   <p class="sub" style="margin-top:10px">${minha?`Sua vaga: <b>${minha.numero}</b>. Dá pra trocar enquanto o prazo estiver aberto.`:'Toque numa vaga livre pra reservar.'}</p>`;
 };
@@ -224,8 +244,13 @@ AFTER.mapa=()=>{desenhaMapaExpositor();if(!S.edicao)return;
 TELAS.montagem=async()=>{
   const ins=S.ins,e=S.edicao;if(!ins)return `<button class="btn sec" data-go="inicio">Feira</button>`;
   const [mo,mt]=await Promise.all([sb.from('montagem').select('*').eq('inscricao_id',ins.id).maybeSingle(),sb.from('montadores').select('*').eq('inscricao_id',ins.id)]);
-  const m=mo.data||{mesas:0,cadeiras:0,usa_estacionamento:false,placa:''};S.montadores=(mt.data&&mt.data.length?mt.data:[{nome:'',cpf:''}]).map(x=>({nome:x.nome,cpf:x.cpf}));
-  return `<button class="mini" data-go="inicio" style="border:0;background:none">← Feira</button><h1>Dados da montagem</h1><p class="sub">Vão pra lista que a organização envia ao local. Os CPFs são apagados depois da edição.</p>
+  let m=mo.data,pes=mt.data||[],veio=false;
+  if(!m){const {data:ant}=await sb.from('inscricoes').select('id,criado_em,montagem(*),montadores(nome,cpf)').eq('dono',S.sessao.user.id).neq('id',ins.id).order('criado_em',{ascending:false}).limit(5);
+    const a=(ant||[]).find(x=>Array.isArray(x.montagem)?x.montagem.length:x.montagem);
+    if(a){const am=Array.isArray(a.montagem)?a.montagem[0]:a.montagem;m={mesas:am.mesas,cadeiras:am.cadeiras,usa_estacionamento:am.usa_estacionamento,placa:am.placa||''};pes=a.montadores||[];veio=true}}
+  m=m||{mesas:0,cadeiras:0,usa_estacionamento:false,placa:''};
+  S.montadores=(pes.length?pes:[{nome:'',cpf:''}]).map(x=>({nome:x.nome,cpf:x.cpf}));
+  return `<button class="mini" data-go="inicio" style="border:0;background:none">← Feira</button><h1>Dados da montagem</h1><p class="sub">Vão pra lista que a organização envia ao local. Os CPFs são apagados depois da edição.</p>${veio?'<div class="painel" style="background:var(--verde-soft);border-color:transparent">Preenchemos com o que você mandou na última edição. Confira e ajuste o que mudou. Se os CPFs e a placa estiverem vazios, é porque foram apagados depois daquela feira.</div>':''}
   <div class="painel"><div class="g2"><div><label for="mo-mesa">Mesas</label><input id="mo-mesa" type="number" min="0" value="${m.mesas}"></div><div><label for="mo-cad">Cadeiras</label><input id="mo-cad" type="number" min="0" value="${m.cadeiras}"></div></div>
   ${e?.valor_estacionamento!=null?`<label class="check" style="margin-top:14px"><input type="checkbox" id="mo-est" ${m.usa_estacionamento?'checked':''}> Vou usar o estacionamento (${money(e.valor_estacionamento)})</label><div id="mo-placa-w" ${m.usa_estacionamento?'':'hidden'}><label for="mo-placa">Placa do carro</label><input id="mo-placa" value="${esc(m.placa)}" style="text-transform:uppercase"></div>`:''}</div>
   <div class="painel"><b>Quem vai montar</b><div id="mts"></div><button class="mini" id="mt-add" style="margin-top:10px">+ Adicionar pessoa</button></div>
@@ -327,6 +352,39 @@ TELAS['org-lista']=async()=>{
 TELAS['org-propostas']=async()=>{const {data,error}=await sb.from('propostas_espacos').select('*').order('criado_em',{ascending:false});if(error)throw error;
   return `<h1>Propostas de espaços</h1>${(data||[]).map(p=>`<div class="painel"><div class="topo"><b>${esc(p.nome)}</b><select data-pst="${p.id}" style="width:auto;min-height:36px" aria-label="Status"><option value="nova" ${p.status==='nova'?'selected':''}>Nova</option><option value="em_conversa" ${p.status==='em_conversa'?'selected':''}>Em conversa</option><option value="arquivada" ${p.status==='arquivada'?'selected':''}>Arquivada</option></select></div><p class="sub" style="margin:4px 0 0">${esc(p.tipo)} · ${esc(p.cidade)} · ${esc(p.area)}<br>${esc(p.acordo)} · ${esc(p.contato)}</p></div>`).join('')||'<p class="sub">Nenhuma proposta ainda.</p>'}`};
 
+/* ================= FEEDBACK ================= */
+const ESCALA=[[1,'Muito abaixo'],[2,'Abaixo'],[3,'Dentro do esperado'],[4,'Acima'],[5,'Muito acima']];
+const SNT=[['sim','Sim'],['talvez','Talvez'],['nao','Não']];
+const FAT=[['ate_200','Até R$ 200'],['200_500','R$ 200 a 500'],['500_1000','R$ 500 a 1.000'],['1000_2000','R$ 1.000 a 2.000'],['acima_2000','Acima de R$ 2.000'],['prefiro_nao','Prefiro não dizer']];
+const PERG=[
+  ['primeira_participacao','Foi sua primeira vez na Feira Bêrga?',[[true,'Sim'],[false,'Não']]],
+  ['faturamento','Quanto você faturou na feira?',FAT],
+  ['voltaria','Participaria de novo nesse local?',SNT],
+  ['indicaria','Indicaria a feira pra outros expositores?',SNT],
+  ['organizacao','O que achou da organização?',ESCALA],
+  ['divulgacao','O que achou da divulgação?',ESCALA],
+  ['publico','E o público?',ESCALA],
+  ['movimento','E o movimento de vendas?',ESCALA]];
+TELAS.feedback=()=>{const p=S.pend;if(!p)return `<h1>Tudo certo!</h1><p class="sub">Nenhum feedback pendente.</p><button class="btn sec" data-go="inicio">Feira</button>`;S.fb=S.fb||{};
+  return `<button class="mini" data-go="inicio" style="border:0;background:none">← Feira</button><h1>Como foi a feira?</h1><p class="sub">${esc(p.titulo)} de ${dataBR(p.data)}. Leva menos de um minuto. A organização vê só os resultados somados de todo mundo, nunca a sua resposta individual.</p>
+  ${PERG.map(([k,t,ops])=>`<div class="painel"><b>${t}</b><div class="row" style="margin-top:10px">${ops.map(([v,l])=>`<button class="mini" data-fbk="${k}" data-fbv="${v}" aria-pressed="${S.fb[k]===v}" style="flex:1 1 ${ops.length>3?'45%':'28%'};${S.fb[k]===v?'background:var(--verde);border-color:var(--verde);color:var(--on-verde)':''}">${l}</button>`).join('')}</div></div>`).join('')}
+  <div class="painel"><label for="fb-com" style="margin-top:0">Quer contar mais alguma coisa? (opcional)</label><textarea id="fb-com">${esc(S.fbCom||'')}</textarea></div>
+  <p class="erro" id="fb-err"></p><button class="btn pri" id="fb-ok">Enviar feedback</button>`};
+
+const ROT={primeira:'Primeira participação',faturamento:'Faturamento',voltaria:'Voltaria nesse local',indicaria:'Indicaria a feira',organizacao:'Organização',divulgacao:'Divulgação',publico:'Público',movimento:'Movimento'};
+TELAS['org-feedback']=async()=>{
+  const ed=S.edicoes||await listaEdicoes();S.edicoes=ed;const hoje=new Date().toISOString().slice(0,10);
+  const passadas=ed.filter(e=>e.data<hoje);if(!passadas.length)return `<h1>Feedback</h1><p class="sub">Os resultados aparecem aqui depois que a primeira edição acontecer.</p>`;
+  if(!S.fbEd||!passadas.some(e=>e.id===S.fbEd))S.fbEd=passadas[0].id;
+  const {data:r,error}=await sb.rpc('resultados_feedback',{p_edicao:S.fbEd});if(error)throw error;
+  const tot=r.respostas||0;
+  const bloco=(chave,ops)=>{const d=chave==='primeira'?r.primeira:r[chave]||{};return `<div class="painel"><b>${ROT[chave]}</b>${ops.map(([v,l])=>{const n=d[String(v)]||0,pc=tot?Math.round(n/tot*100):0;return `<div style="margin-top:8px"><div class="topo" style="font-size:13px"><span>${l}</span><span style="color:var(--ink-2)">${n} · ${pc}%</span></div><div class="barra" style="height:8px"><i style="width:${pc}%"></i></div></div>`}).join('')}</div>`};
+  return `<h1>Feedback</h1><select id="fb-ed" aria-label="Edição">${passadas.map(x=>`<option value="${x.id}" ${x.id===S.fbEd?'selected':''}>${esc(x.titulo)} · ${dataBR(x.data)}</option>`).join('')}</select>
+  <p class="sub" style="margin-top:8px">${tot} de ${r.confirmados} expositores responderam. Quem não responder não consegue se inscrever na próxima edição.</p>
+  ${tot?bloco('primeira',[['sim','Sim'],['nao','Não']])+bloco('faturamento',FAT)+bloco('voltaria',SNT)+bloco('indicaria',SNT)+['organizacao','divulgacao','publico','movimento'].map(k=>bloco(k,ESCALA)).join('')+
+  `<div class="painel"><b>Comentários</b>${(r.comentarios||[]).map(c=>`<p style="margin:10px 0 0;padding-top:10px;border-top:1px solid var(--line);white-space:pre-line">${esc(c)}</p>`).join('')||'<p class="sub" style="margin:6px 0 0">Nenhum comentário.</p>'}</div>`:'<p class="sub">Nenhuma resposta ainda.</p>'}`;
+};
+
 /* ================= EVENTOS ================= */
 document.addEventListener('click',async ev=>{
   const b=ev.target.closest('button,[data-go]');if(!b)return;const d=b.dataset;
@@ -364,6 +422,10 @@ document.addEventListener('click',async ev=>{
     await sb.from('montadores').delete().eq('inscricao_id',id);
     const r2=await sb.from('montadores').insert(pessoas.map(p=>({inscricao_id:id,nome:p.nome.trim(),cpf:p.cpf.replace(/\D/g,'')})));b.disabled=false;
     if(r2.error){err.textContent=erroMsg(r2.error);return}toast('Dados da montagem salvos');go('inicio');return}
+  if(d.fbk){const v=d.fbv==='true'?true:d.fbv==='false'?false:/^\d$/.test(d.fbv)?+d.fbv:d.fbv;S.fb[d.fbk]=v;const c=$('#fb-com');if(c)S.fbCom=c.value;const y=window.scrollY;await render();window.scrollTo(0,y);return}
+  if(b.id==='fb-ok'){const err=$('#fb-err');const falta=PERG.find(([k])=>S.fb[k]===undefined);if(falta){err.textContent='Falta responder: '+falta[1];return}
+    b.disabled=true;const r=await sb.from('feedbacks').insert({inscricao_id:S.pend.inscricao_id,edicao_id:S.pend.edicao_id,...S.fb,comentario:($('#fb-com').value||'').trim()||null});b.disabled=false;
+    if(r.error){err.textContent=erroMsg(r.error);return}S.fb={};S.fbCom='';toast('Obrigada pelo feedback!');go('inicio');return}
   /* organizadora */
   if(d.editar){S.edForm=d.editar==='nova'?null:S.edicoes.find(x=>x.id===d.editar);go('org-edicao-form');return}
   if(d.selecionar){S.orgEdicao=d.selecionar;go('org-selecao');return}
@@ -408,6 +470,7 @@ document.addEventListener('input',ev=>{const t=ev.target;
 document.addEventListener('change',async ev=>{const t=ev.target;
   if(t.id==='mo-est'){$('#mo-placa-w').hidden=!t.checked;return}
   if(t.id==='sel-ed'||t.id==='lista-ed'){S.orgEdicao=t.value;render();return}
+  if(t.id==='fb-ed'){S.fbEd=t.value;render();return}
   if(t.id==='mp-sel'){S.mapaSel=t.value;S.vagaSel=null;render();return}
   if(t.dataset.pago){const r=await sb.from('inscricoes').update({pago:t.checked}).eq('id',t.dataset.pago);toast(r.error?erroMsg(r.error):t.checked?'Pagamento registrado. O mapa foi liberado pro expositor.':'Pagamento desmarcado');return}
   if(t.dataset.pst){await sb.from('propostas_espacos').update({status:t.value}).eq('id',t.dataset.pst);toast('Status atualizado');return}

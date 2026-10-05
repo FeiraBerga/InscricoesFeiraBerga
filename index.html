@@ -1,7 +1,9 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#C4511A">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Feira Bêrga · Inscrições</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎪</text></svg>">
@@ -19,10 +21,10 @@ body{margin:0;min-height:100%;background:var(--ground);color:var(--ink);font-fam
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--verde);outline-offset:2px}
 .wrap{max-width:720px;margin:0 auto;padding:16px 16px 110px}
-h1{font-family:var(--display);font-weight:800;font-size:32px;line-height:1.05;letter-spacing:-.02em;margin:6px 0 4px}
+h1{font-family:var(--display);font-weight:800;font-size:28px;line-height:1.05;letter-spacing:-.02em;margin:6px 0 4px}
 h2{font-family:var(--display);font-weight:700;font-size:20px;margin:22px 0 10px}
 .sub{color:var(--ink-2);margin:0 0 14px;font-size:14px}
-.painel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px 16px;margin-bottom:12px}
+.painel{background:var(--card);border:1px solid var(--line);box-shadow:0 1px 2px rgba(120,60,20,.06),0 6px 18px rgba(196,81,26,.06);border-radius:20px;padding:14px 16px;margin-bottom:12px}
 .kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}.kv:first-child{border-top:0}.kv span{color:var(--ink-2)}
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;border-radius:14px;border:0;font-weight:600}
 .btn.pri{background:var(--verde);color:var(--on-verde)}.btn.sec{background:var(--card);border:1px solid var(--line)}.btn.amarelo{background:var(--laranja);color:var(--on-laranja)}
@@ -77,14 +79,19 @@ textarea{min-height:80px}
 .tabwrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--ink-2);padding:6px 8px 6px 0}td{padding:8px 8px 8px 0;border-top:1px solid var(--line)}
 nav.baixo{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:3}
 nav.baixo .in{display:flex;width:100%;max-width:720px}
-nav.baixo button{flex:1;border:0;background:transparent;font-size:12px;font-weight:600;color:var(--ink-2);min-height:50px;border-radius:12px}
+nav.baixo{box-shadow:0 -6px 20px rgba(120,60,20,.08)}
+nav.baixo button{flex:1;border:0;background:transparent;font-size:11px;font-weight:600;color:var(--ink-2);min-height:56px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px 0}
+nav.baixo button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 nav.baixo button[aria-current="page"]{color:var(--verde);background:var(--verde-soft)}
 .topo{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);background:var(--ink);color:var(--ground);border-radius:14px;padding:12px 16px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:9;max-width:90vw}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .check{display:flex;align-items:center;gap:10px;font-weight:500}.check input{width:20px;min-height:20px}
 
-.marcatopo{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:17px;color:var(--verde);margin:0 0 10px}
+.cabeca{margin:-16px -16px 18px;padding:16px 18px 30px;background:linear-gradient(120deg,#B8471A,#E06A26);color:#FFFBF6;position:relative}
+.cabeca::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:24px;background:radial-gradient(circle at 13px 0,#C9561F 12px,transparent 12.5px) 0 0/26px 24px repeat-x}
+.cabeca .linha1{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:20px}
+.cabeca .papel{margin-left:auto;font-family:var(--body);font-size:12px;font-weight:600;background:rgba(255,251,246,.18);padding:4px 10px;border-radius:999px}
 .berg{display:inline-block;flex:none}
 .hero{position:relative;padding:22px 18px 18px;background:linear-gradient(135deg,#B8471A 0%,#E06A26 100%);color:#FFFBF6;border-radius:22px;overflow:hidden;margin-top:12px}
 .hero h1{color:#FFFBF6;margin:10px 0 4px}.hero p{margin:0;opacity:.85}
@@ -123,7 +130,7 @@ function erroMsg(e){const m=(e&&e.message)||String(e);if(/Invalid login/i.test(m
 
 
 function berg(t=28){return `<svg class="berg" width="${t}" height="${t}" viewBox="0 0 40 40" aria-hidden="true"><path d="M21 9c3-5 9-6 12-4-2 4-7 6-12 4z" fill="#5E6E32"/><path d="M20 10c0-2 0-3-1-5" stroke="#3B4420" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="20" cy="23" r="13" fill="#F28A35"/><path d="M12 20c2-4 6-6 10-5" stroke="#F6B27A" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".8"/><circle cx="20" cy="11.5" r="1.6" fill="#B85A18"/><g fill="#C9601F" opacity=".5"><circle cx="15" cy="27" r=".9"/><circle cx="24" cy="29" r=".9"/><circle cx="27" cy="22" r=".9"/><circle cx="19" cy="31" r=".9"/></g></svg>`}
-const topo=()=>`<div class="marcatopo">${berg(26)}Feira Bêrga</div>`;
+const topo=()=>`<div class="cabeca"><div class="linha1">${berg(34)}Feira Bêrga<button class="papel" data-go="conta" style="border:0;color:inherit">${S.papel==='organizadora'?'Organização':'Expositor'} · Conta</button></div></div>`;
 const S={sessao:null,papel:'expositor',marca:null,segs:[],tela:'inicio',edicao:null,orgEdicao:null,canal:null,mapaSel:null,vagaSel:null};
 
 async function iniciar(){
@@ -141,10 +148,11 @@ async function carregarUsuario(){
 }
 const segNome=s=>S.segs.find(x=>x.slug===s)?.nome||s;
 
+const NI={inicio:'<path d="M4 8h16v12H4z"/><path d="M4 8l2-4h12l2 4M9 20v-6h6v6"/>',marca:'<path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/>',conta:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>','org-edicoes':'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>','org-selecao':'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 11l2 2 4-4"/>','org-mapas':'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>','org-lista':'<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>','org-feedback':'<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>','org-propostas':'<path d="M4 21V5l8-2v18M12 8h8v13M4 21h16"/>'};
 function nav(){
   const n=$('#nav');if(!S.sessao){n.hidden=true;return}n.hidden=false;
   const itens=S.papel==='organizadora'?[['org-edicoes','Edições'],['org-selecao','Seleção'],['org-mapas','Mapas'],['org-lista','Lista'],['org-feedback','Feedback'],['org-propostas','Espaços']]:[['inicio','Feira'],['marca','Minha marca'],['conta','Conta']];
-  $('#navin').innerHTML=itens.map(([t,l])=>`<button data-go="${t}" ${S.tela===t||(t==='inicio'&&['edicao','mapa','montagem','feedback'].includes(S.tela))?'aria-current="page"':''}>${l}</button>`).join('');
+  $('#navin').innerHTML=itens.map(([t,l])=>`<button data-go="${t}" ${S.tela===t||(t==='inicio'&&['edicao','mapa','montagem','feedback'].includes(S.tela))?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${NI[t]||''}</svg>${l}</button>`).join('');
 }
 async function render(){
   nav();const T=TELAS[S.tela]||TELAS.inicio;
@@ -293,7 +301,7 @@ AFTER.montagem=desenhaMontadores;
 async function listaEdicoes(){const {data,error}=await sb.from('edicoes').select('*').order('data',{ascending:false});if(error)throw error;return data||[]}
 TELAS['org-edicoes']=async()=>{const ed=await listaEdicoes();S.edicoes=ed;
   return `<div class="topo"><h1>Edições</h1><button class="mini pri" data-editar="nova">+ Nova</button></div><p class="sub">Toque numa edição pra editar.</p>
-  ${ed.map(e=>`<div class="painel"><div class="topo"><div><b>${esc(e.titulo)}</b><div class="sub" style="margin:0">${periodo(e)} · ${esc(e.local||'')}</div></div><span class="status ${e.inscricoes_abertas?'ok':'n'}">${e.inscricoes_abertas?'Abertas':'Fechadas'}</span></div><div class="row" style="margin-top:10px"><button class="mini" data-editar="${e.id}">Editar</button><button class="mini" data-selecionar="${e.id}">Seleção</button></div></div>`).join('')||'<p class="sub">Nenhuma edição ainda. Crie a primeira.</p>'}`};
+  ${ed.map(e=>`<div class="painel"><div class="topo"><div><b>${esc(e.titulo)}</b><div class="sub" style="margin:0">${periodo(e)} · ${esc(e.local||'')}</div></div><span class="status ${e.inscricoes_abertas?'ok':'n'}">${e.inscricoes_abertas?'Abertas':'Fechadas'}</span></div><div class="row" style="margin-top:10px"><button class="mini" data-editar="${e.id}">Editar</button><button class="mini" data-selecionar="${e.id}">Seleção</button></div></div>`).join('')||`<div class="vazio">${berg(88)}<h2 style="margin:6px 0 4px">Nenhuma edição ainda</h2><p class="sub">Crie a primeira edição da Feira Bêrga pra abrir as inscrições.</p><button class="btn pri" data-editar="nova" style="max-width:320px;margin:0 auto">Criar primeira edição</button></div>`}`};
 
 TELAS['org-edicao-form']=async()=>{
   const e=S.edForm||{titulo:'Feira Bêrga',data:'',inscricoes_abertas:false};

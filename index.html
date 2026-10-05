@@ -91,6 +91,9 @@ nav.baixo button[aria-current="page"]{color:var(--verde);background:var(--verde-
 .hero .b1{position:absolute;right:-14px;top:-10px;opacity:.95}.hero .b2{position:absolute;right:58px;top:40px;opacity:.9}
 .vazio{text-align:center;padding:26px 10px}.vazio .berg{margin-bottom:8px}
 .resumo{display:flex;gap:12px;align-items:center}.resumo img{width:56px;height:56px;border-radius:14px;object-fit:cover;flex:none;background:var(--verde-soft)}
+.senha{position:relative}.senha input{padding-right:52px}
+.olho{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:44px;height:40px;border:0;background:transparent;color:var(--ink-2);display:flex;align-items:center;justify-content:center;border-radius:10px}
+.olho svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -101,7 +104,14 @@ nav.baixo button[aria-current="page"]{color:var(--verde);background:var(--verde-
 <script>
 const SUPABASE_URL='https://dpjqqbtexbdmjqeecssq.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwanFxYnRleGJkbWpxZWVjc3NxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMDE2ODAsImV4cCI6MjEwNjc3NzY4MH0.AwUT8KNwL2tzE39wzHTQxq73kt2Sh1noNA6hOeIBEM4';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const lembrar=()=>{try{return localStorage.getItem('berga-lembrar')!=='0'}catch{return true}};
+const guarda={
+  getItem:k=>{try{return localStorage.getItem(k)??sessionStorage.getItem(k)}catch{return null}},
+  setItem:(k,v)=>{try{if(lembrar()){localStorage.setItem(k,v);sessionStorage.removeItem(k)}else{sessionStorage.setItem(k,v);localStorage.removeItem(k)}}catch{}},
+  removeItem:k=>{try{localStorage.removeItem(k);sessionStorage.removeItem(k)}catch{}}
+};
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storage:guarda,persistSession:true}});
+const emailSalvo=()=>{try{return localStorage.getItem('berga-email')||''}catch{return ''}};
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -147,15 +157,17 @@ function go(t){if(S.canal){sb.removeChannel(S.canal);S.canal=null}S.tela=t;rende
 let modoAuth='entrar';
 const TELAS={};const AFTER={};
 TELAS.auth=()=>`<div class="hero"><span class="b1">${berg(96)}</span><span class="b2">${berg(44)}</span><p style="font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:12px">Inscrições</p><h1>Feira<br>Bêrga</h1><p>${modoAuth==='entrar'?'Entre pra se inscrever nas edições.':'Crie sua conta. Leva um minuto.'}</p></div><div class="painel" style="margin-top:12px">
-<label for="a-email">E-mail</label><input id="a-email" type="email" autocomplete="email">
-<label for="a-senha">Senha</label><input id="a-senha" type="password" autocomplete="${modoAuth==='entrar'?'current-password':'new-password'}">
+<label for="a-email">E-mail</label><input id="a-email" type="email" autocomplete="email" value="${esc(emailSalvo())}">
+<label for="a-senha">Senha</label><div class="senha"><input id="a-senha" type="password" autocomplete="${modoAuth==='entrar'?'current-password':'new-password'}"><button type="button" class="olho" data-olho="a-senha" aria-label="Mostrar senha" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+${modoAuth==='criar'?'<p class="sub" style="margin:4px 0 0;font-size:12px">Mínimo de 6 caracteres.</p>':''}
+<label class="check" style="margin-top:12px"><input type="checkbox" id="a-lembrar" ${lembrar()?'checked':''}> Lembrar usuário</label>
 <p class="erro" id="a-err"></p>
 <button class="btn pri" id="a-ok">${modoAuth==='entrar'?'Entrar':'Criar conta'}</button>
 <button class="btn sec" id="a-troca" style="margin-top:8px">${modoAuth==='entrar'?'Ainda não tenho conta':'Já tenho conta'}</button>
 ${modoAuth==='entrar'?'<button class="mini" id="a-esqueci" style="margin-top:12px;border:0;background:none;color:var(--ink-2)">Esqueci minha senha</button>':''}
 </div>
 <div class="painel" style="background:var(--laranja-soft);border-color:transparent"><b>Tem um espaço e quer receber a Feira Bêrga?</b><p class="sub" style="margin:4px 0 10px">Shopping, empresa, condomínio ou praça.</p><button class="btn sec" data-go="proposta">Enviar proposta</button></div>`;
-TELAS.novasenha=()=>`<h1>Nova senha</h1><label for="ns">Nova senha</label><input id="ns" type="password" autocomplete="new-password"><p class="erro" id="ns-err"></p><button class="btn pri" id="ns-ok">Salvar senha</button>`;
+TELAS.novasenha=()=>`<h1>Nova senha</h1><label for="ns">Nova senha</label><div class="senha"><input id="ns" type="password" autocomplete="new-password"><button type="button" class="olho" data-olho="ns" aria-label="Mostrar senha" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div><p class="erro" id="ns-err"></p><button class="btn pri" id="ns-ok">Salvar senha</button>`;
 
 /* ================= PROPOSTA (pública) ================= */
 TELAS.proposta=()=>`<button class="mini" data-go="${S.sessao?'inicio':'auth'}" style="border:0;background:none">← Voltar</button>
@@ -413,8 +425,11 @@ document.addEventListener('click',async ev=>{
   const b=ev.target.closest('button,[data-go]');if(!b)return;const d=b.dataset;
   try{
   if(d.go){if(d.go==='proposta')location.hash='proposta';go(d.go);return}
+  if(d.olho){const inp=document.getElementById(d.olho);const ver=inp.type==='password';inp.type=ver?'text':'password';b.setAttribute('aria-pressed',ver);b.setAttribute('aria-label',ver?'Esconder senha':'Mostrar senha');b.style.color=ver?'var(--verde)':'';return}
   if(b.id==='a-troca'){modoAuth=modoAuth==='entrar'?'criar':'entrar';render();return}
-  if(b.id==='a-ok'){const email=$('#a-email').value.trim(),senha=$('#a-senha').value;const err=$('#a-err');err.textContent='';if(!email||!senha){err.textContent='Preencha e-mail e senha.';return}b.disabled=true;
+  if(b.id==='a-ok'){const email=$('#a-email').value.trim(),senha=$('#a-senha').value;const err=$('#a-err');err.textContent='';if(!email||!senha){err.textContent='Preencha e-mail e senha.';return}
+    const lem=$('#a-lembrar').checked;try{localStorage.setItem('berga-lembrar',lem?'1':'0');if(lem)localStorage.setItem('berga-email',email);else localStorage.removeItem('berga-email')}catch{}
+    b.disabled=true;
     const r=modoAuth==='entrar'?await sb.auth.signInWithPassword({email,password:senha}):await sb.auth.signUp({email,password:senha,options:{emailRedirectTo:location.origin+location.pathname}});
     b.disabled=false;if(r.error){err.textContent=erroMsg(r.error);return}
     if(modoAuth==='criar'&&!r.data.session){err.style.color='var(--menta)';err.textContent='Conta criada! Confirme pelo link que enviamos pro seu e-mail.'}return}

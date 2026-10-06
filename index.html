@@ -114,7 +114,7 @@ nav.baixo[hidden]{display:none}
 .sel .t{display:flex;gap:12px;align-items:flex-start}
 .sel .th{width:64px;height:64px;border-radius:14px;background:var(--verde-soft);flex:none;overflow:hidden;position:relative}
 .sel .th img{width:100%;height:100%;object-fit:cover}
-.sel .th span{position:absolute;left:4px;top:4px;background:var(--card);border-radius:999px;font-size:10px;font-weight:700;padding:1px 6px}
+.sel .th span{position:absolute;left:-2px;top:-2px;background:var(--card);border-radius:999px;font-size:10px;font-weight:700;padding:1px 6px}
 .sel .nm{font-weight:600;line-height:1.25}
 .sel .ac{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px}
 .sel .ac .mini{padding:0 2px;min-height:40px;font-size:12px;white-space:nowrap}
@@ -122,6 +122,54 @@ nav.baixo[hidden]{display:none}
 .pessoa{padding:10px 0;border-top:1px solid var(--line);font-size:14px}.pessoa:first-child{border-top:0}
 .pessoa small{display:block;color:var(--ink-2)}
 .secao{font-family:var(--display);font-weight:700;font-size:17px;margin:0 0 2px}
+
+/* ===== encanto ===== */
+body{background:radial-gradient(900px 520px at 115% -8%,#FFD6B0 0,rgba(255,214,176,0) 62%),radial-gradient(700px 480px at -25% 105%,#FFE2C6 0,rgba(255,226,198,0) 60%),var(--ground);background-attachment:fixed}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.06;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.wrap{position:relative;z-index:1;overflow-x:clip}
+html,body{overflow-x:hidden}
+h1{letter-spacing:-.025em}
+.painel{border-radius:22px}
+.btn{border-radius:16px;transition:transform .12s ease,box-shadow .2s ease}
+.btn:active,.mini:active{transform:scale(.97)}
+.btn.pri{background:linear-gradient(135deg,#DE6524,#B8441A);box-shadow:0 8px 18px rgba(196,81,26,.28),inset 0 1px 0 rgba(255,255,255,.18)}
+.btn.amarelo{background:linear-gradient(135deg,#F7AE5A,#EE8B34);box-shadow:0 8px 18px rgba(238,139,52,.25)}
+.mini{transition:transform .12s ease}
+.mini.pri{background:linear-gradient(135deg,#DE6524,#B8441A);box-shadow:0 4px 10px rgba(196,81,26,.22)}
+.status{display:inline-flex;align-items:center;gap:6px}
+.status::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85}
+.cabeca{padding:18px 18px 34px;overflow:visible}
+.cabeca .ramo{position:absolute;right:-18px;top:-22px;opacity:.22;pointer-events:none}
+.cabeca .ola{font-size:13px;opacity:.88;margin-top:4px;font-weight:500}
+nav.baixo{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));padding:6px;border:1px solid rgba(241,217,196,.9);border-radius:24px;background:rgba(255,251,246,.82);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);box-shadow:0 12px 30px rgba(120,60,20,.16)}
+nav.baixo button[aria-current="page"]{background:linear-gradient(135deg,#FDE3CF,#FFD3B0)}
+.wrap{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))}
+.toldo .sombra{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,0) 45%);pointer-events:none}
+.toldo .pend{position:absolute;right:16px;bottom:-4px;filter:drop-shadow(0 4px 6px rgba(120,50,10,.25))}
+.cardfeira{border-radius:24px;overflow:hidden;box-shadow:0 2px 4px rgba(120,60,20,.05),0 14px 30px rgba(196,81,26,.10);border-color:transparent}
+.cardfeira .c{padding:14px 18px 18px}
+button.cardfeira{transition:transform .15s ease}button.cardfeira:active{transform:scale(.985)}
+.sel{border-radius:20px;box-shadow:0 2px 4px rgba(120,60,20,.04),0 10px 24px rgba(196,81,26,.07);border-color:transparent}
+.sel .t{cursor:pointer}
+.sel .th{width:72px;height:72px;border-radius:50%;overflow:visible}.sel .th img{border-radius:50%;box-shadow:0 4px 12px rgba(120,60,20,.15)}
+@keyframes sobe{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#tela>*{animation:sobe .38s cubic-bezier(.2,.7,.2,1) both}
+#tela>*:nth-child(2){animation-delay:.04s}#tela>*:nth-child(3){animation-delay:.08s}#tela>*:nth-child(4){animation-delay:.12s}#tela>*:nth-child(n+5){animation-delay:.16s}
+/* perfil do inscrito */
+.galeria{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px 14px;padding:0 16px 4px;scrollbar-width:none}
+.galeria::-webkit-scrollbar{display:none}
+.galeria a{flex:0 0 82%;scroll-snap-align:center;aspect-ratio:4/5;border-radius:24px;overflow:hidden;background:var(--verde-soft);box-shadow:0 12px 28px rgba(120,60,20,.15)}
+.galeria img{width:100%;height:100%;object-fit:cover;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px}
+.contatos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.contatos a{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:16px;background:var(--card);border:1px solid var(--line);text-decoration:none;color:var(--ink);font-weight:600;font-size:14px}
+.contatos svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.decisao{position:sticky;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:2;background:rgba(255,251,246,.9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:22px;padding:12px;box-shadow:0 12px 30px rgba(120,60,20,.14)}
+.logo{border-radius:50%;object-fit:cover;background:var(--card);border:2px solid #FFFBF6;box-shadow:0 4px 12px rgba(120,60,20,.18);flex:none;display:block}
+.logo-up{display:flex;align-items:center;gap:14px;margin-top:6px}
+.logo-vazio{width:84px;height:84px;border-radius:50%;border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;background:var(--verde-soft);flex:none}
+.cabeca .ola{display:flex;align-items:center;gap:8px}
+@media (prefers-reduced-motion:reduce){#tela>*{animation:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -151,7 +199,7 @@ function erroMsg(e){const m=(e&&e.message)||String(e);if(/Invalid login/i.test(m
 
 
 function berg(t=28){return `<svg class="berg" width="${t}" height="${t}" viewBox="0 0 40 40" aria-hidden="true"><path d="M21 9c3-5 9-6 12-4-2 4-7 6-12 4z" fill="#5E6E32"/><path d="M20 10c0-2 0-3-1-5" stroke="#3B4420" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="20" cy="23" r="13" fill="#F28A35"/><path d="M12 20c2-4 6-6 10-5" stroke="#F6B27A" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".8"/><circle cx="20" cy="11.5" r="1.6" fill="#B85A18"/><g fill="#C9601F" opacity=".5"><circle cx="15" cy="27" r=".9"/><circle cx="24" cy="29" r=".9"/><circle cx="27" cy="22" r=".9"/><circle cx="19" cy="31" r=".9"/></g></svg>`}
-const topo=()=>`<div class="cabeca"><div class="linha1">${berg(34)}Feira Bêrga<button class="papel" data-go="conta" style="border:0;color:inherit">${S.papel==='organizadora'?'Organização':'Expositor'} · Conta</button></div></div>`;
+const topo=()=>`<div class="cabeca"><span class="ramo">${berg(150)}</span><div class="linha1">${berg(34)}Feira Bêrga<button class="papel" data-go="conta" style="border:0;color:inherit">${S.papel==='organizadora'?'Organização':'Expositor'} · Conta</button></div><div class="ola">${S.papel!=='organizadora'&&S.marca?.logo_url?`<img class="logo" src="${esc(S.marca.logo_url)}" alt="" width="26" height="26" style="width:26px;height:26px;border-width:1.5px">`:''}${S.papel==='organizadora'?'Painel da organização':S.marca?'Olá, '+esc(S.marca.nome)+'!':'Que bom te ver por aqui!'}</div></div>`;
 const S={sessao:null,papel:'expositor',marca:null,segs:[],tela:'inicio',edicao:null,orgEdicao:null,canal:null,mapaSel:null,vagaSel:null};
 
 async function iniciar(){
@@ -173,7 +221,7 @@ const NI={inicio:'<path d="M4 8h16v12H4z"/><path d="M4 8l2-4h12l2 4M9 20v-6h6v6"
 function nav(){
   const n=$('#nav');if(!S.sessao){n.hidden=true;return}n.hidden=false;
   const itens=S.papel==='organizadora'?[['org-edicoes','Edições'],['org-selecao','Seleção'],['org-mapas','Mapas'],['org-lista','Lista'],['org-feedback','Feedback'],['org-propostas','Espaços']]:[['inicio','Feira'],['marca','Minha marca'],['conta','Conta']];
-  $('#navin').innerHTML=itens.map(([t,l])=>`<button data-go="${t}" ${S.tela===t||(t==='inicio'&&['edicao','mapa','montagem','feedback'].includes(S.tela))?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${NI[t]||''}</svg>${l}</button>`).join('');
+  $('#navin').innerHTML=itens.map(([t,l])=>`<button data-go="${t}" ${S.tela===t||(t==='inicio'&&['edicao','mapa','montagem','feedback'].includes(S.tela))||(t==='org-selecao'&&S.tela==='org-inscrito')||(t==='org-edicoes'&&S.tela==='org-edicao-form')?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${NI[t]||''}</svg>${l}</button>`).join('');
 }
 async function render(){
   nav();const T=TELAS[S.tela]||TELAS.inicio;
@@ -222,7 +270,7 @@ async function listarProximas(){
   const {data,error}=await sb.from('edicoes').select('*').or(`data.gte.${hoje},data_fim.gte.${hoje}`).order('data');if(error)throw error;
   return data||[];
 }
-function toldo(e,status){const[,m,d]=e.data.split('-');const df=e.data_fim&&e.data_fim!==e.data?e.data_fim.split('-')[2]:null;return `<div class="toldo"><div class="l"></div><div class="f"></div><div class="data"><b>${df?(+d)+'–'+(+df):d}</b><span>${MES[+m-1]}</span></div>${status?`<span class="selo">${status}</span>`:''}</div>`}
+function toldo(e,status){const[,m,d]=e.data.split('-');const df=e.data_fim&&e.data_fim!==e.data?e.data_fim.split('-')[2]:null;return `<div class="toldo"><div class="l"></div><div class="f"></div><div class="sombra"></div><span class="pend">${berg(46)}</span><div class="data"><b>${df?(+d)+'–'+(+df):d}</b><span>${MES[+m-1]}</span></div>${status?`<span class="selo">${status}</span>`:''}</div>`}
 
 async function inicioBase(){
   const e=S.edicao;
@@ -238,7 +286,7 @@ async function inicioBase(){
   if(!ins&&segFora)return cab+`<div class="painel"><span class="status n">Fora dessa edição</span><p style="margin:10px 0 0">Essa edição não vai receber expositores de ${esc(segNome(S.marca.segmento))}. Fica de olho nas próximas!</p></div>`+info;
   if(!ins){
     if(!e.inscricoes_abertas)return cab+info+`<p class="sub">As inscrições ainda não abriram. Você recebe aviso pelo grupo quando abrirem.</p>`;
-    return cab+resumo+`<h2>Tamanho do espaço</h2>${S.jaParticipou?'<p class="sub" style="margin-top:-6px">Deixamos marcado o tamanho que você usou da última vez.</p>':''}<div class="opcoes">${['2m','3m'].map(t=>`<button class="op" data-tam="${t}" aria-pressed="${tam===t}"><b>${t.replace('m',' m')}</b><small>${money(t==='2m'?e.preco_2m:e.preco_3m)}</small></button>`).join('')}</div>${S.pend?`<button class="btn sec" data-go="feedback" style="margin-top:16px">Responda o feedback da edição anterior pra liberar</button>`:`<button class="btn pri" id="inscrever" style="margin-top:16px">Quero participar</button>`}<h2>Informações da edição</h2>`+info;
+    return cab+resumo+`<h2>Tamanho do espaço</h2>${S.jaParticipou?'<p class="sub" style="margin-top:-6px">Deixamos marcado o tamanho que você usou da última vez.</p>':''}<div class="opcoes">${['2m','3m'].map(t=>`<button class="op" data-tam="${t}" aria-pressed="${tam===t}"><b>${t.replace('m',' m')}</b><small>${money(t==='2m'?e.preco_2m:e.preco_3m)}</small></button>`).join('')}</div>${!S.marca.logo_url?`<button class="btn sec" data-go="marca" style="margin-top:16px">Adicione a logo da marca pra se inscrever</button>`:S.pend?`<button class="btn sec" data-go="feedback" style="margin-top:16px">Responda o feedback da edição anterior pra liberar</button>`:`<button class="btn pri" id="inscrever" style="margin-top:16px">Quero participar</button>`}<h2>Informações da edição</h2>`+info;
   }
   if(ins.status==='encerrada')return cab+`<div class="painel"><span class="status n">Vagas preenchidas</span><p style="margin:10px 0 0">As vagas dessa edição foram preenchidas. Seu perfil continua salvo, e você recebe convite se abrir uma vaga ou quando a próxima edição abrir.</p></div>`;
   const {data:mont}=await sb.from('montagem').select('inscricao_id').eq('inscricao_id',ins.id).maybeSingle();
@@ -269,7 +317,7 @@ TELAS.inicio=async()=>{
   const st=Object.fromEntries((minhas||[]).map(i=>[i.edicao_id,i]));
   const {data:zs}=await sb.from('edicao_cotas').select('edicao_id').eq('segmento',S.marca.segmento).eq('limite',0).in('edicao_id',eds.map(e=>e.id));const fora=new Set((zs||[]).map(z=>z.edicao_id));
   const selo=(e,i)=>!i&&fora.has(e.id)?['Fora dessa edição','n']:!i?(e.inscricoes_abertas?['Inscrições abertas','ok']:['Em breve','n']):i.status==='encerrada'?['Vagas preenchidas','n']:i.status==='confirmada'?(i.pago?['Presença confirmada','ok']:['Pagamento pendente','t']):['Inscrição recebida',''];
-  return cardPend()+`<h1>Edições</h1><p class="sub">Toque numa edição pra se inscrever ou acompanhar.</p>`+eds.map(e=>{const [t,c]=selo(e,st[e.id]);return `<button class="cardfeira" data-ed="${e.id}" style="width:100%;text-align:left;padding:0;display:block">${toldo(e,null)}<div class="c"><div class="topo"><p style="font-family:var(--display);font-size:21px;font-weight:700;margin:0">${esc(e.titulo)}</p><span class="status ${c}">${t}</span></div><p class="sub" style="margin:2px 0 0">${periodo(e)}${e.local?' · '+esc(e.local):''}</p></div></button>`}).join('');
+  return cardPend()+(!S.marca.logo_url?`<div class="painel" style="background:var(--laranja-soft);border-color:var(--laranja)"><b>Falta a logo da sua marca</b><p style="margin:4px 0 10px">Ela passou a ser obrigatória. Adicione pra liberar novas inscrições.</p><button class="btn pri" data-go="marca">Adicionar logo</button></div>`:'')+`<h1>Edições</h1><p class="sub">Toque numa edição pra se inscrever ou acompanhar.</p>`+eds.map(e=>{const [t,c]=selo(e,st[e.id]);return `<button class="cardfeira" data-ed="${e.id}" style="width:100%;text-align:left;padding:0;display:block">${toldo(e,null)}<div class="c"><div class="topo"><p style="font-family:var(--display);font-size:21px;font-weight:700;margin:0">${esc(e.titulo)}</p><span class="status ${c}">${t}</span></div><p class="sub" style="margin:2px 0 0">${periodo(e)}${e.local?' · '+esc(e.local):''}</p></div></button>`}).join('');
 };
 TELAS.edicao=async()=>{
   if(!S.edicao)return TELAS.inicio();
@@ -278,7 +326,9 @@ TELAS.edicao=async()=>{
   return await inicioBase();
 };
 
-TELAS.marca=()=>{const m=S.marca||{};S.fotos=[...(m.fotos||[])];return `<h1>${m.id?'Minha marca':'Cadastre sua marca'}</h1><p class="sub">Preenche uma vez e fica salvo pras próximas edições.</p><div class="painel">
+TELAS.marca=()=>{const m=S.marca||{};S.fotos=[...(m.fotos||[])];if(S.logoMarcaId!==(m.id||'nova')){S.logo=m.logo_url||null;S.logoMarcaId=m.id||'nova'}return `<h1>${m.id?'Minha marca':'Cadastre sua marca'}</h1><p class="sub">Preenche uma vez e fica salvo pras próximas edições.</p><div class="painel">
+<label style="margin-top:0">Logo da marca</label><p class="sub" style="margin:0;font-size:13px">Ou uma foto que represente a marca. Aparece pra organização e na divulgação.</p>
+<div class="logo-up"><span id="logo-prev">${S.logo?`<img class="logo" src="${esc(S.logo)}" alt="Logo" width="84" height="84" style="width:84px;height:84px">`:`<span class="logo-vazio">${berg(40)}</span>`}</span><label class="btn sec" for="m-logo" style="flex:1;font-weight:600">${S.logo?'Trocar logo':'Enviar logo'}</label><input id="m-logo" type="file" accept="image/*" hidden></div>
 <label for="m-nome">Nome da marca</label><input id="m-nome" value="${esc(m.nome)}">
 <label for="m-seg">Segmento</label><select id="m-seg">${S.segs.map(s=>`<option value="${s.slug}" ${m.segmento===s.slug?'selected':''}>${esc(s.nome)}</option>`).join('')}</select>
 <div class="g2"><div><label for="m-insta">Instagram</label><input id="m-insta" value="${esc(m.instagram)}" placeholder="@suamarca"></div><div><label for="m-zap">WhatsApp</label><input id="m-zap" inputmode="tel" value="${esc(m.whatsapp)}"></div></div>
@@ -386,8 +436,8 @@ TELAS['org-selecao']=async()=>{
   <div class="lista-sel">${lista.map((i,n)=>{const m=i.marcas||{};const d=i.decisoes?.decisao;const cheio=cot[m.segmento]!=null&&(conf[m.segmento]||0)>=cot[m.segmento]&&i.status!=='confirmada';
     const chip=i.status==='encerrada'?'<span class="status n">Não dessa vez (avisado)</span>':i.status==='confirmada'?(i.pago?'<span class="status ok">Pago</span>':'<span class="status ok">Confirmado</span>'):d==='reserva'?'<span class="status">Na sua reserva</span>':d==='nao_desta_vez'?'<span class="status n">Não dessa vez</span>':cheio?'<span class="status t">Segmento completo</span>':'<span class="status">Nova</span>';
     const decidido=i.status==='confirmada'||d==='reserva'||d==='nao_desta_vez';
-    return `<div class="sel"><div class="t"><div class="th">${m.fotos?.[0]?`<img src="${esc(m.fotos[0])}" alt="Trabalho de ${esc(m.nome)}">`:''}<span>#${n+1}</span></div>
-    <div style="flex:1;min-width:0"><div class="nm">${esc(m.nome)}</div><div class="sub" style="margin:2px 0 6px;font-size:13px">${esc(segNome(m.segmento))} · ${i.tamanho.replace('m',' m')}${m.instagram?' · '+esc(m.instagram):''}</div>${chip}</div></div>
+    return `<div class="sel"><div class="t" data-perfil="${i.id}" role="button" tabindex="0" aria-label="Ver perfil de ${esc(m.nome)}"><div class="th" style="border-radius:50%">${(m.logo_url||m.fotos?.[0])?`<img src="${esc(m.logo_url||m.fotos[0])}" alt="Logo de ${esc(m.nome)}">`:''}<span>#${n+1}</span></div>
+    <div style="flex:1;min-width:0"><div class="nm">${esc(m.nome)} <span style="color:var(--verde);font-size:13px;font-weight:600;white-space:nowrap">Ver perfil ›</span></div><div class="sub" style="margin:2px 0 6px;font-size:13px">${esc(segNome(m.segmento))} · ${i.tamanho.replace('m',' m')}${m.instagram?' · '+esc(m.instagram):''}</div>${chip}</div></div>
     ${i.status==='encerrada'?`<div class="ex"><button class="mini" data-dec="convidar" data-id="${i.id}">Convidar (abriu vaga)</button></div>`:
       !decidido||S.mudar===i.id?`<div class="ac"><button class="mini pri" data-dec="confirmada" data-id="${i.id}">Confirmar</button><button class="mini" data-dec="reserva" data-id="${i.id}">Reserva</button><button class="mini" data-dec="nao_desta_vez" data-id="${i.id}">Não dessa vez</button></div>`:''}
     ${i.status==='confirmada'?`<div class="ex">${!i.pago&&i.comprovante_path?`<span class="status" style="background:var(--laranja-soft);color:var(--ink)">Comprovante enviado</span>${urls[i.comprovante_path]?`<a class="mini" href="${esc(urls[i.comprovante_path])}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Ver comprovante</a>`:''}`:''}<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> Pagamento recebido</label></div>`:''}
@@ -397,6 +447,38 @@ TELAS['org-selecao']=async()=>{
   ${e?.inscricoes_abertas||lista.some(i=>i.status==='recebida')?`<button class="btn sec" id="encerrar">Encerrar seleção</button>`:''}`;
 };
 
+
+const IG='<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6"/>';
+const ZAP='<path d="M4 20l1.3-4A8 8 0 1 1 8 18.7z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2z"/>';
+TELAS['org-inscrito']=async()=>{
+  const {data:i,error}=await sb.from('inscricoes').select('*, marcas(*), decisoes(decisao), edicoes(titulo,data,data_fim)').eq('id',S.perfilId).single();if(error)throw error;
+  const m=i.marcas||{},d=i.decisoes?.decisao;
+  const [pos,hist,cz,conf]=await Promise.all([
+    sb.from('inscricoes').select('id',{count:'exact',head:true}).eq('edicao_id',i.edicao_id).lte('criado_em',i.criado_em),
+    sb.from('inscricoes').select('id,edicoes(titulo,data)',{count:'exact'}).eq('marca_id',i.marca_id).eq('status','confirmada').neq('id',i.id),
+    sb.from('edicao_cotas').select('limite').eq('edicao_id',i.edicao_id).eq('segmento',m.segmento).maybeSingle(),
+    sb.from('inscricoes').select('id,marcas!inner(segmento)',{count:'exact',head:true}).eq('edicao_id',i.edicao_id).eq('status','confirmada').eq('marcas.segmento',m.segmento)]);
+  let comp='';if(i.comprovante_path&&!i.pago){const {data:u}=await sb.storage.from('comprovantes').createSignedUrl(i.comprovante_path,3600);comp=u?.signedUrl||''}
+  const ig=(m.instagram||'').replace(/^@/,'').trim(),zap=(m.whatsapp||'').replace(/\D/g,'');
+  const lim=cz.data?.limite,nconf=conf.count||0,cheio=lim!=null&&nconf>=lim&&i.status!=='confirmada';
+  const quando=new Date(i.criado_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  const chip=i.status==='encerrada'?'<span class="status n">Não dessa vez (avisado)</span>':i.status==='confirmada'?(i.pago?'<span class="status ok">Pago</span>':'<span class="status ok">Confirmado</span>'):d==='reserva'?'<span class="status">Na sua reserva</span>':d==='nao_desta_vez'?'<span class="status n">Não dessa vez</span>':'<span class="status">Aguardando sua decisão</span>';
+  const fotos=(m.fotos||[]);
+  return `<button class="mini" data-go="org-selecao" style="border:0;background:none;padding:0">← Seleção</button>
+  ${fotos.length?`<div class="galeria" style="margin-top:8px">${fotos.map((f,k)=>`<a href="${esc(f)}" target="_blank" rel="noopener" aria-label="Abrir foto ${k+1}"><img src="${esc(f)}" alt="Foto ${k+1} do trabalho de ${esc(m.nome)}" loading="lazy"></a>`).join('')}</div>${fotos.length>1?`<p class="sub" style="margin:-6px 0 10px;font-size:12px;text-align:center">${fotos.length} fotos · arraste pro lado</p>`:''}`:`<div class="vazio">${berg(72)}<p class="sub">Sem fotos cadastradas.</p></div>`}
+  <div style="display:flex;align-items:center;gap:12px;margin-top:4px">${m.logo_url?`<img class="logo" src="${esc(m.logo_url)}" alt="Logo de ${esc(m.nome)}" width="60" height="60" style="width:60px;height:60px">`:''}<h1 style="margin:0">${esc(m.nome)}</h1></div>
+  <div class="chips">${chip}<span class="status n">${esc(segNome(m.segmento))}</span><span class="status n">Espaço ${i.tamanho.replace('m',' m')}</span><span class="status n">#${pos.count||'?'} na fila</span></div>
+  ${(ig||zap)?`<div class="contatos">${ig?`<a href="https://instagram.com/${encodeURIComponent(ig)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true">${IG}</svg>@${esc(ig)}</a>`:''}${zap?`<a href="https://wa.me/${zap.length<=11?'55'+zap:zap}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true">${ZAP}</svg>WhatsApp</a>`:''}</div>`:''}
+  ${m.descricao?`<div class="painel"><b class="secao">Sobre a marca</b><p style="margin:6px 0 0;white-space:pre-line">${esc(m.descricao)}</p></div>`:''}
+  <div class="painel">
+    <div class="kv"><span>Edição</span><b>${esc(i.edicoes?.titulo||'')} · ${i.edicoes?periodo(i.edicoes):''}</b></div>
+    <div class="kv"><span>Inscrição feita em</span><b>${quando}</b></div>
+    <div class="kv"><span>Já participou</span><b>${hist.count?hist.count+(hist.count>1?' edições':' edição'):'Primeira vez'}</b></div>
+    <div class="kv"><span>${esc(segNome(m.segmento))} confirmados</span><b style="${cheio?'color:var(--tomate)':''}">${nconf}${lim!=null?' de '+lim:''}${cheio?' · completo':''}</b></div>
+  </div>
+  ${i.status==='confirmada'?`<div class="painel"><b class="secao">Pagamento</b>${comp?`<p style="margin:6px 0 10px">Comprovante enviado.</p><a class="btn sec" href="${esc(comp)}" target="_blank" rel="noopener" style="text-decoration:none;margin-bottom:10px">Ver comprovante</a>`:!i.pago?'<p class="sub" style="margin:6px 0 10px">Ainda sem comprovante.</p>':''}<label class="check"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> Pagamento recebido</label></div>`:''}
+  ${i.status==='encerrada'?`<div class="decisao"><button class="btn sec" data-dec="convidar" data-id="${i.id}">Convidar (abriu vaga)</button></div>`:`<div class="decisao"><button class="btn pri" data-dec="confirmada" data-id="${i.id}">${i.status==='confirmada'?'Presença confirmada ✓':'Confirmar presença'}</button><div class="row" style="margin-top:8px"><button class="mini" data-dec="reserva" data-id="${i.id}" style="min-height:44px">Reserva</button><button class="mini" data-dec="nao_desta_vez" data-id="${i.id}" style="min-height:44px">Não dessa vez</button></div></div>`}`;
+};
 TELAS['org-mapas']=async()=>{
   const {data}=await sb.from('mapas').select('*').order('criado_em');S.mapas=data||[];
   if(!S.mapaSel&&S.mapas.length)S.mapaSel=S.mapas[0].id;
@@ -472,7 +554,8 @@ TELAS['org-feedback']=async()=>{
 
 /* ================= EVENTOS ================= */
 document.addEventListener('click',async ev=>{
-  const b=ev.target.closest('button,[data-go]');if(!b)return;const d=b.dataset;
+  const b=ev.target.closest('button,[data-go],[data-perfil]');if(!b)return;const d=b.dataset;
+  if(d.perfil&&!ev.target.closest('button')){S.perfilId=d.perfil;go('org-inscrito');return}
   try{
   if(d.go){if(d.go==='proposta')location.hash='proposta';go(d.go);return}
   if(d.olho){const inp=document.getElementById(d.olho);const ver=inp.type==='password';inp.type=ver?'text':'password';b.setAttribute('aria-pressed',ver);b.setAttribute('aria-label',ver?'Esconder senha':'Mostrar senha');b.style.color=ver?'var(--verde)':'';return}
@@ -493,8 +576,9 @@ document.addEventListener('click',async ev=>{
   if(d.tam){S.tamEscolhido=d.tam;document.querySelectorAll('[data-tam]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.tam===d.tam));return}
   if(b.id==='inscrever'){b.disabled=true;const r=await sb.rpc('inscrever',{p_edicao:S.edicao.id,p_tamanho:S.tamEscolhido});b.disabled=false;if(r.error){toast(erroMsg(r.error));return}toast('Inscrição recebida!');render();return}
   if(d.rmfoto){S.fotos.splice(+d.rmfoto,1);desenhaFotos();return}
-  if(b.id==='m-ok'){const nome=$('#m-nome').value.trim(),err=$('#m-err');err.textContent='';if(!nome){err.textContent='Informe o nome da marca.';return}if(S.fotos.length<3){err.textContent='Adicione pelo menos 3 fotos do trabalho.';return}
-    b.disabled=true;const reg={nome,segmento:$('#m-seg').value,instagram:$('#m-insta').value.trim(),whatsapp:$('#m-zap').value.trim(),descricao:$('#m-desc').value.trim(),fotos:S.fotos};
+  if(b.id==='m-ok'){const nome=$('#m-nome').value.trim(),err=$('#m-err');err.textContent='';if(!nome){err.textContent='Informe o nome da marca.';return}if(!S.logo){err.textContent='Adicione a logo da marca.';return}
+    if(S.fotos.length<3){err.textContent='Adicione pelo menos 3 fotos do trabalho.';return}
+    b.disabled=true;const reg={nome,logo_url:S.logo,segmento:$('#m-seg').value,instagram:$('#m-insta').value.trim(),whatsapp:$('#m-zap').value.trim(),descricao:$('#m-desc').value.trim(),fotos:S.fotos};
     const r=S.marca?await sb.from('marcas').update(reg).eq('id',S.marca.id).select().single():await sb.from('marcas').insert({...reg,dono:S.sessao.user.id}).select().single();b.disabled=false;
     if(r.error){err.textContent=erroMsg(r.error);return}S.marca=r.data;toast('Marca salva');go('inicio');return}
   if(d.escolher){if(b.getAttribute('aria-disabled')){toast(b.classList.contains('oc')?'Essa vaga já foi escolhida':'Essa vaga é de outro tamanho');return}
@@ -570,6 +654,10 @@ document.addEventListener('change',async ev=>{const t=ev.target;
   if(t.id==='mp-sel'){S.mapaSel=t.value;S.vagaSel=null;render();return}
   if(t.dataset.pago){const r=await sb.from('inscricoes').update({pago:t.checked}).eq('id',t.dataset.pago);toast(r.error?erroMsg(r.error):t.checked?'Pagamento registrado. O mapa foi liberado pro expositor.':'Pagamento desmarcado');if(!r.error)render();return}
   if(t.dataset.pst){await sb.from('propostas_espacos').update({status:t.value}).eq('id',t.dataset.pst);toast('Status atualizado');return}
+  if(t.id==='m-logo'){const f=t.files[0];if(!f)return;if(f.size>5*1024*1024){toast('A imagem passa de 5 MB');return}toast('Enviando logo…');
+    const path=`${S.sessao.user.id}/logo-${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;const r=await sb.storage.from('fotos-marcas').upload(path,f);
+    if(r.error){toast(erroMsg(r.error));return}S.logo=sb.storage.from('fotos-marcas').getPublicUrl(path).data.publicUrl;
+    $('#logo-prev').innerHTML=`<img class="logo" src="${esc(S.logo)}" alt="Logo" width="84" height="84" style="width:84px;height:84px">`;t.value='';toast('Logo carregada. Lembre de salvar.');return}
   if(t.id==='m-file'){const files=[...t.files];if(!files.length)return;toast('Enviando fotos…');
     for(const f of files){if(f.size>5*1024*1024){toast(`${f.name} passa de 5 MB`);continue}
       const path=`${S.sessao.user.id}/${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;const r=await sb.storage.from('fotos-marcas').upload(path,f);
@@ -583,6 +671,7 @@ document.addEventListener('change',async ev=>{const t=ev.target;
     const r=await sb.storage.from('mapas').upload(path,f);if(r.error){toast(erroMsg(r.error));return}
     const url=sb.storage.from('mapas').getPublicUrl(path).data.publicUrl;const r2=await sb.from('mapas').update({imagem_url:url}).eq('id',S.mapaSel);if(r2.error){toast(erroMsg(r2.error));return}toast('Planta atualizada');render();return}
 });
+document.addEventListener('keydown',ev=>{const t=ev.target.closest&&ev.target.closest('[data-perfil]');if(t&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();S.perfilId=t.dataset.perfil;go('org-inscrito')}});
 window.addEventListener('hashchange',()=>{if(location.hash==='#proposta')go('proposta')});
 iniciar();
 </script>

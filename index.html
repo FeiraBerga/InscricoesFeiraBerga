@@ -68,6 +68,7 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
 .vg.out{border-style:dashed;opacity:.5}
 .vg.minha{background:#5E6E32;border-color:#3B4420;color:#FFFBF6}
 .vg.sel{outline:3px solid var(--tomate)}
+#mapaed .vg{background:rgba(255,251,246,.35);color:#3A1405;text-shadow:0 0 3px #fff}
 .expo{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
 .cartao{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
 .cartao .foto{height:110px;background:var(--verde-soft);position:relative}
@@ -513,6 +514,42 @@ TELAS['org-inscrito']=async()=>{
   ${i.status==='confirmada'?`<div class="painel"><b class="secao">Pagamento</b>${comp?`<p style="margin:6px 0 10px">Comprovante enviado.</p><a class="btn sec" href="${esc(comp)}" target="_blank" rel="noopener" style="text-decoration:none;margin-bottom:10px">Ver comprovante</a>`:!i.pago?'<p class="sub" style="margin:6px 0 10px">Ainda sem comprovante.</p>':''}<label class="check"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> Pagamento recebido</label></div>`:''}
   ${i.status==='encerrada'?`<div class="decisao"><button class="btn sec" data-dec="convidar" data-id="${i.id}">Convidar (abriu vaga)</button></div>`:`<div class="decisao"><button class="btn pri" data-dec="confirmada" data-id="${i.id}">${i.status==='confirmada'?'Presença confirmada ✓':'Confirmar presença'}</button><div class="row" style="margin-top:8px"><button class="mini" data-dec="reserva" data-id="${i.id}" style="min-height:44px">Reserva</button><button class="mini" data-dec="nao_desta_vez" data-id="${i.id}" style="min-height:44px">Não dessa vez</button></div></div>`}`;
 };
+/* leitura automática das vagas na planta */
+async function detectarVagasImg(url){
+  const img=new Image();img.crossOrigin='anonymous';img.src=url;await img.decode();
+  const W=Math.min(900,img.naturalWidth),sc=W/img.naturalWidth,H=Math.round(img.naturalHeight*sc);
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(img,0,0,W,H);
+  const px=cx.getImageData(0,0,W,H).data;const N=W*H;const m=new Uint8Array(N);
+  for(let i=0;i<N;i++){const r=px[i*4],g=px[i*4+1],b=px[i*4+2];m[i]=(r>140&&r-g>55&&r-b>80&&g<160)?1:0}
+  const lab=new Int32Array(N);const comps=[];const st=new Int32Array(N);
+  for(let i=0;i<N;i++){if(!m[i]||lab[i])continue;const id=comps.length+1;let sp=0;st[sp++]=i;lab[i]=id;let x0=1e9,x1=-1,y0=1e9,y1=-1,c=0;
+    while(sp){const k=st[--sp];const x=k%W,y=(k/W)|0;c++;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;
+      if(x>0&&m[k-1]&&!lab[k-1]){lab[k-1]=id;st[sp++]=k-1}if(x<W-1&&m[k+1]&&!lab[k+1]){lab[k+1]=id;st[sp++]=k+1}
+      if(y>0&&m[k-W]&&!lab[k-W]){lab[k-W]=id;st[sp++]=k-W}if(y<H-1&&m[k+W]&&!lab[k+W]){lab[k+W]=id;st[sp++]=k+W}}
+    comps.push({x0,x1,y0,y1,c,w:x1-x0+1,h:y1-y0+1})}
+  let cand=comps.filter(o=>o.w>=8&&o.h>=8&&o.w/o.h>0.55&&o.w/o.h<1.9&&o.c/(o.w*o.h)>0.5);
+  if(!cand.length)return[];
+  const ar=cand.map(o=>o.w*o.h).sort((a,b)=>a-b),med=ar[ar.length>>1];
+  cand=cand.filter(o=>{const a=o.w*o.h;return a>med*0.4&&a<med*2.6});
+  cand.sort((a,b)=>a.y0-b.y0);const bands=[];
+  for(const o of cand){const b=bands.find(b=>o.y0<b.y1&&o.y1>b.y0);if(b){b.it.push(o);b.y0=Math.min(b.y0,o.y0);b.y1=Math.max(b.y1,o.y1)}else bands.push({y0:o.y0,y1:o.y1,it:[o]})}
+  bands.sort((a,b)=>a.y0-b.y0);const out=[];
+  bands.forEach(b=>b.it.sort((p,q)=>(p.x0+p.x1)-(q.x0+q.x1)).forEach(o=>out.push({x:+((o.x0+o.x1+1)/2/W*100).toFixed(2),y:+((o.y0+o.y1+1)/2/H*100).toFixed(2),largura:+(o.w/W*100).toFixed(2),altura:+(o.h/H*100).toFixed(2),tamanho:o.w/o.h>1.35?'3m':'2m'})));
+  return out;
+}
+
+async function criarVagasDaPlanta(auto){
+  const m=S.mapas.find(x=>x.id===S.mapaSel);if(!m?.imagem_url){toast('Suba a imagem da planta primeiro');return}
+  if(!auto&&S.vagasEd.length&&!confirm(`Isso apaga as ${S.vagasEd.length} vagas desenhadas agora e cria tudo de novo a partir da planta. Continuar?`))return;
+  toast('Lendo a planta…');let achadas;
+  try{achadas=await detectarVagasImg(m.imagem_url)}catch(e){toast('Não consegui ler a imagem. Tente subir de novo.');return}
+  if(!achadas.length){toast('Não encontrei vagas laranjas na planta. Dá pra criar tocando na imagem.');return}
+  if(S.vagasEd.length){const r=await sb.from('mapa_vagas').delete().eq('mapa_id',m.id);if(r.error){toast(/foreign key|violates/i.test(r.error.message)?'Alguém já escolheu vaga nesse mapa, então não dá pra recriar as vagas.':erroMsg(r.error));return}}
+  const r=await sb.from('mapa_vagas').insert(achadas.map((v,k)=>({mapa_id:m.id,numero:k+1,...v}))).select();
+  if(r.error){toast(erroMsg(r.error));return}
+  S.vagasEd=(r.data||[]).sort((a,b)=>a.numero-b.numero);S.vagaSel=null;desenhaEditor();
+  toast(`${achadas.length} vagas criadas! Confira os números e os tamanhos.`);
+}
 TELAS['org-mapas']=async()=>{
   const {data}=await sb.from('mapas').select('*').order('criado_em');S.mapas=data||[];
   if(!S.mapaSel&&S.mapas.length)S.mapaSel=S.mapas[0].id;
@@ -524,6 +561,7 @@ TELAS['org-mapas']=async()=>{
     <p class="sub" style="margin:10px 0 0">Toque na planta pra criar uma vaga. Toque numa vaga pra selecionar.</p></div>
     <div class="mapawrap" id="mapaed" style="cursor:crosshair"></div>
     <div class="painel" id="vg-acoes" style="margin-top:10px"></div>
+    ${m.imagem_url?`<button class="btn pri" id="mp-detectar" style="margin-top:6px">Ler vagas da planta automaticamente</button><p class="sub" style="margin:6px 0 10px;font-size:12px;text-align:center">Encontra os quadrados laranjas numerados e cria as vagas. Depois é só conferir.</p>`:''}
     <label class="btn sec" for="mp-file" style="margin-top:6px">${m.imagem_url?'Trocar imagem da planta':'Subir imagem da planta'}</label><input id="mp-file" type="file" accept="image/*" hidden>
     <button class="btn sec" id="mp-del" style="margin-top:10px;color:var(--tomate);border-color:var(--tomate-soft)">Excluir este mapa</button>`}
   return `<h1>Mapas</h1>${S.mapas.length?`<select id="mp-sel" aria-label="Mapa">${S.mapas.map(x=>`<option value="${x.id}" ${x.id===S.mapaSel?'selected':''}>${esc(x.nome)}</option>`).join('')}</select>`:''}
@@ -533,7 +571,7 @@ function desenhaEditor(){
   const w=$('#mapaed');if(!w)return;const m=S.mapas.find(x=>x.id===S.mapaSel);
   w.innerHTML=(m.imagem_url?`<img src="${esc(m.imagem_url)}" alt="Planta">`:'<div style="height:360px"></div>')+S.vagasEd.map(v=>`<button class="vg ${v.id===S.vagaSel?'sel':''}" style="left:${v.x}%;top:${v.y}%;width:${v.largura}%;height:${v.altura}%" data-vsel="${v.id}" aria-label="Vaga ${v.numero}">${v.numero}</button>`).join('');
   const v=S.vagasEd.find(x=>x.id===S.vagaSel);const a=$('#vg-acoes');
-  a.innerHTML=v?`<b>Vaga ${v.numero} · ${v.tamanho}</b><div class="row" style="margin-top:8px"><button class="mini" data-vtam="${v.id}">Trocar pra ${v.tamanho==='2m'?'3 m':'2 m'}</button><button class="mini" data-vdel="${v.id}">Apagar</button></div><div class="row" style="margin-top:6px"><button class="mini" data-vesc="${v.id}" data-f="0.85">Desenho menor</button><button class="mini" data-vesc="${v.id}" data-f="1.15">Desenho maior</button></div>`:`<span class="sub">${S.vagasEd.length} vagas · nenhuma selecionada</span>`;
+  a.innerHTML=v?`<b>Vaga ${v.numero} · ${v.tamanho}</b><div class="row" style="margin-top:8px"><button class="mini" data-vtam="${v.id}">Trocar pra ${v.tamanho==='2m'?'3 m':'2 m'}</button><button class="mini" data-vdel="${v.id}">Apagar</button></div><div class="row" style="margin-top:6px"><button class="mini" data-vnum="${v.id}">Mudar número</button></div><div class="row" style="margin-top:6px"><button class="mini" data-vesc="${v.id}" data-f="0.85">Desenho menor</button><button class="mini" data-vesc="${v.id}" data-f="1.15">Desenho maior</button></div>`:`<span class="sub">${S.vagasEd.length} vagas · nenhuma selecionada</span>`;
 }
 AFTER['org-mapas']=desenhaEditor;
 
@@ -666,6 +704,9 @@ document.addEventListener('click',async ev=>{
   if(d.dtam){S.dtam=d.dtam;document.querySelectorAll('[data-dtam]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.dtam===d.dtam));return}
   if(d.vesc){const v=S.vagasEd.find(x=>x.id===d.vesc);const f=+d.f;const w=+Math.min(40,Math.max(2,v.largura*f)).toFixed(2),h=+Math.min(40,Math.max(2,v.altura*f)).toFixed(2);
     const r=await sb.from('mapa_vagas').update({largura:w,altura:h}).eq('id',v.id);if(r.error){toast(erroMsg(r.error));return}v.largura=w;v.altura=h;desenhaEditor();return}
+  if(b.id==='mp-detectar'){b.disabled=true;await criarVagasDaPlanta(false);b.disabled=false;return}
+  if(d.vnum){const v=S.vagasEd.find(x=>x.id===d.vnum);const n=prompt('Novo número da vaga',v.numero);if(n===null)return;const k=parseInt(n,10);if(!k||k<1){toast('Número inválido');return}
+    const r=await sb.from('mapa_vagas').update({numero:k}).eq('id',v.id);if(r.error){toast(/duplicate|unique/i.test(r.error.message)?`Já existe uma vaga ${k} nesse mapa.`:erroMsg(r.error));return}v.numero=k;desenhaEditor();return}
   if(b.id==='mp-del'){const m=S.mapas.find(x=>x.id===S.mapaSel);if(!m)return;
     const {data:usos}=await sb.from('edicoes').select('titulo,data,data_fim').eq('mapa_id',m.id);
     if(usos&&usos.length){toast(`Esse mapa está na edição ${usos[0].titulo} de ${periodo(usos[0])}. Troque o mapa dela antes de excluir.`);return}
@@ -715,7 +756,7 @@ document.addEventListener('change',async ev=>{const t=ev.target;
     if(r2.error){toast(erroMsg(r2.error));return}toast('Comprovante enviado!');render();return}
   if(t.id==='mp-file'){const f=t.files[0];if(!f)return;toast('Enviando planta…');const path=`${S.mapaSel}/${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;
     const r=await sb.storage.from('mapas').upload(path,f);if(r.error){toast(erroMsg(r.error));return}
-    const url=sb.storage.from('mapas').getPublicUrl(path).data.publicUrl;const r2=await sb.from('mapas').update({imagem_url:url}).eq('id',S.mapaSel);if(r2.error){toast(erroMsg(r2.error));return}toast('Planta atualizada');render();return}
+    const url=sb.storage.from('mapas').getPublicUrl(path).data.publicUrl;const r2=await sb.from('mapas').update({imagem_url:url}).eq('id',S.mapaSel);if(r2.error){toast(erroMsg(r2.error));return}toast('Planta atualizada');await render();if(!S.vagasEd?.length)await criarVagasDaPlanta(true);return}
 });
 document.addEventListener('keydown',ev=>{const t=ev.target.closest&&ev.target.closest('[data-perfil]');if(t&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();S.perfilId=t.dataset.perfil;go('org-inscrito')}});
 window.addEventListener('hashchange',()=>{if(location.hash==='#proposta')go('proposta')});

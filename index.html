@@ -276,6 +276,14 @@ nav.baixo button[aria-current="page"]{background:var(--oliva);color:#F3EBDE}
 .lugar .num{min-width:64px;height:64px;padding:0 10px;border-radius:18px;background:var(--verde);color:#23200A;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-stretch:125%;font-weight:900;font-size:26px;box-shadow:4px 4px 0 #FF9900}
 .viz{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
 .viz b{font-weight:700}.viz span.livre{color:var(--ink-2);font-style:italic}
+a.btn,a.mini{color:var(--ink);text-decoration:none}a.btn.pri,a.mini.pri{color:#23200A}
+.cruz{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.cz{background:#F3EBDE;border-radius:14px;padding:8px 6px;text-align:center;min-height:62px;display:flex;flex-direction:column;justify-content:center;gap:2px;overflow:hidden}
+.cz small{font-size:11px;color:var(--ink-2);font-weight:600}
+.cz b{font-size:13px;line-height:1.15;word-break:break-word}
+.cz .livre{font-size:13px;color:var(--ink-2);font-style:italic}
+.cz.eu{background:var(--verde);box-shadow:3px 3px 0 #FF9900}.cz.eu small{color:#23200A}.cz.eu b{font-family:var(--display);font-stretch:125%;font-weight:900;font-size:22px}
+.igs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 @media (prefers-reduced-motion:reduce){#tela>*{animation:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -435,7 +443,7 @@ async function inicioBase(){
   const editar=`<div class="painel"><b class="secao">Sua inscrição</b><div class="kv" style="margin-top:8px"><span>Tamanho do espaço</span><b>${tamLabel(ins.tamanho)}</b></div>
     ${ins.tamanho==='unico'?'':ins.status==='recebida'?`<p class="sub" style="margin:6px 0 8px;font-size:13px">Enquanto a organização não confirma, dá pra trocar:</p><div class="opcoes">${['2m','3m'].map(t=>`<button class="op" data-novotam="${t}" aria-pressed="${ins.tamanho===t}" style="min-height:52px"><b style="font-size:18px">${t.replace('m',' m')}</b></button>`).join('')}</div>`:`<p class="sub" style="margin:6px 0 0;font-size:13px">Pra trocar o tamanho agora, fale com a organização.</p>`}
     <p class="sub" style="margin:10px 0 0;font-size:13px">Mesas, cadeiras, estacionamento e quem vai montar podem ser editados até o dia da feira.</p>
-    <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:10px">${ins.pago?'<p class="sub" style="margin:0;font-size:13px">Pra sair depois do pagamento confirmado, fale com a organização.</p>':'<button class="mini" id="sair-edicao" style="border:0;background:none;padding:0;color:var(--tomate);font-weight:700;min-height:40px">Sair dessa edição</button>'}</div></div>`;
+    <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:10px">${ins.pago?'<p style="margin:0 0 4px;font-size:13px;color:var(--vinho);font-weight:700">Pagamento realizado: não é possível devolução.</p><p class="sub" style="margin:0 0 6px;font-size:13px">Qualquer coisa, entre em contato com a organização.</p>':''}<button class="mini" id="sair-edicao" style="border:0;background:none;padding:0;color:var(--tomate);font-weight:700;min-height:40px">Sair dessa edição</button></div></div>`;
   return cab+(conf?'<div id="vizinhos"></div>':'')+`<div class="painel"><span class="status ${conf?'ok':''}">${conf?'Presença confirmada':'Inscrição recebida'}</span><ol class="passos">${passos.map((p,i)=>`<li class="${p[2]?'feito':i===ag?'agora':''}"><span class="bola">${p[2]?'✓':i+1}</span><div><b>${p[0]}</b><small>${p[1]}</small></div></li>`).join('')}</ol></div>${acao}<h2>Informações da edição</h2>${info}${e.regras?`<div class="painel"><b>Regras do local</b><p style="margin:6px 0 0;white-space:pre-line">${esc(e.regras)}</p></div>`:''}${e.link_fotos&&fimEd(e)<new Date().toISOString().slice(0,10)?`<a class="btn sec" href="${esc(e.link_fotos)}" target="_blank" rel="noopener" style="text-decoration:none">Ver fotos da feira</a>`:''}`+editar;
 };
 
@@ -443,8 +451,15 @@ async function inicioBase(){
 async function montaVizinhos(){
   const e=S.edicao,ins=S.ins;if(!e||!ins||ins.status!=='confirmada')return '';
   if(!e.mapa_id)return `<div class="painel"><b class="secao">Seu lugar na feira</b><p class="sub" style="margin:4px 0 0">O mapa dessa edição ainda não foi publicado.</p></div>`;
-  const [mp,vg,oc]=await Promise.all([sb.from('mapas').select('areas').eq('id',e.mapa_id).maybeSingle(),sb.from('mapa_vagas').select('id,numero,x,y').eq('mapa_id',e.mapa_id),sb.from('vagas_ocupadas').select('vaga_id,marca_nome').eq('edicao_id',e.id)]);
+  const [mp,vg,oc]=await Promise.all([sb.from('mapas').select('areas').eq('id',e.mapa_id).maybeSingle(),sb.from('mapa_vagas').select('id,numero,x,y,largura,altura').eq('mapa_id',e.mapa_id),sb.from('vagas_ocupadas').select('vaga_id,marca_nome').eq('edicao_id',e.id)]);
   const vagas=vg.data||[],ocup=new Map((oc.data||[]).map(x=>[x.vaga_id,x.marca_nome]));
+  const altM=vagas.length?vagas.reduce((t,v)=>t+(v.altura||8),0)/vagas.length:8,largM=vagas.length?vagas.reduce((t,v)=>t+(v.largura||8),0)/vagas.length:8;
+  const vizinho=(me,dir)=>{let c=vagas.filter(v=>v.id!==me.id);
+    if(dir==='e'||dir==='d')c=c.filter(v=>Math.abs(v.y-me.y)<altM*.6&&(dir==='e'?v.x<me.x:v.x>me.x)&&Math.abs(v.x-me.x)<largM*3);
+    else c=c.filter(v=>(dir==='c'?v.y<me.y:v.y>me.y)&&Math.abs(v.y-me.y)>=altM*.6&&Math.abs(v.y-me.y)<altM*3.2&&Math.abs(v.x-me.x)<largM*1.2);
+    c.sort((a,b)=>Math.hypot(a.x-me.x,a.y-me.y)-Math.hypot(b.x-me.x,b.y-me.y));return c[0]||null};
+  const celula=(v,rot)=>`<div class="cz">${v?`<small>${rot} · vaga ${v.numero}</small>${ocup.get(v.id)?`<b>${esc(ocup.get(v.id))}</b>`:'<span class="livre">livre</span>'}`:`<small>${rot}</small><span class="livre">—</span>`}</div>`;
+  const cruz=me=>`<div class="cruz"><div></div>${celula(vizinho(me,'c'),'Acima')}<div></div>${celula(vizinho(me,'e'),'Esquerda')}<div class="cz eu"><small>Você</small><b>${me.numero}</b></div>${celula(vizinho(me,'d'),'Direita')}<div></div>${celula(vizinho(me,'b'),'Abaixo')}<div></div></div>`;
   const perto=(x,y,excl)=>vagas.filter(v=>v.id!==excl).map(v=>({v,d:Math.hypot(v.x-x,(v.y-y)*0.7)})).sort((a,b)=>a.d-b.d).slice(0,4).map(({v})=>`<div class="viz"><span>Vaga ${v.numero}</span>${ocup.get(v.id)?`<b>${esc(ocup.get(v.id))}</b>`:'<span class="livre">livre</span>'}</div>`).join('');
   const area=areaSeg(mp.data,S.marca.segmento);
   if(area){const {data:oa}=await sb.rpc('ocupacao_areas',{p_edicao:e.id});const outros=(oa||[]).filter(x=>x.segmento===area.segmento&&x.marca_nome!==S.marca.nome);
@@ -454,7 +469,7 @@ async function montaVizinhos(){
   const minha=vagas.find(v=>v.id===ins.vaga_id);
   if(!minha)return `<div class="painel"><b class="secao">Seu lugar na feira</b><p class="sub" style="margin:4px 0 0">${ins.pago?'Você ainda não escolheu sua vaga. Toque em "Escolher minha vaga" aqui embaixo.':'Depois do pagamento, você escolhe sua vaga no mapa e vê quem fica do seu lado.'}</p></div>`;
   return `<div class="painel"><div class="lugar"><span class="num">${minha.numero}</span><div><b class="secao">Seu lugar na feira</b><div class="sub" style="margin:0">Vaga ${minha.numero} · ${tamLabel(ins.tamanho)}</div></div></div>
-  <p style="margin:12px 0 0;font-weight:700">Ao seu redor</p>${perto(minha.x,minha.y,minha.id)}<p class="sub" style="margin:10px 0 0;font-size:12px">Atualiza sozinho conforme as pessoas escolhem os lugares.</p></div>`;
+  <p style="margin:12px 0 6px;font-weight:700">Ao seu redor</p>${cruz(minha)}<p class="sub" style="margin:8px 0 0;font-size:12px">Posições como aparecem no mapa.</p><p class="sub" style="margin:10px 0 0;font-size:12px">Atualiza sozinho conforme as pessoas escolhem os lugares.</p></div>`;
 }
 AFTER.edicao=async()=>{const el=$('#vizinhos');if(!el)return;el.innerHTML=await montaVizinhos();
   if(S.canal){sb.removeChannel(S.canal);S.canal=null}
@@ -597,7 +612,7 @@ TELAS['org-edicao-form']=async()=>{
   ${terminou?`<label for="e-fotos">Link das fotos da feira</label><input id="e-fotos" type="url" inputmode="url" value="${v('link_fotos')}" placeholder="https://drive.google.com/..."><p class="sub" style="margin:4px 0 0;font-size:12px">Quando salvar, os expositores dessa edição veem o botão "Ver fotos da feira".</p>`:`<p class="sub" style="margin:14px 0 0;font-size:13px">O campo do link das fotos aparece aqui depois que a edição terminar, pra quando as fotos estiverem tratadas.</p>`}
   <label class="check" style="margin-top:14px"><input type="checkbox" id="e-aberta" ${e.inscricoes_abertas?'checked':''}> Inscrições abertas</label></div>
   <div class="painel"><b>Vagas por segmento</b><p class="sub" style="margin:2px 0 6px">Vazio = sem limite. Zero = o segmento não participa dessa edição.</p>${S.segs.map(s=>`<div class="cota"><span style="flex:1">${esc(s.nome)}</span><input type="number" min="0" data-cota="${s.slug}" value="${cot[s.slug]??''}" style="width:90px" aria-label="Limite de ${esc(s.nome)}"></div>`).join('')}</div>
-  <p class="erro" id="e-err"></p><button class="btn pri" id="e-ok">Salvar edição</button>${e.id?`<button class="btn sec" id="e-del" style="margin-top:10px;color:var(--tomate);border-color:var(--tomate-soft)">Excluir edição</button><p class="sub" style="margin-top:6px;font-size:12px;text-align:center">Só dá pra excluir enquanto ninguém tiver se inscrito.</p>`:''}`;
+  <p class="erro" id="e-err"></p><button class="btn pri" id="e-ok">Salvar edição</button>${e.id?`<button class="btn sec" id="e-del" style="margin-top:10px;color:var(--tomate);border-color:var(--tomate-soft)">Excluir edição</button><p class="sub" style="margin-top:6px;font-size:12px;text-align:center">Se tiver inscritos, o app mostra quem foi afetado antes de excluir.</p>`:''}`;
 };
 
 TELAS['org-selecao']=async()=>{
@@ -856,8 +871,22 @@ TELAS['org-lista']=async()=>{
   <div class="painel" style="margin-top:10px"><div class="kv"><span>Montadores</span><b>${S.listaLinhas.filter(l=>l[0]).length}</b></div><div class="kv"><span>Carros</span><b>${carros}</b></div><div class="kv"><span>Expositores sem dados</span><b style="color:${pend?'var(--tomate)':'inherit'}">${pend}</b></div></div>
   <div class="painel">${S.listaLinhas.map(l=>`<div class="pessoa"><b>${esc(l[0]||'Só estacionamento')}</b>${l[1]?` · ${esc(l[1])}`:''}<small>${esc(l[2])}${l[3]!==''?' · vaga '+esc(l[3]):''}${l[4]?' · placa '+esc(l[4]):''}</small></div>`).join('')||'<p class="sub" style="margin:0">Nada ainda.</p>'}</div>
   <button class="btn pri" id="baixar">Baixar planilha (CSV)</button>
-  <button class="btn sec" id="apagar-sens" style="margin-top:8px">Apagar CPFs e placas desta edição</button>`;
+  <button class="btn sec" id="apagar-sens" style="margin-top:8px">Apagar CPFs e placas desta edição</button>`+await blocoInstagram();
 };
+const igNorm=v=>{let t=String(v||'').trim();if(!t)return '';t=t.replace(/^https?:\/\/(www\.)?instagram\.com\//i,'').replace(/[/?#].*$/,'').replace(/^@+/,'').trim();return t?'@'+t:''};
+async function blocoInstagram(){
+  const {data}=await sb.from('inscricoes').select('marcas(nome,instagram,segmento)').eq('edicao_id',S.orgEdicao).eq('status','confirmada');
+  const ms=(data||[]).map(x=>x.marcas).filter(Boolean).map(m=>({...m,ig:igNorm(m.instagram)})).sort((a,b)=>a.nome.localeCompare(b.nome));
+  const com=ms.filter(m=>m.ig);
+  if(!ms.length)return `<h2>Instagram pra divulgação</h2><p class="sub">Assim que tiver expositores confirmados, os @ aparecem aqui.</p>`;
+  const segs=[...new Set(com.map(m=>m.segmento))].sort((a,b)=>segNome(a).localeCompare(segNome(b)));
+  const juntar=l=>l.map(m=>m.ig).join(' ');
+  return `<h2>Instagram pra divulgação</h2><p class="sub" style="margin-top:-6px">Expositores confirmados dessa edição.</p>
+  <div class="painel"><button class="btn pri" data-ig="${esc(juntar(com))}">Copiar todos os @ (${com.length})</button>
+  ${segs.length>1?`<p style="margin:12px 0 0;font-weight:700">Por segmento</p><div class="igs">${segs.map(sg=>{const l=com.filter(m=>m.segmento===sg);return `<button class="mini" data-ig="${esc(juntar(l))}">${esc(segNome(sg))} (${l.length})</button>`}).join('')}</div>`:''}
+  <p style="margin:12px 0 0;font-weight:700">Um por um</p>
+  ${ms.map(m=>`<div class="kv" style="align-items:center"><span style="color:var(--ink);min-width:0"><b>${esc(m.nome)}</b><br><small style="color:var(--ink-2)">${m.ig?esc(m.ig):'sem Instagram'} · ${esc(segNome(m.segmento))}</small></span>${m.ig?`<button class="mini" data-ig="${esc(m.ig)}">Copiar</button>`:''}</div>`).join('')}</div>`;
+}
 
 TELAS['org-propostas']=async()=>{const {data,error}=await sb.from('propostas_espacos').select('*').order('criado_em',{ascending:false});if(error)throw error;
   return `<h1>Propostas de espaços</h1>${(data||[]).map(p=>`<div class="painel"><div class="topo"><b>${esc(p.nome)}</b><select data-pst="${p.id}" style="width:auto;min-height:36px" aria-label="Status"><option value="nova" ${p.status==='nova'?'selected':''}>Nova</option><option value="em_conversa" ${p.status==='em_conversa'?'selected':''}>Em conversa</option><option value="arquivada" ${p.status==='arquivada'?'selected':''}>Arquivada</option></select></div><p class="sub" style="margin:4px 0 0">${esc(p.tipo)} · ${esc(p.cidade)} · ${esc(p.area)}<br>${esc(p.acordo)} · ${esc(p.contato)}</p></div>`).join('')||'<p class="sub">Nenhuma proposta ainda.</p>'}`};
@@ -930,6 +959,32 @@ function abrirRecorte(src){
       toast('Logo ajustada. Lembre de salvar a marca.')}
     catch(e){bt.disabled=false;toast(/tainted|insecure|cross/i.test(String(e))?'Não consegui ajustar essa imagem. Escolha a imagem de novo pela galeria.':erroMsg(e))}};
 }
+
+/* excluir edição com aviso aos afetados */
+async function apagaEdicao(e){const r=await sb.from('edicoes').delete().eq('id',e.id);if(r.error){toast(erroMsg(r.error));return false}
+  if(S.orgEdicao===e.id)S.orgEdicao=null;S.edicoes=null;toast('Edição excluída');go('org-edicoes');return true}
+async function excluirEdicao(e){
+  const {data:ins,error}=await sb.from('inscricoes').select('tamanho,status,pago,marcas(nome,whatsapp)').eq('edicao_id',e.id).order('criado_em');if(error){toast(erroMsg(error));return}
+  const lista=(ins||[]).filter(i=>i.status!=='encerrada');
+  if(!lista.length){if(confirm(`Excluir a edição "${e.titulo}" de ${periodo(e)}? Isso não pode ser desfeito.`))await apagaEdicao(e);return}
+  const valor=i=>i.pago?(precoDe(e,i.tamanho)||0):0;const total=lista.reduce((t,i)=>t+valor(i),0);
+  const linha=i=>`• ${i.marcas?.nome||'Marca'}${i.marcas?.whatsapp?' ('+i.marcas.whatsapp+')':''} — ${tamLabel(i.tamanho)} — ${i.pago?money(valor(i))+' (pago)':i.status==='confirmada'?'confirmado, sem pagamento':'inscrição recebida'}`;
+  const resumo=`Edição cancelada: ${e.titulo} (${periodo(e)})\n\nExpositores afetados (${lista.length}):\n${lista.map(linha).join('\n')}\n\nTotal pago: ${money(total)}`;
+  const zap=n=>{const d=String(n||'').replace(/\D/g,'');return d?(d.length<=11?'55'+d:d):''};
+  const msgPessoal=i=>`Olá, ${i.marcas?.nome||''}! Aqui é da organização da Feira Bêrga. Infelizmente a edição ${e.titulo} de ${periodo(e)} foi cancelada.${i.pago?` Sobre o valor pago (${money(valor(i))}), vamos conversar por aqui.`:''} Qualquer dúvida, é só chamar.`;
+  const fundo=document.createElement('div');fundo.className='recorte-fundo';
+  fundo.innerHTML=`<div class="recorte-folha" role="dialog" aria-modal="true" aria-labelledby="ex-t" style="text-align:left;max-height:88vh;overflow:auto">
+  <h2 id="ex-t" style="margin:0">Excluir ${esc(e.titulo)}?</h2><p class="sub" style="margin:4px 0 12px">${periodo(e)} · ${lista.length} ${lista.length===1?'expositor afetado':'expositores afetados'} · total pago ${money(total)}</p>
+  <div class="painel" style="margin-bottom:10px">${lista.map(i=>{const z=zap(i.marcas?.whatsapp);return `<div class="kv" style="align-items:center"><span style="color:var(--ink)"><b>${esc(i.marcas?.nome||'Marca')}</b><br><small style="color:var(--ink-2)">${tamLabel(i.tamanho)} · ${i.pago?money(valor(i))+' pago':i.status==='confirmada'?'sem pagamento':'inscrição recebida'}</small></span></div>`}).join('')}</div>
+  <a class="btn sec" href="https://wa.me/?text=${encodeURIComponent(resumo)}" target="_blank" rel="noopener" style="text-decoration:none;margin-bottom:8px">Enviar resumo pelo WhatsApp</a>
+  <button class="btn sec" id="ex-copiar" style="margin-bottom:14px">Copiar resumo</button>
+  <p class="sub" style="font-size:12px;margin:0 0 10px">O resumo vai pro WhatsApp da organização, com os contatos de cada expositor pra você decidir sobre reembolso. Envie antes de excluir: depois, os dados das inscrições somem.</p>
+  <div class="row"><button class="btn sec" id="ex-cancela">Cancelar</button><button class="btn" id="ex-ok" style="background:var(--vinho);color:#F3EBDE">Excluir edição</button></div></div>`;
+  document.body.appendChild(fundo);
+  fundo.querySelector('#ex-cancela').onclick=()=>fundo.remove();
+  fundo.querySelector('#ex-copiar').onclick=async()=>{try{await navigator.clipboard.writeText(resumo);toast('Resumo copiado')}catch{toast('Não deu pra copiar')}};
+  fundo.querySelector('#ex-ok').onclick=async ev=>{if(!confirm('Tem certeza? A edição, as inscrições, os pagamentos registrados e os feedbacks dela serão apagados.'))return;ev.currentTarget.disabled=true;if(await apagaEdicao(e))fundo.remove();else ev.currentTarget.disabled=false};
+}
 /* ================= EVENTOS ================= */
 document.addEventListener('click',async ev=>{
   const b=ev.target.closest('button,[data-go],[data-perfil]');if(!b)return;const d=b.dataset;
@@ -951,9 +1006,10 @@ document.addEventListener('click',async ev=>{
     const r=await sb.from('propostas_espacos').insert({nome,tipo:$('#p-tipo').value,cidade:$('#p-cid').value,area:$('#p-area').value,acordo:$('#p-acordo').value,contato:$('#p-cont').value});b.disabled=false;
     if(r.error){$('#p-err').textContent=erroMsg(r.error);return}toast('Proposta enviada. Obrigada!');location.hash='';go(S.sessao?'inicio':'auth');return}
   if(d.novotam){if(d.novotam===S.ins?.tamanho)return;const r=await sb.rpc('inscrever',{p_edicao:S.edicao.id,p_tamanho:d.novotam});if(r.error){toast(erroMsg(r.error));return}toast(`Tamanho trocado pra ${d.novotam.replace('m',' m')}`);render();return}
-  if(b.id==='sair-edicao'){const e=S.edicao;if(!confirm(`Sair da ${e.titulo} de ${periodo(e)}?${S.ins.vaga_id?' Sua vaga no mapa fica livre pra outra pessoa.':''} Seus dados de montagem dessa edição também são apagados.`))return;
+  if(b.id==='sair-edicao'){const e=S.edicao;if(!confirm(`Sair da ${e.titulo} de ${periodo(e)}?${S.ins.pago?'\n\nPagamento realizado: não é possível devolução. Qualquer coisa, entre em contato com a organização.\n':''}${S.ins.vaga_id?' Sua vaga no mapa fica livre pra outra pessoa.':''} Seus dados de montagem dessa edição também são apagados.`))return;
     b.disabled=true;const r=await sb.rpc('sair_da_edicao',{p_inscricao:S.ins.id});b.disabled=false;if(r.error){toast(erroMsg(r.error));return}
     S.ins=null;S.tamEscolhido=null;toast('Você saiu da edição');go('inicio');return}
+  if(d.ig!==undefined){try{await navigator.clipboard.writeText(d.ig);toast(d.ig.includes(' ')?`${d.ig.split(' ').length} @ copiados`:`${d.ig} copiado`)}catch{prompt('Copie os @:',d.ig)}return}
   if(d.aba){S.abaExp=d.aba;render();return}
   if(d.ed){S.edicao=S.listaEds.find(x=>x.id===d.ed);S.tamEscolhido=null;go('edicao');return}
   if(d.tam&&b.getAttribute('aria-disabled')){toast(`Os espaços de ${d.tam.replace('m',' m')} esgotaram`);return}
@@ -1000,9 +1056,7 @@ document.addEventListener('click',async ev=>{
     S.edicoes=null;toast('Edição salva');go('org-edicoes');return}
   if(b.id==='logo-ajustar'){abrirRecorte(S.logo);return}
   if(b.id==='e-capa-tira'){S.capaForm=null;const y=window.scrollY;await render();window.scrollTo(0,y);return}
-  if(b.id==='e-del'){const e=S.edForm;if(!confirm(`Excluir a edição "${e.titulo}" de ${periodo(e)}? Isso não pode ser desfeito.`))return;
-    b.disabled=true;const r=await sb.from('edicoes').delete().eq('id',e.id);b.disabled=false;
-    if(r.error){$('#e-err').textContent=erroMsg(r.error);return}if(S.orgEdicao===e.id)S.orgEdicao=null;S.edicoes=null;toast('Edição excluída');go('org-edicoes');return}
+  if(b.id==='e-del'){b.disabled=true;await excluirEdicao(S.edForm);b.disabled=false;return}
   if(d.fsel){S.filtroSel=d.fsel;const y=window.scrollY;await render();window.scrollTo(0,y);return}
   if(d.mudar){S.mudar=d.mudar;const y=window.scrollY;await render();window.scrollTo(0,y);return}
   if(d.dec){S.mudar=null;const id=d.id,dec=d.dec;

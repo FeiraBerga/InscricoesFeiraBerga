@@ -263,8 +263,10 @@ nav.baixo button[aria-current="page"]{background:var(--oliva);color:#F3EBDE}
 .recorte{width:240px;height:240px;margin:12px auto 16px;border-radius:50%;overflow:hidden;position:relative;touch-action:none;background:#fff;box-shadow:0 0 0 4px var(--verde),0 10px 26px rgba(71,71,12,.25);cursor:grab}
 .recorte img{position:absolute;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}
 .recorte-folha input[type=range]{width:100%;accent-color:var(--verde);min-height:36px;padding:0;border:0;background:transparent}
-.area{position:absolute;transform:translate(-50%,-50%);background:var(--oliva);color:#F3EBDE;border:2px solid #F3EBDE;border-radius:999px;padding:3px 9px;font-size:10px;font-weight:800;white-space:nowrap;box-shadow:0 3px 8px rgba(35,32,10,.3);z-index:2;pointer-events:none}
-.area.minha{background:var(--verde);color:#23200A}
+.area{position:absolute;transform:translate(-50%,-50%);border:2.5px dashed var(--oliva);background:rgba(71,71,12,.10);border-radius:8px;z-index:1;pointer-events:none}
+.area i{position:absolute;bottom:-9px;right:-9px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--oliva);color:#F3EBDE;font-style:normal;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(35,32,10,.3)}
+.area.minha{border:3px solid var(--verde);background:rgba(240,101,33,.18)}
+.area.minha i{background:var(--verde);color:#23200A}
 .abas{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:5px;margin:4px 0 16px}
 .abas button{border:0;background:transparent;border-radius:14px;min-height:46px;font-weight:700;font-size:14px;color:var(--ink-2)}
 .abas button[aria-pressed="true"]{background:var(--oliva);color:#F3EBDE}
@@ -368,7 +370,7 @@ const tamLabel=t=>t==='unico'?'Espaço único':String(t||'').replace('m',' m');
 const semMetragem=seg=>!!S.segs.find(x=>x.slug===seg)?.sem_metragem;
 const precoDe=(e,t)=>t==='unico'?e.preco_unico:t==='3m'?e.preco_3m:e.preco_2m;
 const areaSeg=(mapa,seg)=>((mapa&&mapa.areas)||[]).find(a=>a.segmento===seg)||null;
-const areaTag=(a,n,cls='')=>`<span class="area ${cls}" style="left:${a.x}%;top:${a.y}%;transform:translate(${a.x<18?'-8%':a.x>82?'-92%':'-50%'},-50%)">${esc(a.nome)}${n?' · '+n:''}</span>`;
+const areaTag=(a,n,cls='')=>{const w=a.largura||12,h=a.altura||9;return `<span class="area ${cls}" style="left:${a.x}%;top:${a.y}%;width:${w}%;height:${h}%" title="${esc(a.nome)}">${n?`<i>${n}</i>`:''}</span>`};
 const hfmt=t=>{if(!t)return'';const[h,m]=t.split(':');return `${+h}h${m!=='00'?m:''}`};
 const hparse=txt=>{const r=[];String(txt||'').replace(/(\d{1,2})h(\d{2})?/g,(_,h,m)=>{r.push(`${String(h).padStart(2,'0')}:${m||'00'}`)});return r};
 const faixa=(a,b)=>a&&b?`${hfmt(a)} às ${hfmt(b)}`:a?`a partir das ${hfmt(a)}`:'';
@@ -715,7 +717,7 @@ async function detectarAreas(m,silencioso){
     for(const c of caixas){const k=3,cc=document.createElement('canvas');cc.width=c.w*k;cc.height=c.h*k;const g=cc.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(cv,c.x0,c.y0,c.w,c.h,0,0,cc.width,cc.height);
       const {data}=await w.recognize(cc);const txt=(data.text||'').replace(/\s+/g,' ');
       const P=PALAVRAS_AREA.find(P=>P.re.test(txt)&&S.segs.some(x=>x.slug===P.seg)&&!achadas.some(a=>a.segmento===P.seg));
-      if(P)achadas.push({segmento:P.seg,nome:P.nome,x:+((c.x0+c.w/2)/W*100).toFixed(2),y:+((c.y0+c.h/2)/H*100).toFixed(2)})}
+      if(P)achadas.push({segmento:P.seg,nome:P.nome,x:+((c.x0+c.w/2)/W*100).toFixed(2),y:+((c.y0+c.h/2)/H*100).toFixed(2),largura:+(c.w/W*100).toFixed(2),altura:+(c.h/H*100).toFixed(2)})}
     await w.terminate();
     if(!achadas.length)return 0;
     const areas=[...(m.areas||[]).filter(a=>!achadas.some(n=>n.segmento===a.segmento)),...achadas];
@@ -817,8 +819,9 @@ async function exportarMapa(){
     cx.fillStyle='#23200A';cx.textAlign='center';let fs=Math.max(12,Math.min(h*.34,30));cx.font=`800 ${fs}px Arial,sans-serif`;cx.fillText(String(v.numero),x+w/2,y+fs+2);
     let f2=Math.max(9,Math.min(h*.2,18));cx.font=`600 ${f2}px Arial,sans-serif`;let nm=o.nome;while(cx.measureText(nm).width>w-6&&nm.length>3)nm=nm.slice(0,-2)+'…';cx.fillText(nm,x+w/2,y+fs+4+f2);
     cx.font=`700 ${f2}px Arial,sans-serif`;cx.fillStyle='#F06521';cx.fillText(tamLabel(o.tam),x+w/2,y+fs+8+f2*2);cx.textAlign='left'});
-  gruposArea.forEach(({a,p})=>{const t=`${a.nome} · ${p.length}`;cx.font='800 24px Arial,sans-serif';const tw=cx.measureText(t).width+36,th=44,px=P+a.x/100*W-tw/2,py=iy+a.y/100*IH-th/2;
-    cx.fillStyle='#47470C';rr(cx,px,py,tw,th,22);cx.fill();cx.lineWidth=3;cx.strokeStyle='#F3EBDE';cx.stroke();cx.fillStyle='#F3EBDE';cx.textAlign='center';cx.fillText(t,px+tw/2,py+30);cx.textAlign='left'});
+  gruposArea.forEach(({a,p})=>{const bw=(a.largura||12)/100*W,bh=(a.altura||9)/100*IH,bx=P+a.x/100*W-bw/2,by=iy+a.y/100*IH-bh/2;
+    cx.save();cx.setLineDash([10,7]);cx.lineWidth=4;cx.strokeStyle='#47470C';rr(cx,bx,by,bw,bh,10);cx.stroke();cx.restore();
+    const t=String(p.length);cx.font='800 22px Arial,sans-serif';const cw2=Math.max(34,cx.measureText(t).width+18);cx.fillStyle='#47470C';rr(cx,bx+bw-cw2/2,by-17,cw2,34,17);cx.fill();cx.fillStyle='#F3EBDE';cx.textAlign='center';cx.fillText(t,bx+bw,by+8);cx.textAlign='left'});
   let y=iy+IH+60;const todos=[...linhas.map(v=>porVaga.get(v.id)),...gruposArea.flatMap(g=>g.p)];
   const tm=todos.reduce((a,o)=>a+(o.mesas||0),0),tc=todos.reduce((a,o)=>a+(o.cad||0),0);
   const n3=todos.filter(o=>o.tam==='3m').length,nu=todos.filter(o=>o.tam==='unico').length,n2=todos.length-n3-nu;

@@ -434,7 +434,8 @@ async function inicioBase(){
   if(conf||ins.status==='recebida')acao+=`<button class="btn ${mont?'sec':'amarelo'}" data-go="montagem">${mont?'Editar montagem e estacionamento':'Preencher montagem e estacionamento'}</button>`;
   const editar=`<div class="painel"><b class="secao">Sua inscrição</b><div class="kv" style="margin-top:8px"><span>Tamanho do espaço</span><b>${tamLabel(ins.tamanho)}</b></div>
     ${ins.tamanho==='unico'?'':ins.status==='recebida'?`<p class="sub" style="margin:6px 0 8px;font-size:13px">Enquanto a organização não confirma, dá pra trocar:</p><div class="opcoes">${['2m','3m'].map(t=>`<button class="op" data-novotam="${t}" aria-pressed="${ins.tamanho===t}" style="min-height:52px"><b style="font-size:18px">${t.replace('m',' m')}</b></button>`).join('')}</div>`:`<p class="sub" style="margin:6px 0 0;font-size:13px">Pra trocar o tamanho agora, fale com a organização.</p>`}
-    <p class="sub" style="margin:10px 0 0;font-size:13px">Mesas, cadeiras, estacionamento e quem vai montar podem ser editados até o dia da feira.</p></div>`;
+    <p class="sub" style="margin:10px 0 0;font-size:13px">Mesas, cadeiras, estacionamento e quem vai montar podem ser editados até o dia da feira.</p>
+    <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:10px">${ins.pago?'<p class="sub" style="margin:0;font-size:13px">Pra sair depois do pagamento confirmado, fale com a organização.</p>':'<button class="mini" id="sair-edicao" style="border:0;background:none;padding:0;color:var(--tomate);font-weight:700;min-height:40px">Sair dessa edição</button>'}</div></div>`;
   return cab+(conf?'<div id="vizinhos"></div>':'')+`<div class="painel"><span class="status ${conf?'ok':''}">${conf?'Presença confirmada':'Inscrição recebida'}</span><ol class="passos">${passos.map((p,i)=>`<li class="${p[2]?'feito':i===ag?'agora':''}"><span class="bola">${p[2]?'✓':i+1}</span><div><b>${p[0]}</b><small>${p[1]}</small></div></li>`).join('')}</ol></div>${acao}<h2>Informações da edição</h2>${info}${e.regras?`<div class="painel"><b>Regras do local</b><p style="margin:6px 0 0;white-space:pre-line">${esc(e.regras)}</p></div>`:''}${e.link_fotos&&fimEd(e)<new Date().toISOString().slice(0,10)?`<a class="btn sec" href="${esc(e.link_fotos)}" target="_blank" rel="noopener" style="text-decoration:none">Ver fotos da feira</a>`:''}`+editar;
 };
 
@@ -950,6 +951,9 @@ document.addEventListener('click',async ev=>{
     const r=await sb.from('propostas_espacos').insert({nome,tipo:$('#p-tipo').value,cidade:$('#p-cid').value,area:$('#p-area').value,acordo:$('#p-acordo').value,contato:$('#p-cont').value});b.disabled=false;
     if(r.error){$('#p-err').textContent=erroMsg(r.error);return}toast('Proposta enviada. Obrigada!');location.hash='';go(S.sessao?'inicio':'auth');return}
   if(d.novotam){if(d.novotam===S.ins?.tamanho)return;const r=await sb.rpc('inscrever',{p_edicao:S.edicao.id,p_tamanho:d.novotam});if(r.error){toast(erroMsg(r.error));return}toast(`Tamanho trocado pra ${d.novotam.replace('m',' m')}`);render();return}
+  if(b.id==='sair-edicao'){const e=S.edicao;if(!confirm(`Sair da ${e.titulo} de ${periodo(e)}?${S.ins.vaga_id?' Sua vaga no mapa fica livre pra outra pessoa.':''} Seus dados de montagem dessa edição também são apagados.`))return;
+    b.disabled=true;const r=await sb.rpc('sair_da_edicao',{p_inscricao:S.ins.id});b.disabled=false;if(r.error){toast(erroMsg(r.error));return}
+    S.ins=null;S.tamEscolhido=null;toast('Você saiu da edição');go('inicio');return}
   if(d.aba){S.abaExp=d.aba;render();return}
   if(d.ed){S.edicao=S.listaEds.find(x=>x.id===d.ed);S.tamEscolhido=null;go('edicao');return}
   if(d.tam&&b.getAttribute('aria-disabled')){toast(`Os espaços de ${d.tam.replace('m',' m')} esgotaram`);return}

@@ -265,6 +265,15 @@ nav.baixo button[aria-current="page"]{background:var(--oliva);color:#F3EBDE}
 .recorte-folha input[type=range]{width:100%;accent-color:var(--verde);min-height:36px;padding:0;border:0;background:transparent}
 .area{position:absolute;transform:translate(-50%,-50%);background:var(--oliva);color:#F3EBDE;border:2px solid #F3EBDE;border-radius:999px;padding:3px 9px;font-size:10px;font-weight:800;white-space:nowrap;box-shadow:0 3px 8px rgba(35,32,10,.3);z-index:2;pointer-events:none}
 .area.minha{background:var(--verde);color:#23200A}
+.abas{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:5px;margin:4px 0 16px}
+.abas button{border:0;background:transparent;border-radius:14px;min-height:46px;font-weight:700;font-size:14px;color:var(--ink-2)}
+.abas button[aria-pressed="true"]{background:var(--oliva);color:#F3EBDE}
+.abas small{display:inline-block;min-width:20px;margin-left:6px;padding:0 6px;border-radius:999px;background:rgba(240,101,33,.18);color:inherit;font-size:12px}
+.cardfeira.passada{opacity:.62;filter:saturate(.55)}
+.lugar{display:flex;align-items:center;gap:14px}
+.lugar .num{min-width:64px;height:64px;padding:0 10px;border-radius:18px;background:var(--verde);color:#23200A;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-stretch:125%;font-weight:900;font-size:26px;box-shadow:4px 4px 0 #FF9900}
+.viz{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.viz b{font-weight:700}.viz span.livre{color:var(--ink-2);font-style:italic}
 @media (prefers-reduced-motion:reduce){#tela>*{animation:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -379,7 +388,17 @@ async function inicioBase(){
   let tam=ins?.tamanho||S.tamEscolhido||'2m';S.tamEscolhido=tam;
   const mk=S.marca;const resumo=`<div class="painel"><div class="resumo">${mk.fotos?.[0]?`<img src="${esc(mk.fotos[0])}" alt="">`:''}<div style="flex:1"><b>${esc(mk.nome)}</b><div class="sub" style="margin:0">${esc(segNome(mk.segmento))}${mk.instagram?' · '+esc(mk.instagram):''}</div></div><button class="mini" data-go="marca">Revisar</button></div><p class="sub" style="margin:10px 0 0;font-size:13px">${S.jaParticipou?'Seus dados da última participação já estão aqui. Confira se mudou algo antes de se inscrever.':'Esses dados vão junto com a sua inscrição.'}</p></div>`;
   const info=`<div class="painel"><div class="kv"><span>Local</span><b>${esc(e.local||'a definir')}</b></div><div class="kv"><span>Montagem</span><b>${e.data_montagem?diaCurto(e.data_montagem)+(e.horario_montagem?', ':''):''}${esc(e.horario_montagem||(e.data_montagem?'':'a definir'))}</b></div><div class="kv"><span>Feira aberta</span><b>${esc(e.horario_feira||'a definir')}</b></div><div class="kv"><span>Desmontagem</span><b>${esc(e.horario_desmontagem||'a definir')}</b></div>${e.valor_estacionamento!=null?`<div class="kv"><span>Estacionamento</span><b>${money(e.valor_estacionamento)}, com placa</b></div>`:''}</div>`;
-  const cab=`<button class="mini" data-go="inicio" style="border:0;background:none">← Edições</button><div class="cardfeira" style="margin-top:6px">${toldo(e,e.inscricoes_abertas?'Inscrições abertas':ins?null:'Inscrições em breve')}<div class="c"><p style="font-family:var(--display);font-size:24px;font-weight:700;margin:0">${esc(e.titulo)}</p><p class="sub" style="margin:0">${periodo(e)}</p></div></div>`;
+  const cab=`<button class="mini" data-go="inicio" style="border:0;background:none">← Feiras</button><div class="cardfeira" style="margin-top:6px">${toldo(e,e.inscricoes_abertas?'Inscrições abertas':ins?null:'Inscrições em breve')}<div class="c"><p style="font-family:var(--display);font-size:24px;font-weight:700;margin:0">${esc(e.titulo)}</p><p class="sub" style="margin:0">${periodo(e)}</p></div></div>`;
+  const hojeD=new Date().toISOString().slice(0,10);
+  if(fimEd(e)<hojeD){
+    if(!ins||ins.status!=='confirmada')return cab+`<div class="painel"><span class="status n">Edição encerrada</span><p style="margin:10px 0 0">${ins?'Dessa vez as vagas foram preenchidas antes da sua inscrição.':'Essa edição já aconteceu.'}</p></div>`+info;
+    let lugar='';if(ins.vaga_id){const {data:vv}=await sb.from('mapa_vagas').select('numero').eq('id',ins.vaga_id).maybeSingle();if(vv)lugar=`Vaga ${vv.numero}`}
+    if(!lugar&&e.mapa_id){const {data:mpA}=await sb.from('mapas').select('areas').eq('id',e.mapa_id).maybeSingle();const ar=areaSeg(mpA,S.marca.segmento);if(ar)lugar=`Área ${ar.nome}`}
+    const fbPend=S.pend&&S.pend.edicao_id===e.id;
+    return cab+`<div class="painel"><span class="status ok">Você participou</span><div class="kv" style="margin-top:10px"><span>Espaço</span><b>${ins.tamanho.replace('m',' m')}${lugar?' · '+lugar:''}</b></div></div>
+    ${fbPend?`<div class="painel" style="background:var(--laranja-soft);border-color:var(--laranja)"><b>Conta como foi?</b><p style="margin:4px 0 10px">Seu feedback libera as próximas inscrições.</p><button class="btn pri" data-go="feedback">Responder feedback</button></div>`:''}
+    ${e.link_fotos?`<a class="btn pri" href="${esc(e.link_fotos)}" target="_blank" rel="noopener" style="text-decoration:none">Ver fotos da feira</a>`:`<div class="painel"><b>Fotos em tratamento</b><p class="sub" style="margin:4px 0 0">O link aparece aqui assim que as fotos estiverem prontas.</p></div>`}`;
+  }
   let segFora=false;
   if(!ins){const {data:cz}=await sb.from('edicao_cotas').select('limite').eq('edicao_id',e.id).eq('segmento',S.marca.segmento).maybeSingle();segFora=cz?.limite===0}
   if(!ins&&segFora)return cab+`<div class="painel"><span class="status n">Fora dessa edição</span><p style="margin:10px 0 0">Essa edição não vai receber expositores de ${esc(segNome(S.marca.segmento))}. Fica de olho nas próximas!</p></div>`+info;
@@ -406,26 +425,59 @@ async function inicioBase(){
     <p class="sub" style="margin:12px 0 6px">${ins.comprovante_path?'Comprovante enviado. Assim que a organização conferir, o mapa de vagas libera.':'Depois de pagar, envie o comprovante (foto, print ou PDF).'}</p>
     <label class="btn ${ins.comprovante_path?'sec':'pri'}" for="comp-file" style="font-weight:600">${ins.comprovante_path?'Enviar outro comprovante':'Enviar comprovante'}</label><input id="comp-file" type="file" accept="image/*,application/pdf" hidden></div>`}
   if(conf&&ins.pago&&e.mapa_id)acao+=area?`<button class="btn sec" data-go="mapa" style="margin-bottom:8px">Ver a área ${esc(area.nome)} no mapa</button>`:`<button class="btn ${ins.vaga_id?'sec':'pri'}" data-go="mapa" style="margin-bottom:8px">${ins.vaga_id?'Ver minha vaga no mapa':'Escolher minha vaga'}</button>`;
-  if(conf)acao+=`<button class="btn ${mont?'sec':'amarelo'}" data-go="montagem">${mont?'Revisar dados da montagem':'Preencher dados da montagem'}</button>`;
-  return cab+`<div class="painel"><span class="status ${conf?'ok':''}">${conf?'Presença confirmada':'Inscrição recebida'}</span><ol class="passos">${passos.map((p,i)=>`<li class="${p[2]?'feito':i===ag?'agora':''}"><span class="bola">${p[2]?'✓':i+1}</span><div><b>${p[0]}</b><small>${p[1]}</small></div></li>`).join('')}</ol></div>${acao}<h2>Informações da edição</h2>${info}${e.regras?`<div class="painel"><b>Regras do local</b><p style="margin:6px 0 0;white-space:pre-line">${esc(e.regras)}</p></div>`:''}${e.link_fotos&&fimEd(e)<new Date().toISOString().slice(0,10)?`<a class="btn sec" href="${esc(e.link_fotos)}" target="_blank" rel="noopener" style="text-decoration:none">Ver fotos da feira</a>`:''}`;
+  if(conf||ins.status==='recebida')acao+=`<button class="btn ${mont?'sec':'amarelo'}" data-go="montagem">${mont?'Editar montagem e estacionamento':'Preencher montagem e estacionamento'}</button>`;
+  const editar=`<div class="painel"><b class="secao">Sua inscrição</b><div class="kv" style="margin-top:8px"><span>Tamanho do espaço</span><b>${ins.tamanho.replace('m',' m')}</b></div>
+    ${ins.status==='recebida'?`<p class="sub" style="margin:6px 0 8px;font-size:13px">Enquanto a organização não confirma, dá pra trocar:</p><div class="opcoes">${['2m','3m'].map(t=>`<button class="op" data-novotam="${t}" aria-pressed="${ins.tamanho===t}" style="min-height:52px"><b style="font-size:18px">${t.replace('m',' m')}</b></button>`).join('')}</div>`:`<p class="sub" style="margin:6px 0 0;font-size:13px">Pra trocar o tamanho agora, fale com a organização.</p>`}
+    <p class="sub" style="margin:10px 0 0;font-size:13px">Mesas, cadeiras, estacionamento e quem vai montar podem ser editados até o dia da feira.</p></div>`;
+  return cab+(conf?'<div id="vizinhos"></div>':'')+`<div class="painel"><span class="status ${conf?'ok':''}">${conf?'Presença confirmada':'Inscrição recebida'}</span><ol class="passos">${passos.map((p,i)=>`<li class="${p[2]?'feito':i===ag?'agora':''}"><span class="bola">${p[2]?'✓':i+1}</span><div><b>${p[0]}</b><small>${p[1]}</small></div></li>`).join('')}</ol></div>${acao}<h2>Informações da edição</h2>${info}${e.regras?`<div class="painel"><b>Regras do local</b><p style="margin:6px 0 0;white-space:pre-line">${esc(e.regras)}</p></div>`:''}${e.link_fotos&&fimEd(e)<new Date().toISOString().slice(0,10)?`<a class="btn sec" href="${esc(e.link_fotos)}" target="_blank" rel="noopener" style="text-decoration:none">Ver fotos da feira</a>`:''}`+editar;
 };
 
+
+async function montaVizinhos(){
+  const e=S.edicao,ins=S.ins;if(!e||!ins||ins.status!=='confirmada')return '';
+  if(!e.mapa_id)return `<div class="painel"><b class="secao">Seu lugar na feira</b><p class="sub" style="margin:4px 0 0">O mapa dessa edição ainda não foi publicado.</p></div>`;
+  const [mp,vg,oc]=await Promise.all([sb.from('mapas').select('areas').eq('id',e.mapa_id).maybeSingle(),sb.from('mapa_vagas').select('id,numero,x,y').eq('mapa_id',e.mapa_id),sb.from('vagas_ocupadas').select('vaga_id,marca_nome').eq('edicao_id',e.id)]);
+  const vagas=vg.data||[],ocup=new Map((oc.data||[]).map(x=>[x.vaga_id,x.marca_nome]));
+  const perto=(x,y,excl)=>vagas.filter(v=>v.id!==excl).map(v=>({v,d:Math.hypot(v.x-x,(v.y-y)*0.7)})).sort((a,b)=>a.d-b.d).slice(0,4).map(({v})=>`<div class="viz"><span>Vaga ${v.numero}</span>${ocup.get(v.id)?`<b>${esc(ocup.get(v.id))}</b>`:'<span class="livre">livre</span>'}</div>`).join('');
+  const area=areaSeg(mp.data,S.marca.segmento);
+  if(area){const {data:oa}=await sb.rpc('ocupacao_areas',{p_edicao:e.id});const outros=(oa||[]).filter(x=>x.segmento===area.segmento&&x.marca_nome!==S.marca.nome);
+    return `<div class="painel"><div class="lugar"><span class="num" style="font-size:15px;text-align:center;line-height:1.1">${esc(area.nome)}</span><div><b class="secao">Seu lugar na feira</b><div class="sub" style="margin:0">Área reservada pra ${esc(segNome(S.marca.segmento))}</div></div></div>
+    <p style="margin:12px 0 0;font-weight:700">Com você na área</p>${outros.length?outros.map(x=>`<div class="viz"><span>${esc(segNome(x.segmento))}</span><b>${esc(x.marca_nome)}</b></div>`).join(''):'<p class="sub" style="margin:4px 0 0">Ninguém mais por enquanto.</p>'}
+    ${vagas.length?`<p style="margin:12px 0 0;font-weight:700">Vagas mais perto</p>${perto(area.x,area.y,null)}`:''}<p class="sub" style="margin:10px 0 0;font-size:12px">Atualiza sozinho conforme as pessoas escolhem os lugares.</p></div>`}
+  const minha=vagas.find(v=>v.id===ins.vaga_id);
+  if(!minha)return `<div class="painel"><b class="secao">Seu lugar na feira</b><p class="sub" style="margin:4px 0 0">${ins.pago?'Você ainda não escolheu sua vaga. Toque em "Escolher minha vaga" aqui embaixo.':'Depois do pagamento, você escolhe sua vaga no mapa e vê quem fica do seu lado.'}</p></div>`;
+  return `<div class="painel"><div class="lugar"><span class="num">${minha.numero}</span><div><b class="secao">Seu lugar na feira</b><div class="sub" style="margin:0">Vaga ${minha.numero} · ${ins.tamanho.replace('m',' m')}</div></div></div>
+  <p style="margin:12px 0 0;font-weight:700">Ao seu redor</p>${perto(minha.x,minha.y,minha.id)}<p class="sub" style="margin:10px 0 0;font-size:12px">Atualiza sozinho conforme as pessoas escolhem os lugares.</p></div>`;
+}
+AFTER.edicao=async()=>{const el=$('#vizinhos');if(!el)return;el.innerHTML=await montaVizinhos();
+  if(S.canal){sb.removeChannel(S.canal);S.canal=null}
+  S.canal=sb.channel('viz-'+S.edicao.id).on('postgres_changes',{event:'*',schema:'public',table:'vagas_ocupadas',filter:'edicao_id=eq.'+S.edicao.id},async()=>{const x=$('#vizinhos');if(x)x.innerHTML=await montaVizinhos()}).subscribe()};
 const cardPend=()=>S.pend?`<div class="painel" style="background:var(--laranja-soft);border-color:var(--laranja);color:var(--ink)"><b>Como foi a ${esc(S.pend.titulo)} de ${dataBR(S.pend.data)}?</b><p style="margin:4px 0 10px">Conta pra gente em menos de um minuto. Novas inscrições liberam depois do seu feedback.</p><button class="btn pri" data-go="feedback">Responder agora</button></div>`:'';
 async function carregaPend(){S.pend=null;if(S.marca){const r=await sb.rpc('feedback_pendente');S.pend=(r.data||[])[0]||null}}
 TELAS.inicio=async()=>{
   if(!S.marca)return `<div class="vazio" style="padding-bottom:6px">${berg(64)}</div><h1>Boas-vindas!</h1><p class="sub">Antes de se inscrever, cadastre sua marca. Fica salvo pras próximas edições.</p><button class="btn pri" data-go="marca">Cadastrar minha marca</button>`;
   await carregaPend();
-  const eds=await listarProximas();S.listaEds=eds;
-  const hojeL=new Date().toISOString().slice(0,10);
-  const {data:passadas}=await sb.from('inscricoes').select('edicoes(id,titulo,data,data_fim,link_fotos,capa_url)').eq('marca_id',S.marca.id).eq('status','confirmada').order('criado_em',{ascending:false}).limit(6);
-  const jaForam=(passadas||[]).map(x=>x.edicoes).filter(e=>e&&fimEd(e)<hojeL).slice(0,3);
-  S.blocoPassadas=jaForam.length?`<h2>Edições que você participou</h2>${jaForam.map(e=>`<div class="painel" style="display:flex;align-items:center;gap:12px"><div style="flex:1;min-width:0"><b>${esc(e.titulo)}</b><div class="sub" style="margin:0">${periodo(e)}</div></div>${e.link_fotos?`<a class="mini pri" href="${esc(e.link_fotos)}" target="_blank" rel="noopener" style="display:flex;align-items:center;text-decoration:none;min-height:42px">Ver fotos</a>`:'<span class="status n">Fotos em tratamento</span>'}</div>`).join('')}`:'';
-  if(!eds.length)return cardPend()+`<div class="vazio">${berg(64)}<h1>${esc(S.marca.nome)}</h1><p class="sub">Ainda não tem edição marcada. Assim que a próxima abrir, ela aparece aqui.</p></div>`+S.blocoPassadas;
-  const {data:minhas}=await sb.from('inscricoes').select('edicao_id,status,pago').eq('marca_id',S.marca.id).in('edicao_id',eds.map(e=>e.id));
-  const st=Object.fromEntries((minhas||[]).map(i=>[i.edicao_id,i]));
-  const {data:zs}=await sb.from('edicao_cotas').select('edicao_id').eq('segmento',S.marca.segmento).eq('limite',0).in('edicao_id',eds.map(e=>e.id));const fora=new Set((zs||[]).map(z=>z.edicao_id));
-  const selo=(e,i)=>!i&&fora.has(e.id)?['Fora dessa edição','n']:!i?(e.inscricoes_abertas?['Inscrições abertas','ok']:['Em breve','n']):i.status==='encerrada'?['Vagas preenchidas','n']:i.status==='confirmada'?(i.pago?['Presença confirmada','ok']:['Pagamento pendente','t']):['Inscrição recebida',''];
-  return cardPend()+(!S.marca.logo_url?`<div class="painel" style="background:var(--laranja-soft);border-color:var(--laranja)"><b>Falta a logo da sua marca</b><p style="margin:4px 0 10px">Ela passou a ser obrigatória. Adicione pra liberar novas inscrições.</p><button class="btn pri" data-go="marca">Adicionar logo</button></div>`:'')+`<h1>Edições</h1><p class="sub">Toque numa edição pra se inscrever ou acompanhar.</p>`+eds.map(e=>{const [t,c]=selo(e,st[e.id]);return `<button class="cardfeira" data-ed="${e.id}" style="width:100%;text-align:left;padding:0;display:block">${toldo(e,null)}<div class="c"><div class="topo"><p style="font-family:var(--display);font-size:21px;font-weight:700;margin:0">${esc(e.titulo)}</p><span class="status ${c}">${t}</span></div><p class="sub" style="margin:2px 0 0">${periodo(e)}${e.local?' · '+esc(e.local):''}</p></div></button>`}).join('')+S.blocoPassadas;
+  const hoje=new Date().toISOString().slice(0,10);
+  const [proximas,{data:mi}]=await Promise.all([listarProximas(),sb.from('inscricoes').select('edicao_id,status,pago,tamanho,edicoes(*)').eq('marca_id',S.marca.id)]);
+  const mins=(mi||[]).filter(x=>x.edicoes),ids=new Set(mins.map(x=>x.edicao_id));
+  const disponiveis=proximas.filter(e=>!ids.has(e.id));
+  const futuras=mins.filter(x=>fimEd(x.edicoes)>=hoje).sort((a,b)=>a.edicoes.data<b.edicoes.data?-1:1);
+  const passadas=mins.filter(x=>fimEd(x.edicoes)<hoje).sort((a,b)=>a.edicoes.data>b.edicoes.data?-1:1);
+  S.listaEds=[...proximas,...mins.map(x=>x.edicoes)];
+  let fora=new Set();if(disponiveis.length){const {data:zs}=await sb.from('edicao_cotas').select('edicao_id').eq('segmento',S.marca.segmento).eq('limite',0).in('edicao_id',disponiveis.map(e=>e.id));fora=new Set((zs||[]).map(z=>z.edicao_id))}
+  if(!S.abaExp)S.abaExp=futuras.length?'minhas':'disponiveis';
+  const selo=(e,i,pas)=>pas?(i&&i.status==='confirmada'?(e.link_fotos?['Fotos disponíveis','ok']:['Você participou','n']):['Encerrada','n']):!i&&fora.has(e.id)?['Fora dessa edição','n']:!i?(e.inscricoes_abertas?['Inscrições abertas','ok']:['Em breve','n']):i.status==='encerrada'?['Vagas preenchidas','n']:i.status==='confirmada'?(i.pago?['Presença confirmada','ok']:['Pagamento pendente','t']):['Inscrição recebida',''];
+  const card=(e,i,pas)=>{const [t,c]=selo(e,i,pas);return `<button class="cardfeira ${pas?'passada':''}" data-ed="${e.id}" style="width:100%;text-align:left;padding:0;display:block">${toldo(e,null)}<div class="c"><div class="topo"><p style="font-size:20px;margin:0">${esc(e.titulo)}</p><span class="status ${c}">${t}</span></div><p class="sub" style="margin:2px 0 0">${periodo(e)}${e.local?' · '+esc(e.local):''}</p></div></button>`};
+  const avisoLogo=!S.marca.logo_url?`<div class="painel" style="background:var(--laranja-soft);border-color:var(--laranja)"><b>Falta a logo da sua marca</b><p style="margin:4px 0 10px">Ela passou a ser obrigatória. Adicione pra liberar novas inscrições.</p><button class="btn pri" data-go="marca">Adicionar logo</button></div>`:'';
+  const abas=`<div class="abas" role="group" aria-label="Feiras"><button data-aba="minhas" aria-pressed="${S.abaExp==='minhas'}">Minhas feiras<small>${futuras.length}</small></button><button data-aba="disponiveis" aria-pressed="${S.abaExp==='disponiveis'}">Disponíveis<small>${disponiveis.length}</small></button></div>`;
+  let corpo='';
+  if(S.abaExp==='minhas'){
+    corpo=(futuras.length?futuras.map(x=>card(x.edicoes,x,false)).join(''):`<div class="vazio">${berg(64)}<p class="sub">Você ainda não está inscrita em nenhuma feira que vem por aí.</p><button class="btn pri" data-aba="disponiveis" style="max-width:300px;margin:0 auto">Ver feiras disponíveis</button></div>`)
+      +(passadas.length?`<h2>Histórico</h2><p class="sub" style="margin-top:-6px">Toque pra ver fotos e detalhes.</p>${passadas.map(x=>card(x.edicoes,x,true)).join('')}`:'');
+  }else{
+    corpo=disponiveis.length?disponiveis.map(e=>card(e,null,false)).join(''):`<div class="vazio">${berg(64)}<p class="sub">Nenhuma feira aberta agora. Assim que a próxima abrir, ela aparece aqui.</p></div>`;
+  }
+  return cardPend()+avisoLogo+`<h1>Feiras</h1>`+abas+corpo;
 };
 TELAS.edicao=async()=>{
   if(!S.edicao)return TELAS.inicio();
@@ -846,6 +898,8 @@ document.addEventListener('click',async ev=>{
   if(b.id==='p-ok'){const nome=$('#p-nome').value.trim();if(!nome){$('#p-err').textContent='Informe o nome do espaço.';return}b.disabled=true;
     const r=await sb.from('propostas_espacos').insert({nome,tipo:$('#p-tipo').value,cidade:$('#p-cid').value,area:$('#p-area').value,acordo:$('#p-acordo').value,contato:$('#p-cont').value});b.disabled=false;
     if(r.error){$('#p-err').textContent=erroMsg(r.error);return}toast('Proposta enviada. Obrigada!');location.hash='';go(S.sessao?'inicio':'auth');return}
+  if(d.novotam){if(d.novotam===S.ins?.tamanho)return;const r=await sb.rpc('inscrever',{p_edicao:S.edicao.id,p_tamanho:d.novotam});if(r.error){toast(erroMsg(r.error));return}toast(`Tamanho trocado pra ${d.novotam.replace('m',' m')}`);render();return}
+  if(d.aba){S.abaExp=d.aba;render();return}
   if(d.ed){S.edicao=S.listaEds.find(x=>x.id===d.ed);S.tamEscolhido=null;go('edicao');return}
   if(d.tam&&b.getAttribute('aria-disabled')){toast(`Os espaços de ${d.tam.replace('m',' m')} esgotaram`);return}
   if(d.tam){S.tamEscolhido=d.tam;document.querySelectorAll('[data-tam]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.tam===d.tam));return}

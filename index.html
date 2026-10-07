@@ -688,43 +688,58 @@ async function detectarVagasImg(url){
 }
 
 
-/* leitura automática das áreas (texto da planta) */
-const PALAVRAS_AREA=[{seg:'tatuagem',nome:'Flash Tattoo',re:/^(flash|tatt|tatu)/i},{seg:'piercing',nome:'Piercing',re:/^pierc/i}];
+/* leitura automática das áreas (caixas de texto da planta) */
+const PALAVRAS_AREA=[{seg:'tatuagem',nome:'Flash Tattoo',re:/flash|tatt?oo|tatuagem/i},{seg:'piercing',nome:'Piercing',re:/piercing/i}];
 function carregaOCR(){return window.Tesseract?Promise.resolve():new Promise((ok,err)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';sc.onload=ok;sc.onerror=err;document.head.appendChild(sc)})}
+function caixasDeRotulo(img){
+  const W=Math.min(1200,img.naturalWidth),H=Math.round(img.naturalHeight*W/img.naturalWidth);
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d',{willReadFrequently:true});cx.drawImage(img,0,0,W,H);
+  const px=cx.getImageData(0,0,W,H).data,N=W*H,m=new Uint8Array(N);
+  for(let k=0;k<N;k++){const r=px[k*4],g=px[k*4+1],b=px[k*4+2];m[k]=(r>=226&&r<=252&&g>=218&&g<=246&&b>=200&&b<=236&&r-b>=8)?1:0}
+  const lab=new Int32Array(N),st=new Int32Array(N),out=[];let id=0;
+  for(let k=0;k<N;k++){if(!m[k]||lab[k])continue;id++;let sp=0;st[sp++]=k;lab[k]=id;let x0=1e9,x1=-1,y0=1e9,y1=-1,c=0;
+    while(sp){const q=st[--sp],x=q%W,y=(q/W)|0;c++;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;
+      if(x>0&&m[q-1]&&!lab[q-1]){lab[q-1]=id;st[sp++]=q-1}if(x<W-1&&m[q+1]&&!lab[q+1]){lab[q+1]=id;st[sp++]=q+1}
+      if(y>0&&m[q-W]&&!lab[q-W]){lab[q-W]=id;st[sp++]=q-W}if(y<H-1&&m[q+W]&&!lab[q+W]){lab[q+W]=id;st[sp++]=q+W}}
+    const w=x1-x0+1,h=y1-y0+1;if(w>W*.03&&h>H*.02&&w<W*.5&&h<H*.5&&c/(w*h)>.4)out.push({x0,y0,w,h})}
+  return {cv,W,H,caixas:out};
+}
 async function detectarAreas(m,silencioso){
   if(!m?.imagem_url)return 0;
   try{
-    if(!silencioso)toast('Procurando as áreas escritas na planta…');
-    await carregaOCR();
-    const img=await carregaImg(m.imagem_url);const W=img.naturalWidth,H=img.naturalHeight,esc2=W<1600?2:1;
-    const cv=document.createElement('canvas');cv.width=W*esc2;cv.height=H*esc2;cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-    const w=await Tesseract.createWorker('por');const {data}=await w.recognize(cv);await w.terminate();
-    const words=(data.words||[]).filter(x=>x.confidence>50);
+    if(!silencioso)toast('Lendo os textos da planta…');
+    const [img]=await Promise.all([carregaImg(m.imagem_url),carregaOCR()]);
+    const {cv,W,H,caixas}=caixasDeRotulo(img);if(!caixas.length)return 0;
+    const w=await Tesseract.createWorker('por');await w.setParameters({tessedit_pageseg_mode:'6'});
     const achadas=[];
-    for(const P of PALAVRAS_AREA){if(!S.segs.some(x=>x.slug===P.seg))continue;
-      const hits=words.filter(x=>P.re.test(x.text.trim()));if(!hits.length)continue;
-      const h0=hits[0].bbox;let x0=h0.x0,y0=h0.y0,x1=h0.x1,y1=h0.y1;
-      hits.slice(1).forEach(({bbox:b})=>{if(Math.abs(b.y0-y1)<(y1-y0)*2.2&&Math.abs((b.x0+b.x1)/2-(x0+x1)/2)<(x1-x0)*1.5){x0=Math.min(x0,b.x0);y0=Math.min(y0,b.y0);x1=Math.max(x1,b.x1);y1=Math.max(y1,b.y1)}});
-      achadas.push({segmento:P.seg,nome:P.nome,x:+((x0+x1)/2/cv.width*100).toFixed(2),y:+((y0+y1)/2/cv.height*100).toFixed(2)})}
-    if(!achadas.length){if(!silencioso)toast('Não achei "Flash Tattoo" escrito na planta. Dá pra posicionar a área manualmente.');return 0}
+    for(const c of caixas){const k=3,cc=document.createElement('canvas');cc.width=c.w*k;cc.height=c.h*k;const g=cc.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(cv,c.x0,c.y0,c.w,c.h,0,0,cc.width,cc.height);
+      const {data}=await w.recognize(cc);const txt=(data.text||'').replace(/\s+/g,' ');
+      const P=PALAVRAS_AREA.find(P=>P.re.test(txt)&&S.segs.some(x=>x.slug===P.seg)&&!achadas.some(a=>a.segmento===P.seg));
+      if(P)achadas.push({segmento:P.seg,nome:P.nome,x:+((c.x0+c.w/2)/W*100).toFixed(2),y:+((c.y0+c.h/2)/H*100).toFixed(2)})}
+    await w.terminate();
+    if(!achadas.length)return 0;
     const areas=[...(m.areas||[]).filter(a=>!achadas.some(n=>n.segmento===a.segmento)),...achadas];
     const r=await sb.from('mapas').update({areas}).eq('id',m.id);if(r.error){toast(erroMsg(r.error));return 0}
     m.areas=areas;return achadas.length;
-  }catch(e){if(!silencioso)toast('Não consegui ler o texto da planta agora. Tente de novo ou posicione manualmente.');return 0}
+  }catch(e){console.error(e);return -1}
 }
-async function criarVagasDaPlanta(auto){
+async function criarVagasDaPlanta(auto,refazer){
   const m=S.mapas.find(x=>x.id===S.mapaSel);if(!m?.imagem_url){toast('Suba a imagem da planta primeiro');return}
-  if(!auto&&S.vagasEd.length&&!confirm(`Isso apaga as ${S.vagasEd.length} vagas desenhadas agora e cria tudo de novo a partir da planta. Continuar?`))return;
-  toast('Lendo a planta…');let achadas;
-  try{achadas=await detectarVagasImg(m.imagem_url)}catch(e){toast('Não consegui ler a imagem. Tente subir de novo.');return}
-  if(!achadas.length){toast('Não encontrei vagas laranjas na planta. Dá pra criar tocando na imagem.');return}
-  if(S.vagasEd.length){const r=await sb.from('mapa_vagas').delete().eq('mapa_id',m.id);if(r.error){toast(/foreign key|violates/i.test(r.error.message)?'Alguém já escolheu vaga nesse mapa, então não dá pra recriar as vagas.':erroMsg(r.error));return}}
-  const r=await sb.from('mapa_vagas').insert(achadas.map((v,k)=>({mapa_id:m.id,numero:k+1,...v}))).select();
-  if(r.error){toast(erroMsg(r.error));return}
-  S.vagasEd=(r.data||[]).sort((a,b)=>a.numero-b.numero);S.vagaSel=null;desenhaEditor();
-  toast(`${achadas.length} vagas criadas! Agora procurando as áreas…`);
-  const na=await detectarAreas(m,true);const yy=window.scrollY;await render();window.scrollTo(0,yy);
-  toast(`${achadas.length} vagas criadas${na?' e a área Flash Tattoo encontrada':''}. Confira os números.`);
+  let criadas=0;
+  if(!S.vagasEd.length||refazer){
+    if(refazer&&S.vagasEd.length&&!confirm(`Isso apaga as ${S.vagasEd.length} vagas atuais e cria tudo de novo a partir da planta. Continuar?`))return;
+    toast('Lendo as vagas da planta…');let achadas;
+    try{achadas=await detectarVagasImg(m.imagem_url)}catch(e){toast('Não consegui ler a imagem. Tente subir de novo.');return}
+    if(achadas.length){
+      if(S.vagasEd.length){const r=await sb.from('mapa_vagas').delete().eq('mapa_id',m.id);if(r.error){toast(/foreign key|violates/i.test(r.error.message)?'Alguém já escolheu vaga nesse mapa, então não dá pra recriar as vagas.':erroMsg(r.error));return}}
+      const r=await sb.from('mapa_vagas').insert(achadas.map((v,k)=>({mapa_id:m.id,numero:k+1,...v}))).select();if(r.error){toast(erroMsg(r.error));return}
+      S.vagasEd=(r.data||[]).sort((a,b)=>a.numero-b.numero);criadas=achadas.length}
+  }
+  toast('Lendo os textos da planta…');
+  const na=await detectarAreas(m,true);
+  S.vagaSel=null;const yy=window.scrollY;await render();window.scrollTo(0,yy);
+  const partes=[];if(criadas)partes.push(`${criadas} vagas criadas`);if(na>0)partes.push('área Flash Tattoo encontrada');
+  toast(partes.length?partes.join(' e ')+'. Confira no mapa.':na<0?'Não consegui ler os textos agora. Tente de novo ou posicione a área manualmente.':'Não achei a área Flash Tattoo. Dá pra posicionar manualmente.');
 }
 TELAS['org-mapas']=async()=>{
   const {data}=await sb.from('mapas').select('*').order('criado_em');S.mapas=data||[];
@@ -745,11 +760,10 @@ TELAS['org-mapas']=async()=>{
     <div class="painel"><b class="secao">Áreas por segmento</b><p class="sub" style="margin:4px 0 8px;font-size:13px">Quem é do segmento escolhido não escolhe vaga: fica direto na área.</p>
     ${(m.areas||[]).map((a,k)=>`<div class="kv" style="align-items:center"><span><b style="color:var(--ink)">${esc(a.nome)}</b> · ${esc(segNome(a.segmento))}</span><button class="mini" data-arearm="${k}" style="color:var(--tomate)">Remover</button></div>`).join('')||'<p class="sub" style="margin:0 0 6px;font-size:13px">Nenhuma área ainda.</p>'}
     <div class="g2" style="margin-top:6px"><div><label for="ar-seg">Segmento</label><select id="ar-seg">${S.segs.map(x=>`<option value="${x.slug}" ${x.slug==='tatuagem'?'selected':''}>${esc(x.nome)}</option>`).join('')}</select></div><div><label for="ar-nome">Nome da área</label><input id="ar-nome" value="Flash Tattoo"></div></div>
-    ${m.imagem_url?'<button class="btn sec" id="ar-auto" style="margin-top:10px">Encontrar áreas na planta automaticamente</button>':''}
     <button class="btn sec" id="ar-armar" style="margin-top:10px">${S.armadoArea?'Toque na planta onde fica a área…':'Posicionar área na planta'}</button></div>
     <div class="mapawrap" id="mapaed" style="${S.armado?'cursor:crosshair;outline:3px dashed var(--laranja)':''}"></div>
     <div class="painel" id="vg-acoes" style="margin-top:10px"></div>
-    ${m.imagem_url?`<button class="btn sec" id="mp-detectar">Ler vagas da planta automaticamente</button><p class="sub" style="margin:6px 0 10px;font-size:12px;text-align:center">Apaga as vagas atuais e cria de novo a partir dos quadrados laranjas.</p>`:''}
+    ${m.imagem_url?`<button class="btn pri" id="mp-detectar">Ler a planta automaticamente</button><p class="sub" style="margin:6px 0 4px;font-size:12px;text-align:center">${S.vagasEd.length?'Procura a área Flash Tattoo e mantém as vagas que já existem.':'Cria as vagas dos quadrados laranjas e encontra a área Flash Tattoo.'}</p>${S.vagasEd.length?'<button class="mini" id="mp-refazer" style="display:block;margin:0 auto 12px;border:0;background:none;color:var(--ink-2);text-decoration:underline">Apagar vagas e ler tudo de novo</button>':''}`:''}
     <label class="btn sec" for="mp-file">${m.imagem_url?'Trocar imagem da planta':'Subir imagem da planta'}</label><input id="mp-file" type="file" accept="image/*" hidden>
     <button class="btn sec" id="mp-del" style="margin-top:10px;color:var(--tomate);border-color:var(--tomate-soft)">Excluir este mapa</button>
     <button class="btn pri" id="mp-salvar" style="margin-top:14px">Salvar mapa</button>`;
@@ -996,7 +1010,7 @@ document.addEventListener('click',async ev=>{
   if(d.dtam){S.dtam=d.dtam;document.querySelectorAll('[data-dtam]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.dtam===d.dtam));return}
   if(d.vesc){const v=S.vagasEd.find(x=>x.id===d.vesc);const f=+d.f;const w=+Math.min(40,Math.max(2,v.largura*f)).toFixed(2),h=+Math.min(40,Math.max(2,v.altura*f)).toFixed(2);
     const r=await sb.from('mapa_vagas').update({largura:w,altura:h}).eq('id',v.id);if(r.error){toast(erroMsg(r.error));return}v.largura=w;v.altura=h;desenhaEditor();return}
-  if(b.id==='ar-auto'){b.disabled=true;const m=S.mapas.find(x=>x.id===S.mapaSel);const n=await detectarAreas(m,false);b.disabled=false;if(n){const y=window.scrollY;await render();window.scrollTo(0,y);toast('Área encontrada e posicionada')}return}
+  if(b.id==='ar-auto-x'){b.disabled=true;const m=S.mapas.find(x=>x.id===S.mapaSel);const n=await detectarAreas(m,false);b.disabled=false;if(n){const y=window.scrollY;await render();window.scrollTo(0,y);toast('Área encontrada e posicionada')}return}
   if(b.id==='ar-armar'){const nome=$('#ar-nome').value.trim();if(!nome){toast('Dê um nome pra área');return}S.armadoArea=S.armadoArea?null:{segmento:$('#ar-seg').value,nome};S.armado=false;const y=window.scrollY;await render();window.scrollTo(0,y);if(S.armadoArea)toast('Agora toque na planta onde fica a área');return}
   if(d.arearm){const m=S.mapas.find(x=>x.id===S.mapaSel);const areas=[...(m.areas||[])];const [ar]=areas.splice(+d.arearm,1);if(!confirm(`Remover a área ${ar.nome}? Quem é de ${segNome(ar.segmento)} vai voltar a escolher vaga.`))return;
     const r=await sb.from('mapas').update({areas}).eq('id',m.id);if(r.error){toast(erroMsg(r.error));return}m.areas=areas;const y=window.scrollY;await render();window.scrollTo(0,y);toast('Área removida');return}
@@ -1007,7 +1021,8 @@ document.addEventListener('click',async ev=>{
   if(b.id==='mp-salvar'){S.mapaEdit=false;S.armado=false;S.armadoArea=null;S.vagaSel=null;toast('Mapa salvo');render();return}
   if(b.id==='mp-armar'){S.armado=!S.armado;const y=window.scrollY;await render();window.scrollTo(0,y);if(S.armado)toast('Agora toque na planta onde fica a nova vaga');return}
   if(b.id==='mp-export'){b.disabled=true;await exportarMapa();b.disabled=false;return}
-  if(b.id==='mp-detectar'){b.disabled=true;await criarVagasDaPlanta(false);b.disabled=false;return}
+  if(b.id==='mp-detectar'){b.disabled=true;await criarVagasDaPlanta(false,false);b.disabled=false;return}
+  if(b.id==='mp-refazer'){await criarVagasDaPlanta(false,true);return}
   if(d.vnum){const v=S.vagasEd.find(x=>x.id===d.vnum);const n=prompt('Novo número da vaga',v.numero);if(n===null)return;const k=parseInt(n,10);if(!k||k<1){toast('Número inválido');return}
     const r=await sb.from('mapa_vagas').update({numero:k}).eq('id',v.id);if(r.error){toast(/duplicate|unique/i.test(r.error.message)?`Já existe uma vaga ${k} nesse mapa.`:erroMsg(r.error));return}v.numero=k;desenhaEditor();return}
   if(b.id==='mp-del'){const m=S.mapas.find(x=>x.id===S.mapaSel);if(!m)return;

@@ -172,6 +172,20 @@ button.cardfeira{transition:transform .15s ease}button.cardfeira:active{transfor
 .tile{background:var(--card);border:1.5px solid transparent;border-radius:18px;padding:10px 6px;text-align:center;box-shadow:0 2px 4px rgba(71,71,12,.04),0 8px 18px rgba(240,101,33,.07)}
 .tile b{display:block;font-family:var(--display);font-size:24px;line-height:1.1;color:var(--verde)}
 .tile span{font-size:11px;font-weight:600;color:var(--ink-2)}
+.tile small{display:block;font-size:11px;color:var(--ink-2);margin-top:2px}
+.tile.zerado b{color:var(--tomate)}
+.moveis .aovivo{display:flex;gap:8px;align-items:flex-start;margin:10px 0 0;font-size:13px;line-height:1.35;color:var(--ink-2);background:var(--laranja-soft);border-radius:12px;padding:8px 10px}
+.pulso{flex:none;width:8px;height:8px;border-radius:50%;background:var(--laranja);margin-top:5px;animation:pulso 1.6s ease-out infinite}
+@keyframes pulso{0%{box-shadow:0 0 0 0 rgba(240,101,33,.6)}100%{box-shadow:0 0 0 8px rgba(240,101,33,0)}}
+@media (prefers-reduced-motion:reduce){.pulso{animation:none}}
+button.tile{font:inherit;cursor:pointer;width:100%}
+button.tile[aria-pressed="true"]{border-color:var(--laranja)}
+.tbesc{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+.tbesc th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2);padding:4px 6px;border-bottom:1.5px solid var(--line)}
+.tbesc td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbesc td:nth-child(n+3),.tbesc th:nth-child(n+3){text-align:center;width:44px}
+.tbesc td:first-child{white-space:nowrap;color:var(--ink-2);font-size:13px}
+.tbesc td:nth-child(2){font-weight:700}
 .tile[aria-pressed="true"]{border-color:var(--verde);background:linear-gradient(160deg,#FFF4E4,#FCE1CF)}
 details.segs{background:var(--card);border-radius:20px;padding:4px 16px;margin-bottom:14px;box-shadow:0 2px 4px rgba(71,71,12,.04),0 8px 18px rgba(240,101,33,.06)}
 details.segs summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:48px;font-weight:600}
@@ -295,6 +309,11 @@ a.btn,a.mini{color:var(--ink);text-decoration:none}a.btn.pri,a.mini.pri{color:#2
 .sugs button{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:transparent;padding:10px 14px;min-height:48px}
 .sugs button:first-child{border-top:0}.sugs button b{display:block;font-size:14px}.sugs button small{color:var(--ink-2);font-size:12px}
 .sugs .vz{padding:12px 14px;font-size:13px;color:var(--ink-2)}
+.grupo{background:var(--card);border-radius:22px;padding:4px 14px 14px;margin-bottom:14px;box-shadow:0 2px 4px rgba(71,71,12,.04),0 10px 24px rgba(240,101,33,.07)}
+.grupo summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:52px;font-family:var(--display);font-weight:900;font-size:17px}
+.grupo summary::-webkit-details-marker{display:none}
+.grupo summary b{min-width:36px;height:32px;padding:0 10px;border-radius:999px;background:#F3EBDE;display:flex;align-items:center;justify-content:center;font-size:15px}
+.grupo .sel{box-shadow:none;border:1px solid var(--line)}
 @media (prefers-reduced-motion:reduce){#tela>*{animation:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -322,6 +341,12 @@ const MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','de
 const MESC=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 const dataBR=d=>{if(!d)return'';const[a,m,dd]=d.split('-');return `${+dd} ${MESC[+m-1]}${+a!==new Date().getFullYear()?' '+a.slice(2):''}`};
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),2800)}
+async function blocoMoveis(eid,excluir,modo){const {data,error}=await sb.rpc('moveis_disponiveis',{p_edicao:eid,p_excluir:excluir||null});const r=data?.[0];
+  if(error||!r||(r.mesas_total==null&&r.cadeiras_total==null))return '';
+  const it=(tot,us,nome)=>{if(tot==null)return '';const d=Math.max(tot-us,0);return `<div class="tile ${d===0?'zerado':''}"><b>${d}</b><span>${nome} disponíve${d===1?'l':'is'}</span><small>de ${tot} no local</small></div>`};
+  S.movDisp={m:r.mesas_total==null?null:Math.max(r.mesas_total-r.mesas_usadas,0),c:r.cadeiras_total==null?null:Math.max(r.cadeiras_total-r.cadeiras_usadas,0)};
+  return `<div class="painel moveis"><b class="secao">Mesas e cadeiras do local</b><div class="tiles" style="grid-template-columns:repeat(${(r.mesas_total!=null)+(r.cadeiras_total!=null)},minmax(0,1fr));margin:8px 0 0">${it(r.mesas_total,r.mesas_usadas,'Mesas')}${it(r.cadeiras_total,r.cadeiras_usadas,'Cadeiras')}</div>
+    <p class="aovivo"><span class="pulso"></span>${modo==='org'?'Conta só quem está confirmado e já pagou. Muda conforme os expositores informam o que precisam.':modo==='montagem'?'Esse número muda a toda hora: conta o que os expositores confirmados e pagos já pediram. Se precisar de mais do que tem, leve as suas ou fale com a organização.':'Esse número muda conforme os expositores confirmados e pagos vão pedindo. Se for precisar, garanta logo na montagem.'}</p></div>`}
 function erroMsg(e){const m=(e&&e.message)||String(e);if(/Invalid login/i.test(m))return'E-mail ou senha incorretos.';if(/already registered/i.test(m))return'Esse e-mail já tem conta. Use "Entrar".';if(/Password should/i.test(m))return'A senha precisa ter pelo menos 6 caracteres.';return m}
 
 
@@ -418,7 +443,8 @@ async function inicioBase(){
   if(!ins&&!S.tamEscolhido){const {data:ult}=await sb.from('inscricoes').select('tamanho,produtos,estrutura').eq('dono',S.sessao.user.id).order('criado_em',{ascending:false}).limit(1);S.tamEscolhido=ult?.[0]?.tamanho;S.jaParticipou=!!ult?.length;S.ultInfo=ult?.[0]||{}}
   let tam=ins?.tamanho||S.tamEscolhido||'2m';S.tamEscolhido=tam;
   const mk=S.marca;const resumo=`<div class="painel"><div class="resumo">${mk.fotos?.[0]?`<img src="${esc(mk.fotos[0])}" alt="">`:''}<div style="flex:1"><b>${esc(mk.nome)}</b><div class="sub" style="margin:0">${esc(segNome(mk.segmento))}${mk.instagram?' · '+esc(mk.instagram):''}</div></div><button class="mini" data-go="marca">Revisar</button></div><p class="sub" style="margin:10px 0 0;font-size:13px">${S.jaParticipou?'Seus dados da última participação já estão aqui. Confira se mudou algo antes de se inscrever.':'Esses dados vão junto com a sua inscrição.'}</p></div>`;
-  const info=`<div class="painel"><div class="kv"><span>Local</span><b style="text-align:right">${esc(e.local||'a definir')}${e.endereco?`<br><small style="font-weight:500;color:var(--ink-2)">${esc(e.endereco)}</small>`:''}</b></div>${e.endereco?`<div class="row" style="margin:4px 0 8px"><a class="mini" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.endereco)}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center">Abrir no Google Maps</a><a class="mini" href="https://waze.com/ul?q=${encodeURIComponent(e.endereco)}&navigate=yes" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center">Abrir no Waze</a></div>`:''}<div class="kv"><span>Montagem</span><b>${e.data_montagem?dataBR(e.data_montagem)+(e.horario_montagem?', ':''):''}${esc(e.horario_montagem||(e.data_montagem?'':'a definir'))}</b></div><div class="kv"><span>Feira aberta</span><b>${esc(e.horario_feira||'a definir')}</b></div><div class="kv"><span>Desmontagem</span><b>${esc(e.horario_desmontagem||'a definir')}</b></div>${e.valor_estacionamento!=null?`<div class="kv"><span>Estacionamento</span><b>${money(e.valor_estacionamento)}, com placa</b></div>`:''}${e.video_estacionamento_url?`<p style="margin:10px 0 6px;font-weight:700">Onde deixar o carro</p><video src="${esc(e.video_estacionamento_url)}" controls playsinline preload="metadata" style="width:100%;border-radius:14px;background:#000"></video>`:''}</div>`;
+  let info=`<div class="painel"><div class="kv"><span>Local</span><b style="text-align:right">${esc(e.local||'a definir')}${e.endereco?`<br><small style="font-weight:500;color:var(--ink-2)">${esc(e.endereco)}</small>`:''}</b></div>${e.endereco?`<div class="row" style="margin:4px 0 8px"><a class="mini" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.endereco)}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center">Abrir no Google Maps</a><a class="mini" href="https://waze.com/ul?q=${encodeURIComponent(e.endereco)}&navigate=yes" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center">Abrir no Waze</a></div>`:''}<div class="kv"><span>Montagem</span><b>${e.data_montagem?dataBR(e.data_montagem)+(e.horario_montagem?', ':''):''}${esc(e.horario_montagem||(e.data_montagem?'':'a definir'))}</b></div><div class="kv"><span>Feira aberta</span><b>${esc(e.horario_feira||'a definir')}</b></div><div class="kv"><span>Desmontagem</span><b>${esc(e.horario_desmontagem||'a definir')}</b></div>${e.valor_estacionamento!=null?`<div class="kv"><span>Estacionamento</span><b>${money(e.valor_estacionamento)}, com placa</b></div>`:''}${e.video_estacionamento_url?`<p style="margin:10px 0 6px;font-weight:700">Onde deixar o carro</p><video src="${esc(e.video_estacionamento_url)}" controls playsinline preload="metadata" style="width:100%;border-radius:14px;background:#000"></video>`:''}</div>`;
+  info+=await blocoMoveis(e.id);
   const cab=`<button class="mini" data-go="inicio" style="border:0;background:none">← Feiras</button><div class="cardfeira" style="margin-top:6px">${toldo(e,abertaJa(e)?'Inscrições abertas':ins?null:agendada(e)?'Abre '+quandoAbre(e):'Inscrições em breve')}<div class="c"><p style="font-family:var(--display);font-size:24px;font-weight:700;margin:0">${esc(e.titulo)}</p><p class="sub" style="margin:0">${periodo(e)}</p></div></div>`;
   const hojeD=new Date().toISOString().slice(0,10);
   if(fimEd(e)<hojeD){
@@ -583,7 +609,7 @@ TELAS.montagem=async()=>{
   m=m||{mesas:0,cadeiras:0,usa_estacionamento:false,placa:''};
   S.montadores=(pes.length?pes:[{nome:'',cpf:''}]).map(x=>({nome:x.nome,cpf:x.cpf}));
   return `<button class="mini" data-go="edicao" style="border:0;background:none">← Edição</button><h1>Dados da montagem</h1><p class="sub">Vão pra lista que a organização envia ao local. Os CPFs são apagados depois da edição.</p>${veio?'<div class="painel" style="background:var(--verde-soft);border-color:transparent">Preenchemos com o que você mandou na última edição. Confira e ajuste o que mudou. Se os CPFs e a placa estiverem vazios, é porque foram apagados depois daquela feira.</div>':''}
-  <div class="painel"><div class="g2"><div><label for="mo-mesa">Mesas</label><input id="mo-mesa" type="number" min="0" value="${m.mesas}"></div><div><label for="mo-cad">Cadeiras</label><input id="mo-cad" type="number" min="0" value="${m.cadeiras}"></div></div>
+  ${await blocoMoveis(e?.id||ins.edicao_id,ins.id,'montagem')}<div class="painel"><div class="g2"><div><label for="mo-mesa">Mesas</label><input id="mo-mesa" type="number" min="0" value="${m.mesas}"></div><div><label for="mo-cad">Cadeiras</label><input id="mo-cad" type="number" min="0" value="${m.cadeiras}"></div></div>
   ${e?.valor_estacionamento!=null?`<label class="check" style="margin-top:14px"><input type="checkbox" id="mo-est" ${m.usa_estacionamento?'checked':''}> Vou usar o estacionamento (${money(e.valor_estacionamento)})</label><div id="mo-placa-w" ${m.usa_estacionamento?'':'hidden'}><label for="mo-placa">Placa do carro</label><input id="mo-placa" value="${esc(m.placa)}" style="text-transform:uppercase"></div>`:''}${e?.video_estacionamento_url?`<details class="segs" style="margin-top:10px;box-shadow:none;border:1px solid var(--line)"><summary>Vídeo: onde deixar o carro</summary><div class="corpo"><video src="${esc(e.video_estacionamento_url)}" controls playsinline preload="metadata" style="width:100%;border-radius:12px;background:#000"></video></div></details>`:''}</div>
   <div class="painel"><b>Quem vai montar</b><div id="mts"></div><button class="mini" id="mt-add" style="margin-top:10px">+ Adicionar pessoa</button></div>
   <p class="erro" id="mo-err"></p><button class="btn pri" id="mo-ok">Salvar dados</button>`;
@@ -639,6 +665,8 @@ TELAS['org-edicao-form']=async()=>{
   <div class="g2"><div><label for="e-p2">2 m × 1,30 m (R$)</label><input id="e-p2" class="moeda" inputmode="numeric" placeholder="0,00" value="${moedaTxt(e.preco_2m)}"></div><div><label for="e-p3">3 m × 1,30 m (R$)</label><input id="e-p3" class="moeda" inputmode="numeric" placeholder="0,00" value="${moedaTxt(e.preco_3m)}"></div></div>
   <div class="g2"><div><label for="e-total">Total de espaços</label><input id="e-total" type="number" inputmode="numeric" min="0" value="${v('total_espacos')}" placeholder="Nº de vagas do mapa"></div><div><label for="e-m3">Máximo de 3 m</label><input id="e-m3" type="number" inputmode="numeric" min="0" value="${e.id?v('max_3m'):'10'}" placeholder="Sem limite"></div></div>
   <p class="sub" style="margin:4px 0 0;font-size:12px">Os espaços de 2 m são o que sobrar do total. Deixe o total vazio pra usar o número de vagas do mapa.</p>
+  <div class="g2"><div><label for="e-mesas">Mesas no local</label><input id="e-mesas" type="number" inputmode="numeric" min="0" value="${v('mesas_total')}" placeholder="Não controlar"></div><div><label for="e-cads">Cadeiras no local</label><input id="e-cads" type="number" inputmode="numeric" min="0" value="${v('cadeiras_total')}" placeholder="Não controlar"></div></div>
+  <p class="sub" style="margin:4px 0 0;font-size:12px">Todo mundo vê quantas ainda sobram. Contam os expositores confirmados e pagos, e ninguém consegue pedir mais do que tem. Vazio = sem controle.</p>
   <label for="e-pix">Chave Pix</label><input id="e-pix" value="${v('chave_pix')}">
   <label for="e-zap">WhatsApp da organização</label><input id="e-zap" inputmode="tel" value="${v('whatsapp_organizacao')}" placeholder="(54) 9 ____-____">
   <p class="sub" style="margin:4px 0 0;font-size:12px">O expositor usa esse número pra pedir o link de pagamento, já avisando que a taxa é por conta dele.</p>
@@ -679,7 +707,7 @@ TELAS['org-selecao']=async()=>{
     return `<div class="tiles" role="group" aria-label="Filtrar inscrições">${T.map(([k,n,l])=>`<button class="tile" data-fsel="${k}" aria-pressed="${f===k}"><b>${n}</b><span>${l}</span></button>`).join('')}</div>`})()}
   ${segsUsados.length?`<details class="segs"><summary>Vagas por segmento</summary><div class="corpo">${segsUsados.map(s=>{const a=conf[s.slug]||0,c=cot[s.slug];return `<div class="cota"><div style="flex:1">${esc(s.nome)} <span style="color:var(--ink-2)">${a}${c!=null?'/'+c:''}</span>${c?`<div class="barra"><i style="width:${Math.min(100,a/c*100)}%;${a>=c?'background:var(--menta)':''}"></i></div>`:''}</div></div>`}).join('')}</div></details>`:''}
   <h2>${{todas:'Todas as inscrições',novas:'Novas inscrições',confirmadas:'Confirmadas',pagas:'Pagas'}[S.filtroSel||'todas']}</h2><p class="sub" style="margin-top:-6px">Por ordem de chegada. Toque na marca pra ver o perfil completo.</p>
-  <div class="lista-sel">${lista.map((i,n)=>({i,n})).filter(({i})=>{const f=S.filtroSel||'todas';return f==='todas'||(f==='novas'&&i.status==='recebida'&&!i.decisoes?.decisao)||(f==='confirmadas'&&i.status==='confirmada')||(f==='pagas'&&i.pago)}).map(({i,n})=>{const m=i.marcas||{};const d=i.decisoes?.decisao;const cheio=cot[m.segmento]!=null&&(conf[m.segmento]||0)>=cot[m.segmento]&&i.status!=='confirmada';
+  ${(()=>{const itemSel=({i,n})=>{const m=i.marcas||{};const d=i.decisoes?.decisao;const cheio=cot[m.segmento]!=null&&(conf[m.segmento]||0)>=cot[m.segmento]&&i.status!=='confirmada';
     const chip=i.status==='encerrada'?'<span class="status n">Não dessa vez (avisado)</span>':i.status==='confirmada'?(i.pago?'<span class="status ok">Pago</span>':'<span class="status ok">Confirmado</span>'):d==='reserva'?'<span class="status">Na sua reserva</span>':d==='nao_desta_vez'?'<span class="status n">Não dessa vez</span>':cheio?'<span class="status t">Segmento completo</span>':'<span class="status">Nova</span>';
     const decidido=i.status==='confirmada'||d==='reserva'||d==='nao_desta_vez';
     const cls=i.status==='confirmada'?'conf':d==='reserva'?'res':(d==='nao_desta_vez'||i.status==='encerrada')?'nao':'nova';
@@ -689,7 +717,13 @@ TELAS['org-selecao']=async()=>{
       !decidido||S.mudar===i.id?`<div class="ac"><button class="mini pri" data-dec="confirmada" data-id="${i.id}">Confirmar</button><button class="mini" data-dec="reserva" data-id="${i.id}">Reserva</button><button class="mini" data-dec="nao_desta_vez" data-id="${i.id}">Não dessa vez</button></div>`:''}
     ${i.status==='confirmada'?`<div class="ex">${!i.pago&&i.comprovante_path?`<span class="status" style="background:var(--laranja-soft);color:var(--ink)">Comprovante enviado</span>${urls[i.comprovante_path]?`<a class="mini" href="${esc(urls[i.comprovante_path])}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Ver comprovante</a>`:''}`:''}<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> Pagamento recebido</label></div>`:''}
     ${decidido&&i.status!=='encerrada'&&S.mudar!==i.id?`<button class="mini" data-mudar="${i.id}" style="border:0;background:none;color:var(--ink-2);padding:0;margin-top:6px;min-height:32px">Mudar decisão</button>`:''}
-    </div>`}).join('')||`<p class="sub">${lista.length?'Nada nesse filtro.':'Nenhuma inscrição ainda.'}</p>`}</div>
+    </div>`};
+    const todos=lista.map((i,n)=>({i,n})).filter(({i})=>{const f=S.filtroSel||'todas';return f==='todas'||(f==='novas'&&i.status==='recebida'&&!i.decisoes?.decisao)||(f==='confirmadas'&&i.status==='confirmada')||(f==='pagas'&&i.pago)});
+    if(!todos.length)return `<p class="sub">${lista.length?'Nada nesse filtro.':'Nenhuma inscrição ainda.'}</p>`;
+    if((S.filtroSel||'todas')!=='todas')return `<div class="lista-sel">${todos.map(itemSel).join('')}</div>`;
+    const G=[['Novas','nova',x=>x.i.status==='recebida'&&!x.i.decisoes?.decisao,'#FF9900'],['Confirmadas, não pagas','np',x=>x.i.status==='confirmada'&&!x.i.pago,'#EE8CA3'],['Pagas','pg',x=>x.i.status==='confirmada'&&x.i.pago,'#47470C'],['Reserva e não dessa vez','rs',x=>!(x.i.status==='confirmada')&&!(x.i.status==='recebida'&&!x.i.decisoes?.decisao),'#C9BFA8']];
+    return G.map(([t,k,f,c])=>{const l=todos.filter(f);if(!l.length&&k==='rs')return '';
+      return `<details class="grupo" ${k==='rs'?'':'open'} style="border-top:6px solid ${c}"><summary><span>${t}</span><b>${l.length}</b></summary><div class="lista-sel">${l.map(itemSel).join('')||'<p class="sub" style="margin:0">Ninguém aqui.</p>'}</div></details>`}).join('')})()}
   <p class="sub" style="margin-top:14px">O expositor só vê "inscrição recebida". Quando você encerrar a seleção, quem não foi confirmado recebe a mensagem de vagas preenchidas.</p>
   ${e?.inscricoes_abertas||lista.some(i=>i.status==='recebida')?`<button class="btn sec" id="encerrar">Encerrar seleção</button>`:''}`;
 };
@@ -705,7 +739,7 @@ TELAS['org-inscrito']=async()=>{
     sb.from('inscricoes').select('id,edicoes(titulo,data)',{count:'exact'}).eq('marca_id',i.marca_id).eq('status','confirmada').neq('id',i.id),
     sb.from('edicao_cotas').select('limite').eq('edicao_id',i.edicao_id).eq('segmento',m.segmento).maybeSingle(),
     sb.from('inscricoes').select('id,marcas!inner(segmento)',{count:'exact',head:true}).eq('edicao_id',i.edicao_id).eq('status','confirmada').eq('marcas.segmento',m.segmento)]);
-  let comp='';if(i.comprovante_path&&!i.pago){const {data:u}=await sb.storage.from('comprovantes').createSignedUrl(i.comprovante_path,3600);comp=u?.signedUrl||''}
+  let comp='';if(i.comprovante_path){const {data:u}=await sb.storage.from('comprovantes').createSignedUrl(i.comprovante_path,3600);comp=u?.signedUrl||''}
   const ig=(m.instagram||'').replace(/^@/,'').trim(),zap=(m.whatsapp||'').replace(/\D/g,'');
   const lim=cz.data?.limite,nconf=conf.count||0,cheio=lim!=null&&nconf>=lim&&i.status!=='confirmada';
   const quando=new Date(i.criado_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
@@ -727,7 +761,9 @@ TELAS['org-inscrito']=async()=>{
     <div class="kv"><span>Já participou</span><b>${hist.count?hist.count+(hist.count>1?' edições':' edição'):'Primeira vez'}</b></div>
     <div class="kv"><span>${esc(segNome(m.segmento))} confirmados</span><b style="${cheio?'color:var(--tomate)':''}">${nconf}${lim!=null?' de '+lim:''}${cheio?' · completo':''}</b></div>
   </div>
-  ${i.status==='confirmada'?`<div class="painel"><b class="secao">Pagamento</b>${comp?`<p style="margin:6px 0 10px">Comprovante enviado.</p><a class="btn sec" href="${esc(comp)}" target="_blank" rel="noopener" style="text-decoration:none;margin-bottom:10px">Ver comprovante</a>`:!i.pago?'<p class="sub" style="margin:6px 0 10px">Ainda sem comprovante.</p>':''}<label class="check"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> Pagamento recebido</label></div>`:''}
+  ${i.status==='confirmada'?`<div class="painel"><b class="secao">Pagamento</b>${comp?`<p style="margin:6px 0 10px">Comprovante anexado.</p><a class="btn sec" href="${esc(comp)}" target="_blank" rel="noopener" style="text-decoration:none;margin-bottom:10px">Ver comprovante</a>`:'<p class="sub" style="margin:6px 0 10px">Ainda sem comprovante.</p>'}<label class="check"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> Pagamento recebido</label>
+    <label class="btn sec" for="comp-org" style="margin-top:10px;font-weight:600">${comp?'Trocar comprovante':'Anexar comprovante'}</label><input id="comp-org" type="file" accept="image/*,application/pdf" data-ins="${i.id}" data-dono="${i.dono}" data-pagoja="${i.pago?1:''}" hidden>
+    <p class="sub" style="margin:6px 0 0;font-size:12px">Recebeu o comprovante pelo WhatsApp? Anexe aqui. Ao anexar, o pagamento já fica marcado como recebido.</p></div>`:''}
   ${i.status==='encerrada'?`<div class="decisao"><button class="btn sec" data-dec="convidar" data-id="${i.id}">Convidar (abriu vaga)</button></div>`:`<div class="decisao"><button class="btn pri" data-dec="confirmada" data-id="${i.id}">${i.status==='confirmada'?'Presença confirmada ✓':'Confirmar presença'}</button><div class="row" style="margin-top:8px"><button class="mini" data-dec="reserva" data-id="${i.id}" style="min-height:44px">Reserva</button><button class="mini" data-dec="nao_desta_vez" data-id="${i.id}" style="min-height:44px">Não dessa vez</button></div></div>`}`;
 };
 /* leitura automática das vagas na planta */
@@ -839,11 +875,22 @@ TELAS['org-mapas']=async()=>{
   if(S.mapaEds.length&&!S.mapaEds.some(e=>e.id===S.mapaEdSel))S.mapaEdSel=S.mapaEds[0].id;
   let ocup=new Map();if(S.mapaEds.length){const {data:oc}=await sb.from('vagas_ocupadas').select('vaga_id,marca_nome,tamanho').eq('edicao_id',S.mapaEdSel);ocup=new Map((oc||[]).map(x=>[x.vaga_id,x]))}
   S.mapaOcup=ocup;S.areaNomes={};if(S.mapaEds.length&&(m.areas||[]).length){const {data:oa}=await sb.rpc('ocupacao_areas',{p_edicao:S.mapaEdSel});(oa||[]).forEach(x=>{(S.areaNomes[x.segmento]=S.areaNomes[x.segmento]||[]).push(x)})}
+  let insEd=[];if(S.mapaEds.length){const {data:ie}=await sb.from('inscricoes').select('vaga_id,marcas(nome,segmento),montagem(mesas,cadeiras)').eq('edicao_id',S.mapaEdSel).eq('status','confirmada');insEd=(ie||[]).map(i=>{const mo=Array.isArray(i.montagem)?i.montagem[0]:i.montagem;return {vaga:i.vaga_id,seg:i.marcas?.segmento,nome:i.marcas?.nome||'—',mesas:mo?.mesas??null,cad:mo?.cadeiras??null}})}
+  const nVaga=new Map(S.vagasEd.map(v=>[v.id,v.numero])),areaDe=sg=>(m.areas||[]).find(a=>a.segmento===sg);
+  const nn=x=>x==null?'<span style="color:var(--ink-2)">—</span>':x;
+  const linhasEsc=insEd.map(x=>({...x,onde:areaDe(x.seg)?areaDe(x.seg).nome:(x.vaga&&nVaga.has(x.vaga)?'Vaga '+nVaga.get(x.vaga):'Sem vaga ainda'),ord:areaDe(x.seg)?9e5:(nVaga.get(x.vaga)??9e6)})).sort((p,q)=>p.ord-q.ord||String(p.onde).localeCompare(q.onde,'pt',{numeric:true})||p.nome.localeCompare(q.nome,'pt'));
+  const painelEsc=S.verEscolhidas&&S.mapaEds.length?`<div class="painel" style="margin-top:10px"><div style="display:flex;justify-content:space-between;align-items:center"><b class="secao">Quem escolheu o quê</b><button class="mini" data-verescolhidas style="border:0;background:none;color:var(--ink-2)">Fechar</button></div>
+    ${linhasEsc.length?`<table class="tbesc"><thead><tr><th>Onde</th><th>Marca</th><th>Mesas</th><th>Cad.</th></tr></thead><tbody>${linhasEsc.map(x=>`<tr><td>${esc(x.onde)}</td><td>${esc(x.nome)}</td><td>${nn(x.mesas)}</td><td>${nn(x.cad)}</td></tr>`).join('')}</tbody></table>`:'<p class="sub" style="margin:6px 0 0">Ninguém confirmado ainda.</p>'}</div>`:'';
+  const tM=insEd.reduce((t,x)=>t+(+x.mesas||0),0),tC=insEd.reduce((t,x)=>t+(+x.cad||0),0),semInfo=insEd.filter(x=>x.mesas==null||x.cad==null);
+  const movOrg=S.mapaEds.length?await blocoMoveis(S.mapaEdSel,null,'org'):'';
+  const resumoMC=S.mapaEds.length?`${movOrg}<div class="painel" style="margin-top:12px"><b class="secao">Mesas e cadeiras pra separar</b>
+    <div class="tiles" style="grid-template-columns:repeat(2,minmax(0,1fr));margin:8px 0 0"><div class="tile"><b>${tM}</b><span>Mesas</span></div><div class="tile"><b>${tC}</b><span>Cadeiras</span></div></div>
+    <p class="sub" style="margin:8px 0 0;font-size:13px">Soma de ${insEd.length} expositor${insEd.length===1?'':'es'} confirmado${insEd.length===1?'':'s'}.${semInfo.length?` <b style="color:var(--tomate)">${semInfo.length} ainda não ${semInfo.length===1?'informou':'informaram'}:</b> ${semInfo.map(x=>esc(x.nome)).join(', ')}.`:''}</p></div>`:'';
   const listaAreas=(m.areas||[]).filter(a=>(S.areaNomes[a.segmento]||[]).length).map(a=>`<div class="painel" style="margin-top:10px"><b class="secao">${esc(a.nome)}</b>${S.areaNomes[a.segmento].map(x=>`<div class="kv"><span>${esc(x.marca_nome)}</span><b>${tamLabel(x.tamanho)}</b></div>`).join('')}</div>`).join('');
   return `<h1>Mapas</h1>${seletor}
   ${S.mapaEds.length?`<label for="mp-ed">Ver ocupação da edição</label><select id="mp-ed">${S.mapaEds.map(e=>`<option value="${e.id}" ${e.id===S.mapaEdSel?'selected':''}>${esc(e.titulo)} · ${periodo(e)}</option>`).join('')}</select>
-  <div class="tiles" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="tile"><b>${S.vagasEd.length}</b><span>Vagas</span></div><div class="tile"><b>${ocup.size}</b><span>Escolhidas</span></div><div class="tile"><b>${Math.max(S.vagasEd.length-ocup.size,0)}</b><span>Livres</span></div></div>`:'<p class="sub" style="margin-top:10px">Nenhuma edição usa esse mapa ainda. Escolha ele no formulário da edição.</p>'}
-  <div class="mapawrap" id="mapaview" style="margin-top:6px"></div>${listaAreas}
+  <div class="tiles" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="tile"><b>${S.vagasEd.length}</b><span>Vagas</span></div><button class="tile" data-verescolhidas aria-pressed="${!!S.verEscolhidas}"><b>${ocup.size}</b><span>Escolhidas ${S.verEscolhidas?'▴':'▾'}</span></button><div class="tile"><b>${Math.max(S.vagasEd.length-ocup.size,0)}</b><span>Livres</span></div></div>`:'<p class="sub" style="margin-top:10px">Nenhuma edição usa esse mapa ainda. Escolha ele no formulário da edição.</p>'}
+  ${painelEsc}<div class="mapawrap" id="mapaview" style="margin-top:6px"></div>${listaAreas}${resumoMC}
   ${S.mapaEds.length&&m.imagem_url?`<button class="btn pri" id="mp-export" style="margin-top:12px">Exportar mapa em JPEG</button>`:''}
   <button class="btn sec" id="mp-editar" style="margin-top:10px">Editar mapa</button>${novoMapa}`;
 };
@@ -1129,6 +1176,9 @@ document.addEventListener('click',async ev=>{
   if(b.id==='mo-ok'){const err=$('#mo-err');const pessoas=S.montadores.filter(p=>p.nome.trim());if(!pessoas.length){err.textContent='Informe ao menos uma pessoa que vai montar.';return}
     if(pessoas.some(p=>p.cpf.replace(/\D/g,'').length!==11)){err.textContent='Confira os CPFs: cada um precisa ter 11 números.';return}
     const usa=!!$('#mo-est')?.checked,placa=($('#mo-placa')?.value||'').trim().toUpperCase();if(usa&&!placa){err.textContent='Informe a placa do carro.';return}
+    const md=S.movDisp||{},qm=+$('#mo-mesa').value||0,qc=+$('#mo-cad').value||0;
+    if(md.m!=null&&qm>md.m){err.textContent=`Só tem ${md.m} mesa${md.m===1?'':'s'} disponíve${md.m===1?'l':'is'} agora. Diminua ou fale com a organização.`;return}
+    if(md.c!=null&&qc>md.c){err.textContent=`Só tem ${md.c} cadeira${md.c===1?'':'s'} disponíve${md.c===1?'l':'is'} agora. Diminua ou fale com a organização.`;return}
     b.disabled=true;const id=S.ins.id;
     const r1=await sb.from('montagem').upsert({inscricao_id:id,mesas:+$('#mo-mesa').value||0,cadeiras:+$('#mo-cad').value||0,usa_estacionamento:usa,placa:usa?placa:null,atualizado_em:new Date().toISOString()});
     if(r1.error){b.disabled=false;err.textContent=erroMsg(r1.error);return}
@@ -1146,7 +1196,7 @@ document.addEventListener('click',async ev=>{
     const num=id=>{const v=$(id).value;return v===''?null:Number(v)};const prazo=$('#e-prazo').value;
     const fimV=$('#e-fim').value||null;
     if($('#e-diaun')?.checked){const dl=$('#e-dialib').value;if(!dl){err.textContent='Informe o dia liberado pra participação avulsa.';return}if(dl<data||dl>(fimV||data)){err.textContent='O dia liberado precisa estar dentro do período da feira.';return}}if(fimV&&fimV<data){err.textContent='O último dia não pode ser antes do início.';return}
-    const reg={titulo:($('#e-tit').value.trim()||'FEIRA BÊRGA').toUpperCase(),endereco:$('#e-end').value.trim()||null,whatsapp_organizacao:$('#e-zap').value.trim()||null,video_estacionamento_url:S.videoForm||null,permite_dia_unico:!!$('#e-diaun')?.checked&&!!$('#e-dialib')?.value,dia_unico_liberado:$('#e-diaun')?.checked&&$('#e-dialib')?.value?$('#e-dialib').value:null,preco_dia:$('#e-pdia')?moedaNum($('#e-pdia').value):null,data,data_fim:fimV&&fimV!==data?fimV:null,local:$('#e-local').value.trim(),data_montagem:$('#e-dm').value&&$('#e-dm').value!==data?$('#e-dm').value:null,horario_montagem:faixa($('#e-hm1').value,$('#e-hm2').value),horario_feira:faixa($('#e-hf1').value,$('#e-hf2').value),horario_desmontagem:$('#e-hd1').value?'a partir das '+hfmt($('#e-hd1').value):'',preco_2m:moedaNum($('#e-p2').value),preco_unico:moedaNum($('#e-pu').value),preco_3m:moedaNum($('#e-p3').value),valor_estacionamento:moedaNum($('#e-est').value),mapa_id:$('#e-mapa').value||null,prazo_escolha_vaga:prazo?new Date(prazo).toISOString():null,regras:$('#e-regras').value.trim(),link_fotos:$('#e-fotos')?($('#e-fotos').value.trim()||null):(S.edForm?.link_fotos??null),capa_url:S.capaForm||null,chave_pix:$('#e-pix').value.trim()||null,total_espacos:$('#e-total').value===''?null:+$('#e-total').value,max_3m:$('#e-m3').value===''?null:+$('#e-m3').value,inscricoes_abertas:$('#e-aberta').checked,abre_inscricoes_em:!$('#e-aberta').checked&&$('#e-abre').value?new Date($('#e-abre').value).toISOString():null};
+    const reg={titulo:($('#e-tit').value.trim()||'FEIRA BÊRGA').toUpperCase(),endereco:$('#e-end').value.trim()||null,whatsapp_organizacao:$('#e-zap').value.trim()||null,video_estacionamento_url:S.videoForm||null,permite_dia_unico:!!$('#e-diaun')?.checked&&!!$('#e-dialib')?.value,dia_unico_liberado:$('#e-diaun')?.checked&&$('#e-dialib')?.value?$('#e-dialib').value:null,preco_dia:$('#e-pdia')?moedaNum($('#e-pdia').value):null,data,data_fim:fimV&&fimV!==data?fimV:null,local:$('#e-local').value.trim(),data_montagem:$('#e-dm').value&&$('#e-dm').value!==data?$('#e-dm').value:null,horario_montagem:faixa($('#e-hm1').value,$('#e-hm2').value),horario_feira:faixa($('#e-hf1').value,$('#e-hf2').value),horario_desmontagem:$('#e-hd1').value?'a partir das '+hfmt($('#e-hd1').value):'',preco_2m:moedaNum($('#e-p2').value),preco_unico:moedaNum($('#e-pu').value),preco_3m:moedaNum($('#e-p3').value),valor_estacionamento:moedaNum($('#e-est').value),mapa_id:$('#e-mapa').value||null,prazo_escolha_vaga:prazo?new Date(prazo).toISOString():null,regras:$('#e-regras').value.trim(),link_fotos:$('#e-fotos')?($('#e-fotos').value.trim()||null):(S.edForm?.link_fotos??null),capa_url:S.capaForm||null,chave_pix:$('#e-pix').value.trim()||null,total_espacos:$('#e-total').value===''?null:+$('#e-total').value,max_3m:$('#e-m3').value===''?null:+$('#e-m3').value,mesas_total:$('#e-mesas').value===''?null:+$('#e-mesas').value,cadeiras_total:$('#e-cads').value===''?null:+$('#e-cads').value,inscricoes_abertas:$('#e-aberta').checked,abre_inscricoes_em:!$('#e-aberta').checked&&$('#e-abre').value?new Date($('#e-abre').value).toISOString():null};
     b.disabled=true;const r=S.edForm?.id?await sb.from('edicoes').update(reg).eq('id',S.edForm.id).select().single():await sb.from('edicoes').insert(reg).select().single();
     if(r.error){b.disabled=false;err.textContent=erroMsg(r.error);return}
     const eid=r.data.id;await sb.from('edicao_cotas').delete().eq('edicao_id',eid);
@@ -1181,6 +1231,7 @@ document.addEventListener('click',async ev=>{
     const m=S.mapas.find(x=>x.id===S.mapaSel);if(m)m.nome=nome;const op=document.querySelector(`#mp-sel option[value="${S.mapaSel}"]`);if(op)op.textContent=nome;toast('Nome atualizado');return}
   if(b.id==='mp-salvar'){S.mapaEdit=false;S.armado=false;S.armadoArea=null;S.vagaSel=null;toast('Mapa salvo');render();return}
   if(b.id==='mp-armar'){S.armado=!S.armado;const y=window.scrollY;await render();window.scrollTo(0,y);if(S.armado)toast('Agora toque na planta onde fica a nova vaga');return}
+  if(b.hasAttribute('data-verescolhidas')){S.verEscolhidas=!S.verEscolhidas;const y=window.scrollY;await render();window.scrollTo(0,y);return}
   if(b.id==='mp-export'){b.disabled=true;await exportarMapa();b.disabled=false;return}
   if(b.id==='mp-detectar'){b.disabled=true;await criarVagasDaPlanta(false,false);b.disabled=false;return}
   if(b.id==='mp-refazer'){await criarVagasDaPlanta(false,true);return}
@@ -1254,6 +1305,12 @@ document.addEventListener('change',async ev=>{const t=ev.target;
     const path=`${S.sessao.user.id}/${S.ins.id}-${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;const r=await sb.storage.from('comprovantes').upload(path,f);
     if(r.error){toast(erroMsg(r.error));return}const r2=await sb.rpc('enviar_comprovante',{p_inscricao:S.ins.id,p_path:path});
     if(r2.error){toast(erroMsg(r2.error));return}toast('Comprovante enviado!');render();return}
+  if(t.id==='comp-org'){const f=t.files[0];if(!f)return;if(f.size>10*1024*1024){toast('O arquivo passa de 10 MB');return}
+    const tipos=['image/jpeg','image/png','image/webp','image/heic','application/pdf'];if(f.type&&!tipos.includes(f.type)){toast('Use foto (JPG, PNG) ou PDF');return}
+    toast('Anexando comprovante…');const path=`${t.dataset.dono}/${t.dataset.ins}-org-${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;
+    const r=await sb.storage.from('comprovantes').upload(path,f,{contentType:f.type||undefined});if(r.error){toast(erroMsg(r.error));return}
+    const r2=await sb.from('inscricoes').update({comprovante_path:path,comprovante_em:new Date().toISOString(),pago:true}).eq('id',t.dataset.ins);
+    if(r2.error){toast(erroMsg(r2.error));return}toast(t.dataset.pagoja?'Comprovante anexado':'Comprovante anexado e pagamento marcado como recebido');const y=window.scrollY;await render();window.scrollTo(0,y);return}
   if(t.id==='mp-file'){const f=t.files[0];if(!f)return;toast('Enviando planta…');const path=`${S.mapaSel}/${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;
     const r=await sb.storage.from('mapas').upload(path,f);if(r.error){toast(erroMsg(r.error));return}
     const url=sb.storage.from('mapas').getPublicUrl(path).data.publicUrl;const r2=await sb.from('mapas').update({imagem_url:url}).eq('id',S.mapaSel);if(r2.error){toast(erroMsg(r2.error));return}toast('Planta atualizada');await render();if(!S.vagasEd?.length)await criarVagasDaPlanta(true);return}

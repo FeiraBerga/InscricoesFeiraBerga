@@ -543,11 +543,12 @@ TELAS.marca=()=>{const m=S.marca||{};S.fotos=[...(m.fotos||[])];if(S.logoMarcaId
 <label for="m-seg">Segmento</label><select id="m-seg">${S.segs.map(s=>`<option value="${s.slug}" ${m.segmento===s.slug?'selected':''}>${esc(s.nome)}</option>`).join('')}</select><div id="m-outro-w" ${m.segmento==='outro'?'':'hidden'}><label for="m-outro">Qual é o seu segmento?</label><input id="m-outro" value="${esc(m.segmento_outro)}" placeholder="Descreva em poucas palavras"></div>
 <div class="g2"><div><label for="m-insta">Instagram</label><input id="m-insta" value="${esc(m.instagram)}" placeholder="@suamarca"></div><div><label for="m-zap">WhatsApp</label><input id="m-zap" inputmode="tel" value="${esc(m.whatsapp)}"></div></div>
 <label for="m-desc">Sobre a marca (opcional)</label><textarea id="m-desc">${esc(m.descricao)}</textarea>
-<label>Fotos do trabalho (mínimo 3)</label><p class="sub" style="margin:0 0 8px;font-size:13px">Usadas na divulgação da feira.</p>
+<label>Fotos do trabalho (de 3 a 6)</label><p class="sub" style="margin:0 0 8px;font-size:13px">Usadas na curadoria e na divulgação. <b style="color:var(--ink)">Pelo menos uma precisa ser sua expondo</b>, na banca ou em outra feira.</p>
 <div class="fotos" id="fotos"></div>
-<label class="btn sec" for="m-file" style="margin-top:10px;font-weight:600">Adicionar fotos</label><input id="m-file" type="file" accept="image/*" multiple hidden>
+<label class="btn sec" id="m-file-lb" for="m-file" style="margin-top:10px;font-weight:600">Adicionar fotos</label><input id="m-file" type="file" accept="image/*" multiple hidden>
+<label class="check" style="margin-top:12px;align-items:flex-start"><input type="checkbox" id="m-expondo" ${m.id?'checked':''} style="width:20px;min-height:20px;margin-top:2px"><span>Incluí pelo menos uma foto minha expondo</span></label>
 <p class="erro" id="m-err"></p></div><button class="btn pri" id="m-ok">Salvar marca</button>`};
-function desenhaFotos(){const el=$('#fotos');if(!el)return;el.innerHTML=S.fotos.map((u,i)=>`<div class="ft"><img src="${esc(u)}" alt="Foto ${i+1} do trabalho"><button class="x" data-rmfoto="${i}" aria-label="Remover foto ${i+1}">✕</button></div>`).join('')||'<p class="sub" style="grid-column:1/-1;margin:0">Nenhuma foto ainda.</p>'}
+function desenhaFotos(){const el=$('#fotos');if(!el)return;const lb=$('#m-file-lb');if(lb){const n=S.fotos.length;lb.textContent=n>=6?'Limite de 6 fotos atingido':`Adicionar fotos (${n} de 6)`;lb.style.opacity=n>=6?'.5':'';lb.style.pointerEvents=n>=6?'none':''}el.innerHTML=S.fotos.map((u,i)=>`<div class="ft"><img src="${esc(u)}" alt="Foto ${i+1} do trabalho"><button class="x" data-rmfoto="${i}" aria-label="Remover foto ${i+1}">✕</button></div>`).join('')||'<p class="sub" style="grid-column:1/-1;margin:0">Nenhuma foto ainda.</p>'}
 AFTER.marca=desenhaFotos;
 
 TELAS.conta=()=>`<h1>Conta</h1><div class="painel"><div class="kv"><span>E-mail</span><b>${esc(S.sessao.user.email)}</b></div></div><button class="btn sec" id="sair">Sair</button>`;
@@ -1080,6 +1081,10 @@ async function renderMantendo(){
     if('c' in x)el.checked=x.c;else el.value=x.v;if(el.id!=='e-local')el.dispatchEvent(new Event('input'))});atualizaConferir();
   const dw=$('#e-pdia-w'),dc=$('#e-diaun');if(dw&&dc)dw.hidden=!dc.checked;
   window.scrollTo(0,y)}
+
+async function reduzFoto(f){try{const url=URL.createObjectURL(f);const img=await new Promise((ok,err)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=err;i.src=url});
+  const M=1600,k=Math.min(1,M/Math.max(img.naturalWidth,img.naturalHeight));const cv=document.createElement('canvas');cv.width=Math.round(img.naturalWidth*k);cv.height=Math.round(img.naturalHeight*k);
+  cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);URL.revokeObjectURL(url);const b=await new Promise(r=>cv.toBlob(r,'image/jpeg',.82));return b||f}catch{return f}}
 /* ================= EVENTOS ================= */
 document.addEventListener('click',async ev=>{
   const b=ev.target.closest('button,[data-go],[data-perfil]');if(!b)return;const d=b.dataset;
@@ -1115,6 +1120,8 @@ document.addEventListener('click',async ev=>{
   if(d.rmfoto){S.fotos.splice(+d.rmfoto,1);desenhaFotos();return}
   if(b.id==='m-ok'){const nome=$('#m-nome').value.trim(),err=$('#m-err');err.textContent='';if(!nome){err.textContent='Informe o nome da marca.';return}if(!S.logo){err.textContent='Adicione a logo da marca.';return}
     if(S.fotos.length<3){err.textContent='Adicione pelo menos 3 fotos do trabalho.';return}
+    if(S.fotos.length>6){err.textContent='O máximo é 6 fotos. Remova alguma.';return}
+    if(!$('#m-expondo')?.checked){err.textContent='Confirme que incluiu uma foto sua expondo.';return}
     b.disabled=true;if($('#m-seg').value==='outro'&&!$('#m-outro').value.trim()){err.textContent='Descreva o seu segmento.';return}
     if(!$('#m-cidade').value.trim()){err.textContent='Informe a cidade.';return}
     const reg={nome,logo_url:S.logo,cidade:$('#m-cidade').value.trim(),segmento_outro:$('#m-seg').value==='outro'?$('#m-outro').value.trim():null,segmento:$('#m-seg').value,instagram:$('#m-insta').value.trim(),whatsapp:$('#m-zap').value.trim(),descricao:$('#m-desc').value.trim(),fotos:S.fotos};
@@ -1242,11 +1249,15 @@ document.addEventListener('change',async ev=>{const t=ev.target;
     S.capaForm=sb.storage.from('capas').getPublicUrl(path).data.publicUrl;await renderMantendo();toast('Capa carregada. Lembre de salvar a edição.');return}
   if(t.id==='m-logo'){const f=t.files[0];if(!f)return;if(!/^image\//.test(f.type)){toast('Escolha uma imagem (foto ou print da logo)');t.value='';return}
     abrirRecorte(URL.createObjectURL(f));t.value='';return}
-  if(t.id==='m-file'){const files=[...t.files];if(!files.length)return;toast('Enviando fotos…');
-    for(const f of files){if(f.size>5*1024*1024){toast(`${f.name} passa de 5 MB`);continue}
-      const path=`${S.sessao.user.id}/${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;const r=await sb.storage.from('fotos-marcas').upload(path,f);
-      if(r.error){toast(erroMsg(r.error));continue}S.fotos.push(sb.storage.from('fotos-marcas').getPublicUrl(path).data.publicUrl)}
-    t.value='';desenhaFotos();return}
+  if(t.id==='m-file'){let files=[...t.files];t.value='';if(!files.length)return;
+    const vagas=6-S.fotos.length;if(vagas<=0){toast('Já tem 6 fotos. Remova uma pra adicionar outra.');return}
+    if(files.length>vagas){toast(`Dá pra adicionar só mais ${vagas} ${vagas===1?'foto':'fotos'}. Enviando as primeiras.`);files=files.slice(0,vagas)}
+    toast('Enviando fotos…');
+    for(const f of files){if(!/^image\//.test(f.type)){toast(`${f.name} não é uma imagem`);continue}
+      const blob=await reduzFoto(f);if(blob.size>5*1024*1024){toast(`${f.name} é grande demais`);continue}
+      const path=`${S.sessao.user.id}/${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`;const r=await sb.storage.from('fotos-marcas').upload(path,blob,{contentType:blob.type||'image/jpeg'});
+      if(r.error){toast(erroMsg(r.error));continue}S.fotos.push(sb.storage.from('fotos-marcas').getPublicUrl(path).data.publicUrl);desenhaFotos()}
+    toast('Fotos adicionadas. Lembre de salvar a marca.');return}
   if(t.id==='comp-file'){const f=t.files[0];if(!f)return;if(f.size>10*1024*1024){toast('O arquivo passa de 10 MB');return}toast('Enviando comprovante…');
     const path=`${S.sessao.user.id}/${S.ins.id}-${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;const r=await sb.storage.from('comprovantes').upload(path,f);
     if(r.error){toast(erroMsg(r.error));return}const r2=await sb.rpc('enviar_comprovante',{p_inscricao:S.ins.id,p_path:path});

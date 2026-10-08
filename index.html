@@ -865,49 +865,41 @@ async function exportarMapa(){
   const m=S.mapas.find(x=>x.id===S.mapaSel),e=S.mapaEds.find(x=>x.id===S.mapaEdSel);
   toast('Montando a imagem…');
   const {data:ins,error}=await sb.from('inscricoes').select('vaga_id,tamanho,marcas(nome,segmento),montagem(mesas,cadeiras)').eq('edicao_id',e.id).eq('status','confirmada');if(error){toast(erroMsg(error));return}
-  const areas=m.areas||[];const segArea=new Set(areas.map(a=>a.segmento));const naArea={};(ins||[]).forEach(i=>{const sg=i.marcas?.segmento;if(segArea.has(sg)){const mo=Array.isArray(i.montagem)?i.montagem[0]:i.montagem;(naArea[sg]=naArea[sg]||[]).push({nome:i.marcas?.nome||'',tam:i.tamanho,mesas:mo?.mesas??null,cad:mo?.cadeiras??null})}});
-  const gruposArea=areas.filter(a=>(naArea[a.segmento]||[]).length).map(a=>({a,p:naArea[a.segmento]}));
-  const porVaga=new Map();(ins||[]).forEach(i=>{if(i.vaga_id){const mo=Array.isArray(i.montagem)?i.montagem[0]:i.montagem;porVaga.set(i.vaga_id,{nome:i.marcas?.nome||'',tam:i.tamanho,mesas:mo?.mesas??null,cad:mo?.cadeiras??null})}});
+  const mc=i=>{const mo=Array.isArray(i.montagem)?i.montagem[0]:i.montagem;return {nome:i.marcas?.nome||'',mesas:mo?.mesas??null,cad:mo?.cadeiras??null}};
+  const areas=m.areas||[],segArea=new Set(areas.map(a=>a.segmento)),naArea={},porVaga=new Map();
+  (ins||[]).forEach(i=>{const sg=i.marcas?.segmento;if(segArea.has(sg))(naArea[sg]=naArea[sg]||[]).push(mc(i));else if(i.vaga_id)porVaga.set(i.vaga_id,mc(i))});
   let img;try{img=await carregaImg(m.imagem_url)}catch{toast('Não consegui carregar a planta');return}
-  const W=Math.max(1600,img.naturalWidth),sc=W/img.naturalWidth,IH=Math.round(img.naturalHeight*sc),P=48;
-  const vagasOrd=[...S.vagasEd].sort((a,b)=>a.numero-b.numero),linhas=vagasOrd.filter(v=>porVaga.has(v.id));
-  const livres=vagasOrd.filter(v=>!porVaga.has(v.id)).map(v=>v.numero);
-  const col=2,lh=46,rows=Math.ceil(linhas.length/col);
-  const areaH=gruposArea.reduce((t,g)=>t+60+Math.ceil(g.p.length/col)*lh,0);
-  const H=P+90+IH+40+120+rows*lh+areaH+(livres.length?90:0)+P;
-  const cv=document.createElement('canvas');cv.width=W+P*2;cv.height=H;const cx=cv.getContext('2d');
-  cx.fillStyle='#F3EBDE';cx.fillRect(0,0,cv.width,H);
-  cx.fillStyle='#23200A';cx.font='800 46px Archivo,"Arial Black",sans-serif';cx.fillText(`${e.titulo} · ${periodo(e)}`,P,P+46);
-  cx.fillStyle='#615B43';cx.font='500 26px "Helvetica Neue",Helvetica,Arial,sans-serif';cx.fillText(`Mapa de expositores · ${m.nome}`,P,P+82);
-  const iy=P+100;cx.drawImage(img,P,iy,W,IH);
-  vagasOrd.forEach(v=>{const o=porVaga.get(v.id);const w=v.largura/100*W,h=v.altura/100*IH,x=P+v.x/100*W-w/2,y=iy+v.y/100*IH-h/2;
-    if(!o)return;cx.fillStyle='rgba(255,251,246,.93)';rr(cx,x,y,w,h,Math.min(w,h)*.12);cx.fill();cx.lineWidth=3;cx.strokeStyle='#47470C';cx.stroke();
-    cx.fillStyle='#23200A';cx.textAlign='center';let fs=Math.max(12,Math.min(h*.34,30));cx.font=`800 ${fs}px Arial,sans-serif`;cx.fillText(String(v.numero),x+w/2,y+fs+2);
-    let f2=Math.max(9,Math.min(h*.2,18));cx.font=`600 ${f2}px Arial,sans-serif`;let nm=o.nome;while(cx.measureText(nm).width>w-6&&nm.length>3)nm=nm.slice(0,-2)+'…';cx.fillText(nm,x+w/2,y+fs+4+f2);
-    cx.font=`700 ${f2}px Arial,sans-serif`;cx.fillStyle='#F06521';cx.fillText(tamCurto(o.tam),x+w/2,y+fs+8+f2*2);cx.textAlign='left'});
-  gruposArea.forEach(({a,p})=>{const bw=(a.largura||12)/100*W,bh=(a.altura||9)/100*IH,bx=P+a.x/100*W-bw/2,by=iy+a.y/100*IH-bh/2;
-    cx.save();cx.setLineDash([10,7]);cx.lineWidth=4;cx.strokeStyle='#47470C';rr(cx,bx,by,bw,bh,10);cx.stroke();cx.restore();
-    const t=String(p.length);cx.font='800 22px Arial,sans-serif';const cw2=Math.max(34,cx.measureText(t).width+18);cx.fillStyle='#47470C';rr(cx,bx+bw-cw2/2,by-17,cw2,34,17);cx.fill();cx.fillStyle='#F3EBDE';cx.textAlign='center';cx.fillText(t,bx+bw,by+8);cx.textAlign='left'});
-  let y=iy+IH+60;const todos=[...linhas.map(v=>porVaga.get(v.id)),...gruposArea.flatMap(g=>g.p)];
-  const tm=todos.reduce((a,o)=>a+(o.mesas||0),0),tc=todos.reduce((a,o)=>a+(o.cad||0),0);
-  const n3=todos.filter(o=>o.tam==='3m').length,nu=todos.filter(o=>o.tam==='unico').length,n2=todos.length-n3-nu;
-  cx.fillStyle='#23200A';cx.font='800 34px Archivo,"Arial Black",sans-serif';cx.fillText('Expositores por vaga',P,y);
-  cx.fillStyle='#615B43';cx.font='600 26px "Helvetica Neue",Helvetica,Arial,sans-serif';cx.fillText(`${todos.length} espaços ocupados (${n2} de 2 m · ${n3} de 3 m${nu?' · '+nu+' sem metragem':''}) · ${tm} mesas · ${tc} cadeiras`,P,y+42);
-  y+=90;const cw=W/col;
-  linhas.forEach((v,k)=>{const o=porVaga.get(v.id),cxx=P+(k%col)*cw,cy=y+Math.floor(k/col)*lh;
-    cx.fillStyle=k%4<2?'#FBF7EF':'#F3EBDE';cx.fillRect(cxx,cy-32,cw-12,lh-6);
-    cx.fillStyle='#F06521';cx.font='800 26px Arial,sans-serif';cx.fillText(String(v.numero).padStart(2,'0'),cxx+12,cy);
-    cx.fillStyle='#23200A';cx.font='700 24px Arial,sans-serif';let nm=o.nome;const max=cw-330;while(cx.measureText(nm).width>max&&nm.length>3)nm=nm.slice(0,-2)+'…';cx.fillText(nm,cxx+70,cy);
-    cx.fillStyle='#615B43';cx.font='500 22px Arial,sans-serif';const det=`${tamLabel(o.tam)} · ${o.mesas==null?'? mesas':o.mesas+(o.mesas===1?' mesa':' mesas')} · ${o.cad==null?'? cadeiras':o.cad+(o.cad===1?' cadeira':' cadeiras')}`;cx.textAlign='right';cx.fillText(det,cxx+cw-26,cy);cx.textAlign='left'});
-  let ya=y+rows*lh+20;const det=o=>`${tamLabel(o.tam)} · ${o.mesas==null?'? mesas':o.mesas+(o.mesas===1?' mesa':' mesas')} · ${o.cad==null?'? cadeiras':o.cad+(o.cad===1?' cadeira':' cadeiras')}`;
-  gruposArea.forEach(({a,p})=>{cx.fillStyle='#47470C';cx.font='800 28px Archivo,"Arial Black",sans-serif';cx.fillText(`Área ${a.nome}`,P,ya+20);ya+=60;
-    p.forEach((o,k)=>{const cxx=P+(k%col)*cw,cy=ya+Math.floor(k/col)*lh;cx.fillStyle=k%4<2?'#FBF7EF':'#F3EBDE';cx.fillRect(cxx,cy-32,cw-12,lh-6);
-      cx.fillStyle='#47470C';cx.font='800 26px Arial,sans-serif';cx.fillText('•',cxx+18,cy);cx.fillStyle='#23200A';cx.font='700 24px Arial,sans-serif';let nm=o.nome;while(cx.measureText(nm).width>cw-330&&nm.length>3)nm=nm.slice(0,-2)+'…';cx.fillText(nm,cxx+70,cy);
-      cx.fillStyle='#615B43';cx.font='500 22px Arial,sans-serif';cx.textAlign='right';cx.fillText(det(o),cxx+cw-26,cy);cx.textAlign='left'});
-    ya+=Math.ceil(p.length/col)*lh});
-  if(livres.length){const ly=ya+30;cx.fillStyle='#23200A';cx.font='700 24px Arial,sans-serif';cx.fillText('Vagas livres:',P,ly);cx.fillStyle='#615B43';cx.font='500 22px Arial,sans-serif';let t=livres.join(', ');while(cx.measureText(t).width>W-180&&t.length>3)t=t.slice(0,-4)+'…';cx.fillText(t,P+170,ly)}
+  const W=Math.max(2400,img.naturalWidth),IH=Math.round(img.naturalHeight*W/img.naturalWidth);
+  const vagas=[...S.vagasEd];const larM=vagas.length?vagas.reduce((t,v)=>t+v.largura,0)/vagas.length/100*W:80,altM=vagas.length?vagas.reduce((t,v)=>t+v.altura,0)/vagas.length/100*IH:60;
+  const fsN=Math.max(14,Math.min(30,larM*.19)),fsD=Math.round(fsN*.92),lh=fsN*1.12;
+  const vao=v=>{const px=v.x/100*W,py=v.y/100*IH;let d=Infinity;vagas.forEach(u=>{if(u===v)return;if(Math.abs(u.y/100*IH-py)<altM*.6)d=Math.min(d,Math.abs(u.x/100*W-px))});return d===Infinity?larM*1.6:d};
+  const BASE=Math.round(fsN*4.5)+50;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=IH+BASE;const cx=cv.getContext('2d');
+  cx.fillStyle='#FFFFFF';cx.fillRect(0,0,W,cv.height);cx.drawImage(img,0,0,W,IH);
+  const num=n=>n==null?'—':String(n);
+  const det=o=>`M ${num(o.mesas)} · C ${num(o.cad)}`;
+  const quebra=(txt,max,maxL=2)=>{const ws=txt.split(/\s+/);const ls=[];let l='';ws.forEach(w=>{const t=l?l+' '+w:w;if(cx.measureText(t).width<=max||!l)l=t;else{ls.push(l);l=w}});if(l)ls.push(l);
+    if(ls.length>maxL){ls.length=maxL;const k=maxL-1;while(cx.measureText(ls[k]+'…').width>max&&ls[k].length>2)ls[k]=ls[k].slice(0,-1);ls[k]+='…'}return ls};
+  const etiqueta=(x,yTop,largura,o,alin='center',maxL=2,esc=1)=>{const fN=fsN*esc,fD=fsD*esc,L=lh*esc;cx.textAlign=alin;cx.textBaseline='top';cx.font=`700 ${fN}px Arial,sans-serif`;
+    const ls=quebra(o.nome,largura,maxL);const bh=ls.length*L+fD*1.25+4;
+    cx.fillStyle='#23200A';ls.forEach((l,k)=>cx.fillText(l,x,yTop+k*L));
+    cx.fillStyle='#3A3A3A';cx.font=`500 ${fD}px Arial,sans-serif`;cx.fillText(det(o),x,yTop+ls.length*L+3*esc);return bh};
+  const plano=vagas.map(v=>{const h=v.altura/100*IH,x=v.x/100*W,topo=v.y/100*IH-h/2,base=v.y/100*IH+h/2,g=Math.max(4,fsN*.3),lw=Math.max(vao(v)-8,fsN*4);
+    let esp=IH+BASE-base-g,acima=topo-g;vagas.forEach(u=>{if(u===v||Math.abs(u.x/100*W-x)>=lw*.75)return;const ut=u.y/100*IH-u.altura/100*IH/2,ub=u.y/100*IH+u.altura/100*IH/2;if(ut>base)esp=Math.min(esp,ut-base-g);if(ub<topo)acima=Math.min(acima,topo-ub-g)});
+    return {v,x,topo,base,g,lw,esp,acima,subir:esp<lh+fsD*1.25+6&&acima>esp}});
+  plano.forEach(p=>{const fila=plano.filter(q=>Math.abs(q.v.y-p.v.y)/100*IH<altM*.6);const n=fila.filter(q=>q.subir).length;p.subirF=n*2>fila.length});
+  const dois=lh*2+fsD*1.25+6,um=lh+fsD*1.25+6;
+  plano.forEach(p=>{const o=porVaga.get(p.v.id);if(!o)return;const espaco=p.subirF?p.acima:p.esp;const maxL=espaco<dois?1:2,esc=espaco<um?Math.max(.6,(espaco-2)/um):1;
+    if(p.subirF){cx.font=`700 ${fsN*esc}px Arial,sans-serif`;const n=quebra(o.nome,p.lw,maxL).length;const bh=n*lh*esc+fsD*esc*1.25+4;etiqueta(p.x,p.topo-p.g-bh,p.lw,o,'center',maxL,esc)}
+    else etiqueta(p.x,p.base+p.g,p.lw,o,'center',maxL,esc)});
+  areas.forEach(a=>{const p=naArea[a.segmento]||[];if(!p.length)return;const bw=(a.largura||12)/100*W,bh=(a.altura||9)/100*IH;let y=a.y/100*IH+bh/2+Math.max(4,fsN*.3);const x=Math.max(8,a.x/100*W-bw/2+4);
+    p.forEach(o=>{y+=etiqueta(x,y,Math.max(bw,fsN*8),o,'left')+fsN*.4})});
+  cx.textAlign='left';cx.textBaseline='alphabetic';cx.fillStyle='#23200A';cx.font=`500 ${Math.max(20,fsD)}px Arial,sans-serif`;
+  cx.fillText('M = mesas  ·  C = cadeiras  ·  — = não informado',28,cv.height-30);
+  cx.textAlign='right';cx.fillStyle='#615B43';cx.fillText(`${e.titulo} · ${periodo(e)}`,W-28,cv.height-30);
   try{cv.toBlob(bl=>{if(!bl){toast('Não consegui gerar a imagem');return}const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=`mapa-${(e.titulo+'-'+e.data).toLowerCase().replace(/[^a-z0-9]+/g,'-')}.jpg`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Imagem pronta! Se abrir numa nova tela, toque em compartilhar pra salvar.')},'image/jpeg',0.92)}catch{toast('Não consegui gerar a imagem por causa da planta. Tente subir a planta de novo.')}
 }
+
 
 TELAS['org-lista']=async()=>{
   const ed=S.edicoes||await listaEdicoes();S.edicoes=ed;if(!S.orgEdicao&&ed.length)S.orgEdicao=ed[0].id;

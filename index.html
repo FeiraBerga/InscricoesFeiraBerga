@@ -728,15 +728,16 @@ TELAS['org-selecao']=async()=>{
   const e=ed.find(x=>x.id===S.orgEdicao);
   const [ins,ct,pre]=await Promise.all([sb.from('inscricoes').select('*, marcas(*), decisoes(decisao)').eq('edicao_id',S.orgEdicao).order('criado_em'),sb.from('edicao_cotas').select('*').eq('edicao_id',S.orgEdicao),sb.from('pre_inscricoes').select('*').eq('edicao_id',S.orgEdicao).is('inscricao_id',null).order('criado_em')]);
   if(ins.error)throw ins.error;
+  const paths=[...(ins.data||[]).filter(i=>i.comprovante_path).map(i=>i.comprovante_path),...(pre.data||[]).filter(r=>r.comprovante_path).map(r=>r.comprovante_path)];const urls={};
+  if(paths.length){const {data:su}=await sb.storage.from('comprovantes').createSignedUrls(paths,3600);(su||[]).forEach(x=>{if(x.signedUrl)urls[x.path]=x.signedUrl})}
   const pres=pre.data||[];let marcasLivres=[];
   if(pres.length){const {data:mk}=await sb.from('marcas').select('id,nome').order('nome');const ja=new Set((ins.data||[]).map(i=>i.marca_id));marcasLivres=(mk||[]).filter(m=>!ja.has(m.id))}
   const blocoPre=pres.length?`<details class="grupo" open style="border-top:6px solid #752E3D"><summary><span>Inscritas antes do app, ainda sem conta</span><b>${pres.length}</b></summary>
     <p class="sub" style="margin:0 0 8px;font-size:13px">Quando a pessoa criar a conta e cadastrar a marca com o mesmo nome, a inscrição entra sozinha. Se o nome vier diferente, vincule aqui.</p>
     <div class="lista-sel">${pres.map(r=>`<div class="sel conf"><div style="flex:1"><div class="nm">${esc(r.nome)}</div><div class="sub" style="margin:2px 0 6px;font-size:13px">${r.segmento_txt?esc(r.segmento_txt)+' · ':''}${tamCurto(r.tamanho)}${r.dia_unico?' · só '+dataBR(r.dia_unico):''}${r.ordem_pagamento?' · '+r.ordem_pagamento+'º a pagar':''}</div>${r.pago?`<span class="status ok">Pago ${r.valor_pago!=null?money(r.valor_pago):''}</span>`:r.pago_sinal?`<span class="status t">Metade paga ${r.valor_pago!=null?money(r.valor_pago):''}</span>`:'<span class="status">Sem pagamento</span>'}</div>
       <div class="row" style="margin-top:10px"><select data-previnc="${r.id}" aria-label="Marca de ${esc(r.nome)}" style="flex:3"><option value="">Vincular a uma marca cadastrada…</option>${marcasLivres.map(m=>`<option value="${m.id}">${esc(m.nome)}</option>`).join('')}</select><button class="mini pri" data-prevok="${r.id}">Vincular</button></div>
+      <div class="row" style="margin-top:8px">${r.comprovante_path&&urls[r.comprovante_path]?`<a class="mini" href="${esc(urls[r.comprovante_path])}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">Ver comprovante</a>`:''}<label class="mini" for="cp-${r.id}" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer">📎 ${r.comprovante_path?'Trocar comprovante':'Anexar comprovante'}</label><input id="cp-${r.id}" type="file" accept="image/*,application/pdf" data-comporg="1" data-pre="${r.id}" hidden></div>
       <button class="mini" data-prerm="${r.id}" style="border:0;background:none;color:var(--ink-2);padding:0;margin-top:6px;min-height:32px">Tirar da lista</button></div>`).join('')}</div></details>`:'';
-  const paths=(ins.data||[]).filter(i=>i.comprovante_path&&!i.pago).map(i=>i.comprovante_path);const urls={};
-  if(paths.length){const {data:su}=await sb.storage.from('comprovantes').createSignedUrls(paths,3600);(su||[]).forEach(x=>{if(x.signedUrl)urls[x.path]=x.signedUrl})}
   const lista=ins.data||[],cot=Object.fromEntries((ct.data||[]).map(c=>[c.segmento,c.limite]));
   const conf={};lista.forEach(i=>{if(i.status==='confirmada'){const s=i.marcas?.segmento;conf[s]=(conf[s]||0)+1}});
   const total=lista.filter(i=>i.status==='confirmada').length;
@@ -755,7 +756,7 @@ TELAS['org-selecao']=async()=>{
     <div style="flex:1;min-width:0"><div class="nm">${esc(m.nome)} <span style="color:var(--verde);font-size:13px;font-weight:600;white-space:nowrap">Ver perfil ›</span></div><div class="sub" style="margin:2px 0 6px;font-size:13px">${esc(segNome(m.segmento))} · ${tamCurto(i.tamanho)}${i.dia_unico?' · só '+dataBR(i.dia_unico):''}${m.instagram?' · '+esc(m.instagram):''}</div>${chip}${i.valor_pago!=null?`<span class="sub" style="font-size:12px;margin-left:6px">pagou ${money(i.valor_pago)}${i.ordem_pagamento?' · '+i.ordem_pagamento+'º':''}</span>`:''}</div></div>
     ${i.status==='encerrada'?`<div class="ex"><button class="mini" data-dec="convidar" data-id="${i.id}">Convidar (abriu vaga)</button></div>`:
       !decidido||S.mudar===i.id?`<div class="ac"><button class="mini pri" data-dec="confirmada" data-id="${i.id}">Confirmar</button><button class="mini" data-dec="reserva" data-id="${i.id}">Reserva</button><button class="mini" data-dec="nao_desta_vez" data-id="${i.id}">Não dessa vez</button></div>`:''}
-    ${i.status==='confirmada'?`<div class="ex">${!i.pago&&i.comprovante_path?`<span class="status" style="background:var(--laranja-soft);color:var(--ink)">Comprovante enviado</span>${urls[i.comprovante_path]?`<a class="mini" href="${esc(urls[i.comprovante_path])}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Ver comprovante</a>`:''}`:''}${e.permite_sinal?`<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-sinal="${i.id}" ${i.pago_sinal||i.pago?'checked':''} ${i.pago?'disabled':''}> Metade recebida</label>`:''}<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> ${e.permite_sinal?'Pagamento total recebido':'Pagamento recebido'}</label></div>`:''}
+    ${i.status==='confirmada'?`<div class="ex">${!i.pago&&i.comprovante_path?`<span class="status" style="background:var(--laranja-soft);color:var(--ink)">Comprovante enviado</span>`:''}${urls[i.comprovante_path]?`<a class="mini" href="${esc(urls[i.comprovante_path])}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Ver comprovante</a>`:''}<label class="mini" for="cs-${i.id}" style="display:inline-flex;align-items:center;cursor:pointer">📎 ${i.comprovante_path?'Trocar comprovante':'Anexar comprovante'}</label><input id="cs-${i.id}" type="file" accept="image/*,application/pdf" data-comporg="1" data-ins="${i.id}" data-dono="${i.dono}" data-pagoja="${i.pago?1:''}" data-semauto="${e.permite_sinal?1:''}" hidden>${e.permite_sinal?`<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-sinal="${i.id}" ${i.pago_sinal||i.pago?'checked':''} ${i.pago?'disabled':''}> Metade recebida</label>`:''}<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> ${e.permite_sinal?'Pagamento total recebido':'Pagamento recebido'}</label></div>`:''}
     ${decidido&&i.status!=='encerrada'&&S.mudar!==i.id?`<button class="mini" data-mudar="${i.id}" style="border:0;background:none;color:var(--ink-2);padding:0;margin-top:6px;min-height:32px">Mudar decisão</button>`:''}
     </div>`};
     const todos=lista.map((i,n)=>({i,n})).filter(({i})=>{const f=S.filtroSel||'todas';return f==='todas'||(f==='novas'&&i.status==='recebida'&&!i.decisoes?.decisao)||(f==='confirmadas'&&i.status==='confirmada')||(f==='pagas'&&garantiu(i))});
@@ -915,7 +916,8 @@ TELAS['org-mapas']=async()=>{
   if(S.mapaEds.length&&!S.mapaEds.some(e=>e.id===S.mapaEdSel))S.mapaEdSel=S.mapaEds[0].id;
   let ocup=new Map();if(S.mapaEds.length){const {data:oc}=await sb.from('vagas_ocupadas').select('vaga_id,marca_nome,tamanho').eq('edicao_id',S.mapaEdSel);ocup=new Map((oc||[]).map(x=>[x.vaga_id,x]))}
   S.mapaOcup=ocup;S.areaNomes={};if(S.mapaEds.length&&(m.areas||[]).length){const {data:oa}=await sb.rpc('ocupacao_areas',{p_edicao:S.mapaEdSel});(oa||[]).forEach(x=>{(S.areaNomes[x.segmento]=S.areaNomes[x.segmento]||[]).push(x)})}
-  let insEd=[];if(S.mapaEds.length){const {data:ie}=await sb.from('inscricoes').select('vaga_id,marcas(nome,segmento),montagem(mesas,cadeiras)').eq('edicao_id',S.mapaEdSel).eq('status','confirmada');insEd=(ie||[]).map(i=>{const mo=Array.isArray(i.montagem)?i.montagem[0]:i.montagem;return {vaga:i.vaga_id,seg:i.marcas?.segmento,nome:i.marcas?.nome||'—',mesas:mo?.mesas??null,cad:mo?.cadeiras??null}})}
+  let insEd=[];if(S.mapaEds.length){const {data:ie}=await sb.from('inscricoes').select('id,vaga_id,marcas(nome,segmento),montagem(mesas,cadeiras)').eq('edicao_id',S.mapaEdSel).eq('status','confirmada');insEd=(ie||[]).map(i=>{const mo=Array.isArray(i.montagem)?i.montagem[0]:i.montagem;return {id:i.id,vaga:i.vaga_id,seg:i.marcas?.segmento,nome:i.marcas?.nome||'—',mesas:mo?.mesas??null,cad:mo?.cadeiras??null}})}
+  S.insEdMapa=insEd;
   const nVaga=new Map(S.vagasEd.map(v=>[v.id,v.numero])),areaDe=sg=>(m.areas||[]).find(a=>a.segmento===sg);
   const nn=x=>x==null?'<span style="color:var(--ink-2)">—</span>':x;
   const linhasEsc=insEd.map(x=>({...x,onde:areaDe(x.seg)?areaDe(x.seg).nome:(x.vaga&&nVaga.has(x.vaga)?'Vaga '+nVaga.get(x.vaga):'Sem vaga ainda'),ord:areaDe(x.seg)?9e5:(nVaga.get(x.vaga)??9e6)})).sort((p,q)=>p.ord-q.ord||String(p.onde).localeCompare(q.onde,'pt',{numeric:true})||p.nome.localeCompare(q.nome,'pt'));
@@ -930,12 +932,21 @@ TELAS['org-mapas']=async()=>{
   return `<h1>Mapas</h1>${seletor}
   ${S.mapaEds.length?`<label for="mp-ed">Ver ocupação da edição</label><select id="mp-ed">${S.mapaEds.map(e=>`<option value="${e.id}" ${e.id===S.mapaEdSel?'selected':''}>${esc(e.titulo)} · ${periodo(e)}</option>`).join('')}</select>
   <div class="tiles" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="tile"><b>${S.vagasEd.length}</b><span>Vagas</span></div><button class="tile" data-verescolhidas aria-pressed="${!!S.verEscolhidas}"><b>${ocup.size}</b><span>Escolhidas ${S.verEscolhidas?'▴':'▾'}</span></button><div class="tile"><b>${Math.max(S.vagasEd.length-ocup.size,0)}</b><span>Livres</span></div></div>`:'<p class="sub" style="margin-top:10px">Nenhuma edição usa esse mapa ainda. Escolha ele no formulário da edição.</p>'}
-  ${painelEsc}<div class="mapawrap" id="mapaview" style="margin-top:6px"></div>${listaAreas}${resumoMC}
+  ${painelEsc}${S.mapaEds.length?'<p class="sub" style="margin:10px 0 0;font-size:13px">Toque numa vaga pra colocar, trocar ou tirar uma marca.</p>':''}<div class="mapawrap" id="mapaview" style="margin-top:6px"></div><div id="org-vaga"></div>${listaAreas}${resumoMC}
   ${S.mapaEds.length&&m.imagem_url?`<button class="btn pri" id="mp-export" style="margin-top:12px">Exportar mapa em JPEG</button>`:''}
   <button class="btn sec" id="mp-editar" style="margin-top:10px">Editar mapa</button>${novoMapa}`;
 };
 function desenhaVisualizacao(){const w=$('#mapaview');if(!w)return;const m=S.mapas.find(x=>x.id===S.mapaSel);
-  w.innerHTML=(m.imagem_url?`<img src="${esc(m.imagem_url)}" alt="Planta">`:'<div style="height:300px" class="vazio"><p class="sub">Sem imagem da planta</p></div>')+(m.areas||[]).map(a=>areaTag(a,(S.areaNomes?.[a.segmento]||[]).length)).join('')+S.vagasEd.map(v=>{const o=S.mapaOcup.get(v.id);return `<span class="vg ${o?'minha':''}" style="left:${v.x}%;top:${v.y}%;width:${v.largura}%;height:${v.altura}%">${v.numero}${o?`<span class="vnm">${esc(o.marca_nome||'')}</span>`:''}</span>`}).join('')}
+  w.innerHTML=(m.imagem_url?`<img src="${esc(m.imagem_url)}" alt="Planta">`:'<div style="height:300px" class="vazio"><p class="sub">Sem imagem da planta</p></div>')+(m.areas||[]).map(a=>areaTag(a,(S.areaNomes?.[a.segmento]||[]).length)).join('')+S.vagasEd.map(v=>{const o=S.mapaOcup.get(v.id);const tag=S.mapaEds?.length?'button':'span';return `<${tag} class="vg ${o?'minha':''} ${S.vagaOrg===v.id?'sel':''}" style="left:${v.x}%;top:${v.y}%;width:${v.largura}%;height:${v.altura}%" ${tag==='button'?`data-orgvaga="${v.id}" aria-label="Vaga ${v.numero}${o?', '+esc(o.marca_nome||''):''}"`:''}>${v.numero}${o?`<span class="vnm">${esc(o.marca_nome||'')}</span>`:''}</${tag}>`}).join('');
+  painelVagaOrg()}
+function painelVagaOrg(){const el=$('#org-vaga');if(!el)return;const v=S.vagasEd.find(x=>x.id===S.vagaOrg);if(!v){el.innerHTML='';return}
+  const lista=(S.insEdMapa||[]).filter(x=>!(S.mapas.find(m=>m.id===S.mapaSel)?.areas||[]).some(a=>a.segmento===x.seg));const atual=lista.find(x=>x.vaga===v.id);const nVaga=id=>S.vagasEd.find(z=>z.id===id)?.numero;
+  el.innerHTML=`<div class="painel" style="margin-top:10px;border:2px solid var(--verde)"><div style="display:flex;justify-content:space-between;align-items:center"><b class="secao">Vaga ${v.numero}</b><button class="mini" data-orgvagafecha style="border:0;background:none;color:var(--ink-2)">Fechar</button></div>
+  <p style="margin:6px 0 10px">${atual?`Ocupada por <b>${esc(atual.nome)}</b>.`:'Livre.'}</p>
+  <label for="ov-marca" style="margin-top:0">${atual?'Trocar por':'Colocar aqui'}</label><select id="ov-marca"><option value="">Escolha a marca…</option>${lista.filter(x=>x.id!==atual?.id).sort((a,b)=>a.nome.localeCompare(b.nome,'pt')).map(x=>`<option value="${x.id}">${esc(x.nome)}${x.vaga?' (hoje na vaga '+nVaga(x.vaga)+')':' (sem vaga)'}</option>`).join('')}</select>
+  <button class="btn pri" id="ov-salvar" style="margin-top:10px">${atual?'Trocar':'Colocar nessa vaga'}</button>
+  ${atual?`<button class="btn sec" id="ov-liberar" style="margin-top:8px;color:var(--tomate)">Tirar ${esc(atual.nome)} dessa vaga</button>`:''}
+  <p class="sub" style="margin:8px 0 0;font-size:12px">Se a marca escolhida já estiver em outra vaga, as duas trocam de lugar. Só aparecem marcas confirmadas.</p></div>`}
 function desenhaEditor(){
   if($('#mapaview')){desenhaVisualizacao();return}
   const w=$('#mapaed');if(!w)return;const m=S.mapas.find(x=>x.id===S.mapaSel);
@@ -1278,6 +1289,15 @@ document.addEventListener('click',async ev=>{
   if(d.prevok){const sel=document.querySelector(`[data-previnc="${d.prevok}"]`);if(!sel?.value){toast('Escolha a marca primeiro');return}
     b.disabled=true;const r=await sb.rpc('vincular_pre',{p_pre:d.prevok,p_marca:sel.value});b.disabled=false;if(r.error){toast(erroMsg(r.error));return}toast('Vinculado! A inscrição já aparece pra marca.');const y=window.scrollY;await render();window.scrollTo(0,y);return}
   if(d.prerm){if(!confirm('Tirar essa pré-inscrição da lista?'))return;const r=await sb.from('pre_inscricoes').delete().eq('id',d.prerm);if(r.error){toast(erroMsg(r.error));return}const y=window.scrollY;await render();window.scrollTo(0,y);return}
+  if(d.orgvaga){S.vagaOrg=S.vagaOrg===d.orgvaga?null:d.orgvaga;desenhaVisualizacao();if(S.vagaOrg)setTimeout(()=>$('#org-vaga')?.scrollIntoView({behavior:'smooth',block:'nearest'}),50);return}
+  if(b.hasAttribute('data-orgvagafecha')){S.vagaOrg=null;desenhaVisualizacao();return}
+  if(b.id==='ov-liberar'||b.id==='ov-salvar'){const vid=S.vagaOrg,L=S.insEdMapa||[];const atual=L.find(x=>x.vaga===vid);
+    const up=(id,vg)=>sb.from('inscricoes').update({vaga_id:vg}).eq('id',id);b.disabled=true;let r;
+    if(b.id==='ov-liberar'){r=await up(atual.id,null)}
+    else{const alvo=L.find(x=>x.id===$('#ov-marca').value);if(!alvo){b.disabled=false;toast('Escolha a marca');return}
+      const velha=alvo.vaga;if(atual){r=await up(atual.id,null);if(r.error){b.disabled=false;toast(erroMsg(r.error));return}}
+      r=await up(alvo.id,vid);if(!r.error&&atual&&velha)r=await up(atual.id,velha)}
+    b.disabled=false;if(r?.error){toast(erroMsg(r.error));return}toast(b.id==='ov-liberar'?'Vaga liberada':'Mapa atualizado');S.vagaOrg=null;await renderMantendo();return}
   if(b.id==='atualizar'){if(b.classList.contains('gira'))return;b.classList.add('gira');await renderMantendo();toast('Tela atualizada');return}
   if(b.id==='mp-export'){b.disabled=true;await exportarMapa();b.disabled=false;return}
   if(b.id==='mp-detectar'){b.disabled=true;await criarVagasDaPlanta(false,false);b.disabled=false;return}
@@ -1356,9 +1376,12 @@ document.addEventListener('change',async ev=>{const t=ev.target;
     const path=`${S.sessao.user.id}/${S.ins.id}-${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;const r=await sb.storage.from('comprovantes').upload(path,f);
     if(r.error){toast(erroMsg(r.error));return}const r2=await sb.rpc('enviar_comprovante',{p_inscricao:S.ins.id,p_path:path});
     if(r2.error){toast(erroMsg(r2.error));return}toast('Comprovante enviado!');render();return}
-  if(t.id==='comp-org'){const f=t.files[0];if(!f)return;if(f.size>10*1024*1024){toast('O arquivo passa de 10 MB');return}
+  if(t.id==='comp-org'||t.dataset.comporg){const f=t.files[0];if(!f)return;if(f.size>10*1024*1024){toast('O arquivo passa de 10 MB');return}
     const tipos=['image/jpeg','image/png','image/webp','image/heic','application/pdf'];if(f.type&&!tipos.includes(f.type)){toast('Use foto (JPG, PNG) ou PDF');return}
-    toast('Anexando comprovante…');const path=`${t.dataset.dono}/${t.dataset.ins}-org-${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;
+    toast('Anexando comprovante…');const nm=f.name.replace(/[^\w.]/g,'_');
+    if(t.dataset.pre){const path=`pre/${t.dataset.pre}-${Date.now()}-${nm}`;const r=await sb.storage.from('comprovantes').upload(path,f,{contentType:f.type||undefined});if(r.error){toast(erroMsg(r.error));return}
+      const r2=await sb.from('pre_inscricoes').update({comprovante_path:path}).eq('id',t.dataset.pre);if(r2.error){toast(erroMsg(r2.error));return}toast('Comprovante anexado');await renderMantendo();return}
+    const path=`${t.dataset.dono}/${t.dataset.ins}-org-${Date.now()}-${nm}`;
     const r=await sb.storage.from('comprovantes').upload(path,f,{contentType:f.type||undefined});if(r.error){toast(erroMsg(r.error));return}
     const r2=await sb.from('inscricoes').update({comprovante_path:path,comprovante_em:new Date().toISOString(),...(t.dataset.semauto?{}:{pago:true})}).eq('id',t.dataset.ins);
     if(r2.error){toast(erroMsg(r2.error));return}toast(t.dataset.pagoja||t.dataset.semauto?'Comprovante anexado':'Comprovante anexado e pagamento marcado como recebido');const y=window.scrollY;await render();window.scrollTo(0,y);return}

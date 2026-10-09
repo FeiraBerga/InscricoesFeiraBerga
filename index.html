@@ -341,6 +341,8 @@ const guarda={
   setItem:(k,v)=>{try{if(lembrar()){localStorage.setItem(k,v);sessionStorage.removeItem(k)}else{sessionStorage.setItem(k,v);localStorage.removeItem(k)}}catch{}},
   removeItem:k=>{try{localStorage.removeItem(k);sessionStorage.removeItem(k)}catch{}}
 };
+const LINK=(()=>{const h=new URLSearchParams((location.hash||'').replace(/^#/,'')),q=new URLSearchParams(location.search);const g=k=>h.get(k)||q.get(k);
+  return {recuperar:g('type')==='recovery',erro:g('error_code')||g('error')?(g('error_code')||g('error')):null}})();
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{storage:guarda,persistSession:true}});
 const emailSalvo=()=>{try{return localStorage.getItem('berga-email')||''}catch{return ''}};
 
@@ -366,12 +368,14 @@ const topo=()=>`<div class="cabeca"><span class="cacho" aria-hidden="true"><span
 const S={sessao:null,papel:'expositor',marca:null,segs:[],tela:'inicio',edicao:null,orgEdicao:null,canal:null,mapaSel:null,vagaSel:null};
 
 async function iniciar(){
+  if(LINK.erro){try{history.replaceState(null,'',location.pathname)}catch{}}
   const {data}=await sb.auth.getSession();S.sessao=data.session;
   sb.auth.onAuthStateChange((ev,s)=>{const antes=!!S.sessao;S.sessao=s;if(ev==='PASSWORD_RECOVERY'){S.tela='novasenha';render();return}if(!!s!==antes)carregarUsuario()});
   const r=await sb.from('segmentos').select('*').order('ordem');S.segs=r.data||[];
   await carregarUsuario();
 }
 async function carregarUsuario(){
+  if(LINK.recuperar&&S.sessao){LINK.recuperar=false;S.tela='novasenha';try{history.replaceState(null,'',location.pathname)}catch{}return render()}
   if(!S.sessao){S.papel='expositor';S.marca=null;S.tela=location.hash==='#proposta'?'proposta':'auth';return render()}
   const uid=S.sessao.user.id;
   const [p,m]=await Promise.all([sb.from('perfis').select('papel').eq('id',uid).maybeSingle(),sb.from('marcas').select('*').eq('dono',uid).maybeSingle()]);
@@ -396,7 +400,7 @@ function go(t){if(S.canal){sb.removeChannel(S.canal);S.canal=null}S.tela=t;rende
 /* ================= AUTENTICAÇÃO ================= */
 let modoAuth='entrar';
 const TELAS={};const AFTER={};
-TELAS.auth=()=>`<div class="hero"><span class="b1">${berg(96)}</span><span class="b2">${berg(44)}</span>${wm('grande')}<div class="onda" style="margin:14px 0 10px"></div><p style="font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px;opacity:1">Inscrições</p><p>${modoAuth==='entrar'?'Entre pra se inscrever nas edições.':'Crie sua conta. Leva um minuto.'}</p></div><div class="painel" style="margin-top:12px">
+TELAS.auth=()=>`${LINK.erro?`<div class="painel" style="background:var(--tomate-soft);border-color:var(--tomate);color:var(--ink)"><b>Esse link não vale mais</b><p style="margin:4px 0 0;font-size:14px">${/expired|otp/i.test(LINK.erro)?'Ele expirou ou já foi usado. Se você pediu pra redefinir a senha mais de uma vez, só o <b>último e-mail</b> funciona. Ou toque em "Esqueci minha senha" de novo e use o link novo.':'Tente de novo ou fale com a organização.'}</p></div>`:''}<div class="hero"><span class="b1">${berg(96)}</span><span class="b2">${berg(44)}</span>${wm('grande')}<div class="onda" style="margin:14px 0 10px"></div><p style="font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px;opacity:1">Inscrições</p><p>${modoAuth==='entrar'?'Entre pra se inscrever nas edições.':'Crie sua conta. Leva um minuto.'}</p></div><div class="painel" style="margin-top:12px">
 <label for="a-email">E-mail</label><input id="a-email" type="email" autocomplete="email" value="${esc(emailSalvo())}">
 <label for="a-senha">Senha</label><div class="senha"><input id="a-senha" type="password" autocomplete="${modoAuth==='entrar'?'current-password':'new-password'}"><button type="button" class="olho" data-olho="a-senha" aria-label="Mostrar senha" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
 ${modoAuth==='criar'?'<p class="sub" style="margin:4px 0 0;font-size:12px">Mínimo de 6 caracteres.</p>':''}
@@ -407,7 +411,7 @@ ${modoAuth==='criar'?'<p class="sub" style="margin:4px 0 0;font-size:12px">Míni
 ${modoAuth==='entrar'?'<button class="mini" id="a-esqueci" style="margin-top:12px;border:0;background:none;color:var(--ink-2)">Esqueci minha senha</button>':''}
 </div>
 <div class="xadrez" style="height:22px;border-radius:12px;margin:4px 0 14px"></div><div class="painel" style="background:var(--laranja-soft);border-color:transparent"><b>Tem um espaço e quer receber a Feira Bêrga?</b><p class="sub" style="margin:4px 0 10px">Shopping, empresa, condomínio ou praça.</p><button class="btn sec" data-go="proposta">Enviar proposta</button></div>`;
-TELAS.novasenha=()=>`<h1>Nova senha</h1><label for="ns">Nova senha</label><div class="senha"><input id="ns" type="password" autocomplete="new-password"><button type="button" class="olho" data-olho="ns" aria-label="Mostrar senha" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div><p class="erro" id="ns-err"></p><button class="btn pri" id="ns-ok">Salvar senha</button>`;
+TELAS.novasenha=()=>`<h1>Nova senha</h1><p class="sub">Crie uma senha nova pra sua conta. Mínimo de 6 caracteres.</p><label for="ns">Nova senha</label><div class="senha"><input id="ns" type="password" autocomplete="new-password"><button type="button" class="olho" data-olho="ns" aria-label="Mostrar senha" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div><p class="erro" id="ns-err"></p><button class="btn pri" id="ns-ok">Salvar senha</button>`;
 
 /* ================= PROPOSTA (pública) ================= */
 TELAS.proposta=()=>`<button class="mini" data-go="${S.sessao?'inicio':'auth'}" style="border:0;background:none">← Voltar</button>

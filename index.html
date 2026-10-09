@@ -943,9 +943,9 @@ function painelVagaOrg(){const el=$('#org-vaga');if(!el)return;const v=S.vagasEd
   const lista=(S.insEdMapa||[]).filter(x=>!(S.mapas.find(m=>m.id===S.mapaSel)?.areas||[]).some(a=>a.segmento===x.seg));const atual=lista.find(x=>x.vaga===v.id);const nVaga=id=>S.vagasEd.find(z=>z.id===id)?.numero;
   el.innerHTML=`<div class="painel" style="margin-top:10px;border:2px solid var(--verde)"><div style="display:flex;justify-content:space-between;align-items:center"><b class="secao">Vaga ${v.numero}</b><button class="mini" data-orgvagafecha style="border:0;background:none;color:var(--ink-2)">Fechar</button></div>
   <p style="margin:6px 0 10px">${atual?`Ocupada por <b>${esc(atual.nome)}</b>.`:'Livre.'}</p>
-  <label for="ov-marca" style="margin-top:0">${atual?'Trocar por':'Colocar aqui'}</label><select id="ov-marca"><option value="">Escolha a marca…</option>${lista.filter(x=>x.id!==atual?.id).sort((a,b)=>a.nome.localeCompare(b.nome,'pt')).map(x=>`<option value="${x.id}">${esc(x.nome)}${x.vaga?' (hoje na vaga '+nVaga(x.vaga)+')':' (sem vaga)'}</option>`).join('')}</select>
+  ${atual?`<button class="btn sec" id="ov-liberar" style="margin-bottom:14px;color:var(--tomate);border-color:var(--tomate)">Deixar a vaga ${v.numero} vazia</button><p class="sub" style="margin:-6px 0 10px;font-size:12px">${esc(atual.nome)} fica sem vaga e pode escolher outra no app.</p>`:''}
+  <label for="ov-marca" style="margin-top:0">${atual?'Ou trocar por outra marca':'Colocar aqui'}</label><select id="ov-marca"><option value="">Escolha a marca…</option>${lista.filter(x=>x.id!==atual?.id).sort((a,b)=>a.nome.localeCompare(b.nome,'pt')).map(x=>`<option value="${x.id}">${esc(x.nome)}${x.vaga?' (hoje na vaga '+nVaga(x.vaga)+')':' (sem vaga)'}</option>`).join('')}</select>
   <button class="btn pri" id="ov-salvar" style="margin-top:10px">${atual?'Trocar':'Colocar nessa vaga'}</button>
-  ${atual?`<button class="btn sec" id="ov-liberar" style="margin-top:8px;color:var(--tomate)">Tirar ${esc(atual.nome)} dessa vaga</button>`:''}
   <p class="sub" style="margin:8px 0 0;font-size:12px">Se a marca escolhida já estiver em outra vaga, as duas trocam de lugar. Só aparecem marcas confirmadas.</p></div>`}
 function desenhaEditor(){
   if($('#mapaview')){desenhaVisualizacao();return}
@@ -1293,7 +1293,7 @@ document.addEventListener('click',async ev=>{
   if(b.hasAttribute('data-orgvagafecha')){S.vagaOrg=null;desenhaVisualizacao();return}
   if(b.id==='ov-liberar'||b.id==='ov-salvar'){const vid=S.vagaOrg,L=S.insEdMapa||[];const atual=L.find(x=>x.vaga===vid);
     const up=(id,vg)=>sb.from('inscricoes').update({vaga_id:vg}).eq('id',id);b.disabled=true;let r;
-    if(b.id==='ov-liberar'){r=await up(atual.id,null)}
+    if(b.id==='ov-liberar'){if(!atual){b.disabled=false;return}if(!confirm(`Tirar ${atual.nome} da vaga? A vaga fica vazia.`)){b.disabled=false;return}r=await up(atual.id,null)}
     else{const alvo=L.find(x=>x.id===$('#ov-marca').value);if(!alvo){b.disabled=false;toast('Escolha a marca');return}
       const velha=alvo.vaga;if(atual){r=await up(atual.id,null);if(r.error){b.disabled=false;toast(erroMsg(r.error));return}}
       r=await up(alvo.id,vid);if(!r.error&&atual&&velha)r=await up(atual.id,velha)}

@@ -601,7 +601,7 @@ TELAS.marca=()=>{const m=S.marca||{};S.fotos=[...(m.fotos||[])];if(S.logoMarcaId
 function desenhaFotos(){const el=$('#fotos');if(!el)return;const lb=$('#m-file-lb');if(lb){const n=S.fotos.length;lb.textContent=n>=6?'Limite de 6 fotos atingido':`Adicionar fotos (${n} de 6)`;lb.style.opacity=n>=6?'.5':'';lb.style.pointerEvents=n>=6?'none':''}el.innerHTML=S.fotos.map((u,i)=>`<div class="ft"><img src="${esc(u)}" alt="Foto ${i+1} do trabalho"><button class="x" data-rmfoto="${i}" aria-label="Remover foto ${i+1}">✕</button></div>`).join('')||'<p class="sub" style="grid-column:1/-1;margin:0">Nenhuma foto ainda.</p>'}
 AFTER.marca=desenhaFotos;
 
-TELAS.conta=()=>`<h1>Conta</h1><div class="painel"><div class="kv"><span>E-mail</span><b>${esc(S.sessao.user.email)}</b></div></div><button class="btn sec" id="sair">Sair</button>`;
+TELAS.conta=()=>`<h1>Conta</h1><div class="painel"><div class="kv"><span>E-mail</span><b>${esc(S.sessao.user.email)}</b></div></div><button class="btn sec" data-go="novasenha" style="margin-bottom:8px">Trocar minha senha</button><button class="btn sec" id="sair">Sair</button>`;
 
 TELAS.mapa=async()=>{
   const e=S.edicao,ins=S.ins;if(!e||!ins)return `<p class="sub">Volte pra tela da edição.</p><button class="btn sec" data-go="inicio">Edições</button>`;

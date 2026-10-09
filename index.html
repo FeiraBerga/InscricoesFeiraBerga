@@ -271,6 +271,10 @@ nav.baixo button[aria-current="page"]{background:var(--oliva);color:#F3EBDE}
 .cabeca .cacho .c1{position:absolute;right:0;bottom:0;filter:drop-shadow(0 4px 6px rgba(35,32,10,.25))}
 .cabeca .cacho .c2{position:absolute;right:44px;bottom:2px;transform:rotate(-14deg);filter:drop-shadow(0 3px 4px rgba(35,32,10,.2))}
 .cabeca .papel{position:relative;z-index:1}
+.cabeca .atualiza{position:relative;z-index:1;flex:none;width:36px;height:36px;border-radius:50%;border:0;background:rgba(243,235,222,.14);color:#F3EBDE;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.cabeca .atualiza svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.cabeca .atualiza.gira svg{animation:gira .8s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
 /* recorte da logo */
 .recorte-fundo{position:fixed;inset:0;z-index:20;background:rgba(35,32,10,.55);display:flex;align-items:flex-end;justify-content:center}
 .recorte-folha{background:var(--ground);width:100%;max-width:520px;border-radius:26px 26px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));text-align:center}
@@ -352,7 +356,7 @@ function erroMsg(e){const m=(e&&e.message)||String(e);if(/Invalid login/i.test(m
 
 function berg(t=28){return `<svg class="berg" width="${t}" height="${t}" viewBox="0 0 40 40" aria-hidden="true"><path d="M21 9c3-5 9-6 12-4-2 4-7 6-12 4z" fill="#47470C"/><path d="M20 10c0-2 0-3-1-5" stroke="#2E2E07" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="20" cy="23" r="13" fill="#F28A35"/><path d="M12 20c2-4 6-6 10-5" stroke="#F6B27A" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".8"/><circle cx="20" cy="11.5" r="1.6" fill="#B85A18"/><g fill="#C9601F" opacity=".5"><circle cx="15" cy="27" r=".9"/><circle cx="24" cy="29" r=".9"/><circle cx="27" cy="22" r=".9"/><circle cx="19" cy="31" r=".9"/></g></svg>`}
 const wm=(c='')=>`<span class="wm ${c}"><small>FEIRA</small><b>BÊRGA</b></span>`;
-const topo=()=>`<div class="cabeca"><span class="cacho" aria-hidden="true"><span class="c1">${berg(46)}</span><span class="c2">${berg(30)}</span></span><div class="linha1">${wm()}<button class="papel" data-go="conta" style="border:0;color:inherit">${S.papel==='organizadora'?'Organização':'Expositor'} · Conta</button></div><div class="ola">${S.papel!=='organizadora'&&S.marca?.logo_url?`<img class="logo" src="${esc(S.marca.logo_url)}" alt="" width="26" height="26" style="width:26px;height:26px;border-width:1.5px">`:''}${S.papel==='organizadora'?'Painel da organização':S.marca?'Olá, '+esc(S.marca.nome)+'!':'Que bom te ver por aqui!'}</div></div>`;
+const topo=()=>`<div class="cabeca"><span class="cacho" aria-hidden="true"><span class="c1">${berg(46)}</span><span class="c2">${berg(30)}</span></span><div class="linha1">${wm()}<button class="papel" data-go="conta" style="border:0;color:inherit">${S.papel==='organizadora'?'Organização':'Expositor'} · Conta</button><button class="atualiza" id="atualizar" aria-label="Atualizar a tela" title="Atualizar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg></button></div><div class="ola">${S.papel!=='organizadora'&&S.marca?.logo_url?`<img class="logo" src="${esc(S.marca.logo_url)}" alt="" width="26" height="26" style="width:26px;height:26px;border-width:1.5px">`:''}${S.papel==='organizadora'?'Painel da organização':S.marca?'Olá, '+esc(S.marca.nome)+'!':'Que bom te ver por aqui!'}</div></div>`;
 const S={sessao:null,papel:'expositor',marca:null,segs:[],tela:'inicio',edicao:null,orgEdicao:null,canal:null,mapaSel:null,vagaSel:null};
 
 async function iniciar(){
@@ -1235,6 +1239,7 @@ document.addEventListener('click',async ev=>{
   if(b.id==='mp-salvar'){S.mapaEdit=false;S.armado=false;S.armadoArea=null;S.vagaSel=null;toast('Mapa salvo');render();return}
   if(b.id==='mp-armar'){S.armado=!S.armado;const y=window.scrollY;await render();window.scrollTo(0,y);if(S.armado)toast('Agora toque na planta onde fica a nova vaga');return}
   if(b.hasAttribute('data-verescolhidas')){S.verEscolhidas=!S.verEscolhidas;const y=window.scrollY;await render();window.scrollTo(0,y);return}
+  if(b.id==='atualizar'){if(b.classList.contains('gira'))return;b.classList.add('gira');await renderMantendo();toast('Tela atualizada');return}
   if(b.id==='mp-export'){b.disabled=true;await exportarMapa();b.disabled=false;return}
   if(b.id==='mp-detectar'){b.disabled=true;await criarVagasDaPlanta(false,false);b.disabled=false;return}
   if(b.id==='mp-refazer'){await criarVagasDaPlanta(false,true);return}
@@ -1318,6 +1323,10 @@ document.addEventListener('change',async ev=>{const t=ev.target;
     const r=await sb.storage.from('mapas').upload(path,f);if(r.error){toast(erroMsg(r.error));return}
     const url=sb.storage.from('mapas').getPublicUrl(path).data.publicUrl;const r2=await sb.from('mapas').update({imagem_url:url}).eq('id',S.mapaSel);if(r2.error){toast(erroMsg(r2.error));return}toast('Planta atualizada');await render();if(!S.vagasEd?.length)await criarVagasDaPlanta(true);return}
 });
+let ultAtualiza=Date.now();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible'||!S.sessao)return;if(Date.now()-ultAtualiza<30000)return;
+  if(!['org-selecao','org-mapas','org-lista','org-feedback','org-inscrito','org-edicoes','inicio','edicao','mapa'].includes(S.tela))return;
+  const f=document.activeElement;if(f&&f.closest&&f.closest('#tela')&&/INPUT|TEXTAREA|SELECT/.test(f.tagName))return;ultAtualiza=Date.now();renderMantendo()});
 document.addEventListener('keydown',ev=>{const t=ev.target.closest&&ev.target.closest('[data-perfil]');if(t&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();S.perfilId=t.dataset.perfil;go('org-inscrito')}});
 document.addEventListener('click',ev=>{const sg=$('#loc-sug');if(sg&&!sg.hidden&&!ev.target.closest('#loc-sug')&&ev.target.id!=='e-local')sg.hidden=true},true);
 window.addEventListener('hashchange',()=>{if(location.hash==='#proposta')go('proposta')});

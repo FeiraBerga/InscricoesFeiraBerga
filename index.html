@@ -271,6 +271,12 @@ nav.baixo button[aria-current="page"]{background:var(--oliva);color:#F3EBDE}
 .cabeca .cacho .c1{position:absolute;right:0;bottom:0;filter:drop-shadow(0 4px 6px rgba(35,32,10,.25))}
 .cabeca .cacho .c2{position:absolute;right:44px;bottom:2px;transform:rotate(-14deg);filter:drop-shadow(0 3px 4px rgba(35,32,10,.2))}
 .cabeca .papel{position:relative;z-index:1}
+.aviso-fundo{position:fixed;inset:0;z-index:200;background:rgba(35,32,10,.55);display:flex;align-items:center;justify-content:center;padding:20px}
+.aviso{background:var(--card);color:var(--ink);border-radius:28px;padding:26px 22px 20px;max-width:360px;width:100%;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,.3);border-top:8px solid var(--verde)}
+.aviso-berg{display:block;margin:-6px auto 6px;width:54px}
+.aviso b#av-t{display:block;font-family:var(--display);font-size:22px;line-height:1.15;margin-bottom:6px}
+.aviso p{margin:6px 0 0;font-size:15px;line-height:1.4}
+.aviso .btn.pri{margin-top:16px}
 .cabeca .atualiza{position:relative;z-index:1;flex:none;width:36px;height:36px;border-radius:50%;border:0;background:rgba(243,235,222,.14);color:#F3EBDE;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .cabeca .atualiza svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .cabeca .atualiza.gira svg{animation:gira .8s linear infinite}
@@ -415,6 +421,13 @@ TELAS.proposta=()=>`<button class="mini" data-go="${S.sessao?'inicio':'auth'}" s
 
 /* ================= EXPOSITOR ================= */
 const fimEd=e=>e.data_fim||e.data;
+const pascoa=a=>{const b=a%19,c=Math.floor(a/100),d=a%100,e=Math.floor(c/4),f=c%4,g=Math.floor((c+8)/25),h=Math.floor((c-g+1)/3),i=(19*b+c-e-h+15)%30,k=Math.floor(d/4),l=d%4,m=(32+2*f+2*k-i-l)%7,n=Math.floor((b+11*i+22*m)/451),mes=Math.floor((i+m-7*n+114)/31),dia=((i+m-7*n+114)%31)+1;return new Date(a,mes-1,dia,12)};
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const feriados=a=>{const sx=pascoa(a);sx.setDate(sx.getDate()-2);return new Set([`${a}-01-01`,iso(sx),`${a}-04-21`,`${a}-05-01`,`${a}-09-07`,`${a}-10-12`,`${a}-11-02`,`${a}-11-15`,`${a}-11-20`,`${a}-12-25`])};
+const quintoUtil=(a,m)=>{const fe=feriados(a);const d=new Date(a,m,1,12);let n=0;for(;;){const w=d.getDay();if(w>0&&w<6&&!fe.has(iso(d))){n++;if(n===5)return iso(d)}d.setDate(d.getDate()+1)}};
+const sugereVenc=data=>{if(!data)return '';const[a,m]=data.split('-').map(Number);const q=quintoUtil(a,m-1);if(q<data)return q;const pm=m-2<0?[a-1,11]:[a,m-2];return quintoUtil(pm[0],pm[1])};
+const prazoRestante=e=>e.vencimento_restante||sugereVenc(e.data);
+const garantiu=i=>!!(i&&(i.pago||i.pago_sinal));
 const abertaJa=e=>!!(e.inscricoes_abertas||(e.abre_inscricoes_em&&new Date(e.abre_inscricoes_em)<=new Date()));
 const agendada=e=>!e.inscricoes_abertas&&e.abre_inscricoes_em&&new Date(e.abre_inscricoes_em)>new Date();
 const quandoAbre=e=>{const d=new Date(e.abre_inscricoes_em);const h=d.getHours(),mi=d.getMinutes();return `${d.getDate()} ${MESC[d.getMonth()]}, ${h}h${mi?String(mi).padStart(2,'0'):''}`};
@@ -482,18 +495,19 @@ async function inicioBase(){
   const {data:mont}=await sb.from('montagem').select('inscricao_id').eq('inscricao_id',ins.id).maybeSingle();
   const conf=ins.status==='confirmada';
   let area=null;if(e.mapa_id){const {data:mpA}=await sb.from('mapas').select('areas').eq('id',e.mapa_id).maybeSingle();area=areaSeg(mpA,S.marca.segmento)}
-  const passos=[['Inscrição recebida',`${tamLabel(ins.tamanho)} · a organização confirma as presenças quando as inscrições fecharem`,true],['Presença confirmada',conf?'Você está na feira!':'Aguardando a organização',conf],['Pagamento do espaço',ins.pago?'Pagamento confirmado':ins.comprovante_path?'Comprovante enviado, aguardando a organização conferir':'Pague e envie o comprovante aqui no app',ins.pago],(area?['Seu lugar no mapa',`Área ${esc(area.nome)}, reservada pra ${esc(segNome(S.marca.segmento))}`,conf&&ins.pago]:['Escolher sua vaga no mapa',ins.vaga_id?'Vaga escolhida':'Libera depois do pagamento',!!ins.vaga_id]),['Dados da montagem',mont?'Enviados':'Mesas, cadeiras, placa e quem vai montar',!!mont]];
+  const passos=[['Inscrição recebida',`${tamLabel(ins.tamanho)} · a organização confirma as presenças quando as inscrições fecharem`,true],['Presença confirmada',conf?'Você está na feira!':'Aguardando a organização',conf],['Pagamento do espaço',ins.pago?'Pagamento confirmado':ins.pago_sinal?`Metade paga. Falta o restante até ${dataBR(prazoRestante(e))}`:ins.comprovante_path?'Comprovante enviado, aguardando a organização conferir':'Pague e envie o comprovante aqui no app',ins.pago],(area?['Seu lugar no mapa',`Área ${esc(area.nome)}, reservada pra ${esc(segNome(S.marca.segmento))}`,conf&&garantiu(ins)]:['Escolher sua vaga no mapa',ins.vaga_id?'Vaga escolhida':garantiu(ins)?'Liberado: escolha seu lugar':e.permite_sinal?'Libera depois de pagar pelo menos a metade':'Libera depois do pagamento',!!ins.vaga_id]),['Dados da montagem',mont?'Enviados':'Mesas, cadeiras, placa e quem vai montar',!!mont]];
   const ag=passos.findIndex(p=>!p[2]);
   let acao='';
-  if(conf&&!ins.pago){const valor=precoDe(e,ins.tamanho,ins.dia_unico);
-    const msgLink=`Oi! Sou da marca ${S.marca.nome}, com presença confirmada na ${e.titulo} (${periodo(e)}). Gostaria do link de pagamento do meu espaço: ${tamLabel(ins.tamanho)}${ins.dia_unico?', só '+dataBR(ins.dia_unico):''}${valor!=null?', '+money(valor):''}. Estou ciente de que a taxa do link é por minha conta.`;
-    acao+=`<div class="painel" style="background:var(--laranja-soft);border-color:transparent"><b>Pagamento ${ins.tamanho==='unico'?'do espaço':'do espaço '+tamLabel(ins.tamanho)}${valor!=null?': '+money(valor):''}</b>
+  if(conf&&!ins.pago){const valor=precoDe(e,ins.tamanho,ins.dia_unico);const metade=valor!=null?Math.round(valor*50)/100:null;const venc=prazoRestante(e);
+    const parte=ins.pago_sinal?`o restante (segunda metade)${metade!=null?', '+money(metade):''}`:`${e.permite_sinal?'(total '+(valor!=null?money(valor):'')+' ou metade '+(metade!=null?money(metade):'')+')':valor!=null?money(valor):''}`;
+    const msgLink=`Oi! Sou da marca ${S.marca.nome}, com presença confirmada na ${e.titulo} (${periodo(e)}). Gostaria do link de pagamento do meu espaço: ${tamLabel(ins.tamanho)}${ins.dia_unico?', só '+dataBR(ins.dia_unico):''}, ${parte}. Estou ciente de que a taxa do link é por minha conta.`;
+    acao+=`<div class="painel" style="background:var(--laranja-soft);border-color:transparent">${ins.pago_sinal?`<b>Falta o restante${metade!=null?': '+money(metade):''}</b><p style="margin:4px 0 0">Você já pagou a metade e garantiu sua vaga. Pague o restante até <b>${dataBR(venc)}</b>.</p>`:`<b>Pagamento ${ins.tamanho==='unico'?'do espaço':'do espaço '+tamLabel(ins.tamanho)}${valor!=null?': '+money(valor):''}</b>${e.permite_sinal?`<p style="margin:6px 0 0">Nessa edição dá pra pagar <b>metade agora${metade!=null?' ('+money(metade)+')':''}</b> pra garantir a vaga e já escolher seu lugar no mapa. O restante vence em <b>${dataBR(venc)}</b>.</p>`:''}`}
     ${e.chave_pix?`<div class="kv" style="border:0;margin-top:6px;align-items:center"><span>Chave Pix</span><b style="word-break:break-all;text-align:right">${esc(e.chave_pix)}</b></div><button class="mini" id="copiar-pix" style="width:100%;margin-top:4px">Copiar chave Pix</button>`:''}
     ${e.whatsapp_organizacao?`<a class="btn sec" href="${zapLink(e.whatsapp_organizacao,msgLink)}" target="_blank" rel="noopener" style="margin-top:8px">Pedir link de pagamento (cartão)</a><p class="sub" style="margin:4px 0 0;font-size:12px">A taxa do link de pagamento é por conta do expositor.</p>`:''}
     ${!e.chave_pix&&!e.whatsapp_organizacao?'<p class="sub" style="margin:6px 0 0">A organização vai passar os dados de pagamento.</p>':''}
     <p class="sub" style="margin:12px 0 6px">${ins.comprovante_path?'Comprovante enviado. Assim que a organização conferir, o mapa de vagas libera.':'Depois de pagar, envie o comprovante (foto, print ou PDF).'}</p>
     <label class="btn ${ins.comprovante_path?'sec':'pri'}" for="comp-file" style="font-weight:600">${ins.comprovante_path?'Enviar outro comprovante':'Enviar comprovante'}</label><input id="comp-file" type="file" accept="image/*,application/pdf" hidden></div>`}
-  if(conf&&ins.pago&&e.mapa_id)acao+=area?`<button class="btn sec" data-go="mapa" style="margin-bottom:8px">Ver a área ${esc(area.nome)} no mapa</button>`:`<button class="btn ${ins.vaga_id?'sec':'pri'}" data-go="mapa" style="margin-bottom:8px">${ins.vaga_id?'Ver minha vaga no mapa':'Escolher minha vaga'}</button>`;
+  if(conf&&garantiu(ins)&&e.mapa_id)acao+=area?`<button class="btn sec" data-go="mapa" style="margin-bottom:8px">Ver a área ${esc(area.nome)} no mapa</button>`:`<button class="btn ${ins.vaga_id?'sec':'pri'}" data-go="mapa" style="margin-bottom:8px">${ins.vaga_id?'Ver minha vaga no mapa':'Escolher minha vaga'}</button>`;
   if(conf||ins.status==='recebida')acao+=`<button class="btn ${mont?'sec':'amarelo'}" data-go="montagem">${mont?'Editar montagem e estacionamento':'Preencher montagem e estacionamento'}</button>`;
   const editar=`<div class="painel"><b class="secao">Sua inscrição</b><div class="kv" style="margin-top:8px"><span>Tamanho do espaço</span><b>${tamLabel(ins.tamanho)}</b></div>${ins.dia_unico?`<div class="kv"><span>Participação</span><b>Só ${dataBR(ins.dia_unico)}</b></div>`:''}
     <label for="ed-prod">Produtos que vai levar</label><textarea id="ed-prod">${esc(ins.produtos||'')}</textarea>
@@ -501,7 +515,7 @@ async function inicioBase(){
     <button class="mini" id="ed-salvar" style="margin-top:8px;min-height:42px;width:100%">Salvar produtos e estrutura</button>
     ${ins.tamanho==='unico'?'':ins.status==='recebida'?`<p class="sub" style="margin:6px 0 8px;font-size:13px">Enquanto a organização não confirma, dá pra trocar:</p><div class="opcoes">${['2m','3m'].map(t=>`<button class="op" data-novotam="${t}" aria-pressed="${ins.tamanho===t}" style="min-height:52px"><b style="font-size:18px">${t.replace('m',' m')}</b></button>`).join('')}</div>`:`<p class="sub" style="margin:6px 0 0;font-size:13px">Pra trocar o tamanho agora, fale com a organização.</p>`}
     <p class="sub" style="margin:10px 0 0;font-size:13px">Mesas, cadeiras, estacionamento e quem vai montar podem ser editados até o dia da feira.</p>
-    <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:10px">${ins.pago?'<p style="margin:0 0 4px;font-size:13px;color:var(--vinho);font-weight:700">Pagamento realizado: não é possível devolução.</p><p class="sub" style="margin:0 0 6px;font-size:13px">Qualquer coisa, entre em contato com a organização.</p>':''}<button class="mini" id="sair-edicao" style="border:0;background:none;padding:0;color:var(--tomate);font-weight:700;min-height:40px">Sair dessa edição</button></div></div>`;
+    <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:10px">${garantiu(ins)?'<p style="margin:0 0 4px;font-size:13px;color:var(--vinho);font-weight:700">Pagamento realizado: não é possível devolução.</p><p class="sub" style="margin:0 0 6px;font-size:13px">Qualquer coisa, entre em contato com a organização.</p>':''}<button class="mini" id="sair-edicao" style="border:0;background:none;padding:0;color:var(--tomate);font-weight:700;min-height:40px">Sair dessa edição</button></div></div>`;
   return cab+(conf?'<div id="vizinhos"></div>':'')+`<div class="painel"><span class="status ${conf?'ok':''}">${conf?'Presença confirmada':'Inscrição recebida'}</span><ol class="passos">${passos.map((p,i)=>`<li class="${p[2]?'feito':i===ag?'agora':''}"><span class="bola">${p[2]?'✓':i+1}</span><div><b>${p[0]}</b><small>${p[1]}</small></div></li>`).join('')}</ol></div>${acao}<h2>Informações da edição</h2>${info}${e.regras?`<div class="painel"><b>Regras do local</b><p style="margin:6px 0 0;white-space:pre-line">${esc(e.regras)}</p></div>`:''}${e.link_fotos&&fimEd(e)<new Date().toISOString().slice(0,10)?`<a class="btn sec" href="${esc(e.link_fotos)}" target="_blank" rel="noopener" style="text-decoration:none">Ver fotos da feira</a>`:''}`+editar;
 };
 
@@ -525,7 +539,7 @@ async function montaVizinhos(){
     <p style="margin:12px 0 0;font-weight:700">Com você na área</p>${outros.length?outros.map(x=>`<div class="viz"><span>${esc(segNome(x.segmento))}</span><b>${esc(x.marca_nome)}</b></div>`).join(''):'<p class="sub" style="margin:4px 0 0">Ninguém mais por enquanto.</p>'}
     ${vagas.length?`<p style="margin:12px 0 0;font-weight:700">Vagas mais perto</p>${perto(area.x,area.y,null)}`:''}<p class="sub" style="margin:10px 0 0;font-size:12px">Atualiza sozinho conforme as pessoas escolhem os lugares.</p></div>`}
   const minha=vagas.find(v=>v.id===ins.vaga_id);
-  if(!minha)return `<div class="painel"><b class="secao">Seu lugar na feira</b><p class="sub" style="margin:4px 0 0">${ins.pago?'Você ainda não escolheu sua vaga. Toque em "Escolher minha vaga" aqui embaixo.':'Depois do pagamento, você escolhe sua vaga no mapa e vê quem fica do seu lado.'}</p></div>`;
+  if(!minha)return `<div class="painel"><b class="secao">Seu lugar na feira</b><p class="sub" style="margin:4px 0 0">${garantiu(ins)?'Você ainda não escolheu sua vaga. Toque em "Escolher minha vaga" aqui embaixo.':'Depois do pagamento, você escolhe sua vaga no mapa e vê quem fica do seu lado.'}</p></div>`;
   return `<div class="painel"><div class="lugar"><span class="num">${minha.numero}</span><div><b class="secao">Seu lugar na feira</b><div class="sub" style="margin:0">Vaga ${minha.numero} · ${tamLabel(ins.tamanho)}</div></div></div>
   <p style="margin:12px 0 6px;font-weight:700">Ao seu redor</p>${cruz(minha)}<p class="sub" style="margin:8px 0 0;font-size:12px">Posições como aparecem no mapa.</p><p class="sub" style="margin:10px 0 0;font-size:12px">Atualiza sozinho conforme as pessoas escolhem os lugares.</p></div>`;
 }
@@ -538,7 +552,7 @@ TELAS.inicio=async()=>{
   if(!S.marca)return `<div class="vazio" style="padding-bottom:6px">${berg(64)}</div><h1>Boas-vindas!</h1><p class="sub">Antes de se inscrever, cadastre sua marca. Fica salvo pras próximas edições.</p><button class="btn pri" data-go="marca">Cadastrar minha marca</button>`;
   await carregaPend();
   const hoje=new Date().toISOString().slice(0,10);
-  const [proximas,{data:mi}]=await Promise.all([listarProximas(),sb.from('inscricoes').select('edicao_id,status,pago,tamanho,edicoes(*)').eq('marca_id',S.marca.id)]);
+  const [proximas,{data:mi}]=await Promise.all([listarProximas(),sb.from('inscricoes').select('id,edicao_id,status,pago,pago_sinal,tamanho,dia_unico,edicoes(*)').eq('marca_id',S.marca.id)]);
   const mins=(mi||[]).filter(x=>x.edicoes),ids=new Set(mins.map(x=>x.edicao_id));
   const disponiveis=proximas.filter(e=>!ids.has(e.id));
   const futuras=mins.filter(x=>fimEd(x.edicoes)>=hoje).sort((a,b)=>a.edicoes.data<b.edicoes.data?-1:1);
@@ -546,7 +560,7 @@ TELAS.inicio=async()=>{
   S.listaEds=[...proximas,...mins.map(x=>x.edicoes)];
   let fora=new Set();if(disponiveis.length){const {data:zs}=await sb.from('edicao_cotas').select('edicao_id').eq('segmento',S.marca.segmento).eq('limite',0).in('edicao_id',disponiveis.map(e=>e.id));fora=new Set((zs||[]).map(z=>z.edicao_id))}
   if(!S.abaExp)S.abaExp=futuras.length?'minhas':'disponiveis';
-  const selo=(e,i,pas)=>pas?(i&&i.status==='confirmada'?(e.link_fotos?['Fotos disponíveis','ok']:['Você participou','n']):['Encerrada','n']):!i&&fora.has(e.id)?['Fora dessa edição','n']:!i?(abertaJa(e)?['Inscrições abertas','ok']:agendada(e)?['Abre '+quandoAbre(e),'']:['Em breve','n']):i.status==='encerrada'?['Vagas preenchidas','n']:i.status==='confirmada'?(i.pago?['Presença confirmada','ok']:['Pagamento pendente','t']):['Inscrição recebida',''];
+  const selo=(e,i,pas)=>pas?(i&&i.status==='confirmada'?(e.link_fotos?['Fotos disponíveis','ok']:['Você participou','n']):['Encerrada','n']):!i&&fora.has(e.id)?['Fora dessa edição','n']:!i?(abertaJa(e)?['Inscrições abertas','ok']:agendada(e)?['Abre '+quandoAbre(e),'']:['Em breve','n']):i.status==='encerrada'?['Vagas preenchidas','n']:i.status==='confirmada'?(i.pago?['Presença confirmada','ok']:i.pago_sinal?['Falta o restante','t']:['Pagamento pendente','t']):['Inscrição recebida',''];
   const card=(e,i,pas)=>{const [t,c]=selo(e,i,pas);return `<button class="cardfeira ${pas?'passada':''}" data-ed="${e.id}" style="width:100%;text-align:left;padding:0;display:block">${toldo(e,null)}<div class="c"><div class="topo"><p style="font-size:20px;margin:0">${esc(e.titulo)}</p><span class="status ${c}">${t}</span></div><p class="sub" style="margin:2px 0 0">${periodo(e)}${e.local?' · '+esc(e.local):''}</p></div></button>`};
   const avisoLogo=!S.marca.logo_url?`<div class="painel" style="background:var(--laranja-soft);border-color:var(--laranja)"><b>Falta a logo da sua marca</b><p style="margin:4px 0 10px">Ela passou a ser obrigatória. Adicione pra liberar novas inscrições.</p><button class="btn pri" data-go="marca">Adicionar logo</button></div>`:'';
   const abas=`<div class="abas" role="group" aria-label="Feiras"><button data-aba="minhas" aria-pressed="${S.abaExp==='minhas'}">Minhas feiras<small>${futuras.length}</small></button><button data-aba="disponiveis" aria-pressed="${S.abaExp==='disponiveis'}">Disponíveis<small>${disponiveis.length}</small></button></div>`;
@@ -557,6 +571,7 @@ TELAS.inicio=async()=>{
   }else{
     corpo=disponiveis.length?disponiveis.map(e=>card(e,null,false)).join(''):`<div class="vazio">${berg(64)}<p class="sub">Nenhuma feira aberta agora. Assim que a próxima abrir, ela aparece aqui.</p></div>`;
   }
+  S.avisoRest=futuras.find(x=>x.status==='confirmada'&&x.pago_sinal&&!x.pago)||null;
   return cardPend()+avisoLogo+`<h1>Feiras</h1>`+abas+corpo;
 };
 TELAS.edicao=async()=>{
@@ -621,6 +636,13 @@ TELAS.montagem=async()=>{
 };
 function desenhaMontadores(){const el=$('#mts');if(!el)return;el.innerHTML=S.montadores.map((p,i)=>`<div class="g2" style="margin-top:8px;grid-template-columns:1.4fr 1fr auto"><input aria-label="Nome completo ${i+1}" data-mtn="${i}" value="${esc(p.nome)}" placeholder="Nome completo"><input aria-label="CPF ${i+1}" data-mtc="${i}" value="${esc(p.cpf)}" inputmode="numeric" placeholder="CPF"><button class="mini" data-mtrm="${i}" aria-label="Remover pessoa ${i+1}">✕</button></div>`).join('')}
 AFTER.montagem=desenhaMontadores;
+function mostraAvisoRestante(){const x=S.avisoRest;if(!x||!x.edicoes)return;const e=x.edicoes;const hoje=new Date();const hj=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0')+'-'+String(hoje.getDate()).padStart(2,'0');
+  const k='avisoRest:'+x.id+':'+hj;try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch{}
+  const dias=Math.max(0,Math.round((new Date(e.data+'T12:00:00')-new Date(hj+'T12:00:00'))/86400000));const venc=prazoRestante(e);const v=precoDe(e,x.tamanho,x.dia_unico);const met=v!=null?Math.round(v*50)/100:null;
+  const o=document.createElement('div');o.className='aviso-fundo';o.innerHTML=`<div class="aviso" role="alertdialog" aria-labelledby="av-t"><span class="aviso-berg">${berg(54)}</span><b id="av-t">${dias===0?'A feira é hoje!':dias===1?'Falta 1 dia pra feira!':`Faltam ${dias} dias pra feira!`}</b><p>${esc(e.titulo)} · ${periodo(e)}</p><p>Favor realizar o restante do pagamento${met!=null?' (<b>'+money(met)+'</b>)':''}${venc>=hj?' até <b>'+dataBR(venc)+'</b>':''}.</p><button class="btn pri" id="av-pagar">Ver pagamento</button><button class="btn sec" id="av-ok" style="margin-top:8px">Agora não</button></div>`;
+  document.body.appendChild(o);const fecha=()=>o.remove();o.querySelector('#av-ok').onclick=fecha;o.addEventListener('click',ev=>{if(ev.target===o)fecha()});
+  o.querySelector('#av-pagar').onclick=()=>{fecha();S.edicao=e;go('edicao')}}
+AFTER.inicio=mostraAvisoRestante;
 
 /* ================= ORGANIZADORA ================= */
 async function listaEdicoes(){const {data,error}=await sb.from('edicoes').select('*').order('data',{ascending:false});if(error)throw error;return data||[]}
@@ -674,6 +696,10 @@ TELAS['org-edicao-form']=async()=>{
   <p class="sub" style="margin:4px 0 0;font-size:12px">Os espaços de 2 m são o que sobrar do total. Deixe o total vazio pra usar o número de vagas do mapa.</p>
   <div class="g2"><div><label for="e-mesas">Mesas no local</label><input id="e-mesas" type="number" inputmode="numeric" min="0" value="${v('mesas_total')}" placeholder="Não controlar"></div><div><label for="e-cads">Cadeiras no local</label><input id="e-cads" type="number" inputmode="numeric" min="0" value="${v('cadeiras_total')}" placeholder="Não controlar"></div></div>
   <p class="sub" style="margin:4px 0 0;font-size:12px">Todo mundo vê quantas ainda sobram. Contam os expositores confirmados e pagos, e ninguém consegue pedir mais do que tem. Vazio = sem controle.</p>
+  <label class="check" style="margin-top:14px;align-items:flex-start"><input type="checkbox" id="e-sinal" ${e.permite_sinal?'checked':''} style="width:20px;min-height:20px;margin-top:2px"><span>Permitir pagar metade pra garantir a vaga</span></label>
+  <div id="e-venc-w" ${e.permite_sinal?'':'hidden'}><label for="e-venc">Vencimento do restante</label><input id="e-venc" type="date" value="${v('vencimento_restante')}">
+  <p class="sub" style="margin:4px 0 0;font-size:12px" id="e-venc-dica"></p></div>
+  <p class="sub" style="margin:4px 0 0;font-size:12px">Com a metade paga, o expositor já escolhe o lugar no mapa. O app avisa uma vez por dia até o restante ser pago.</p>
   <label for="e-pix">Chave Pix</label><input id="e-pix" value="${v('chave_pix')}">
   <label for="e-zap">WhatsApp da organização</label><input id="e-zap" inputmode="tel" value="${v('whatsapp_organizacao')}" placeholder="(54) 9 ____-____">
   <p class="sub" style="margin:4px 0 0;font-size:12px">O expositor usa esse número pra pedir o link de pagamento, já avisando que a taxa é por conta dele.</p>
@@ -709,26 +735,26 @@ TELAS['org-selecao']=async()=>{
   const total=lista.filter(i=>i.status==='confirmada').length;
   const segsUsados=S.segs.filter(s=>(cot[s.slug]!=null&&cot[s.slug]>0)||conf[s.slug]);
   return `<h1>Seleção</h1><select id="sel-ed" aria-label="Edição">${ed.map(x=>`<option value="${x.id}" ${x.id===S.orgEdicao?'selected':''}>${esc(x.titulo)} · ${periodo(x)}</option>`).join('')}</select>
-  ${(()=>{const nov=lista.filter(i=>i.status==='recebida'&&!i.decisoes?.decisao).length,pg=lista.filter(i=>i.pago).length;const f=S.filtroSel||'todas';
+  ${(()=>{const nov=lista.filter(i=>i.status==='recebida'&&!i.decisoes?.decisao).length,pg=lista.filter(i=>garantiu(i)).length;const f=S.filtroSel||'todas';
     const T=[['todas',lista.length,'Inscrições'],['novas',nov,'Novas'],['confirmadas',total,'Confirmadas'],['pagas',pg,'Pagas']];
     return `<div class="tiles" role="group" aria-label="Filtrar inscrições">${T.map(([k,n,l])=>`<button class="tile" data-fsel="${k}" aria-pressed="${f===k}"><b>${n}</b><span>${l}</span></button>`).join('')}</div>`})()}
   ${segsUsados.length?`<details class="segs"><summary>Vagas por segmento</summary><div class="corpo">${segsUsados.map(s=>{const a=conf[s.slug]||0,c=cot[s.slug];return `<div class="cota"><div style="flex:1">${esc(s.nome)} <span style="color:var(--ink-2)">${a}${c!=null?'/'+c:''}</span>${c?`<div class="barra"><i style="width:${Math.min(100,a/c*100)}%;${a>=c?'background:var(--menta)':''}"></i></div>`:''}</div></div>`}).join('')}</div></details>`:''}
   <h2>${{todas:'Todas as inscrições',novas:'Novas inscrições',confirmadas:'Confirmadas',pagas:'Pagas'}[S.filtroSel||'todas']}</h2><p class="sub" style="margin-top:-6px">Por ordem de chegada. Toque na marca pra ver o perfil completo.</p>
   ${(()=>{const itemSel=({i,n})=>{const m=i.marcas||{};const d=i.decisoes?.decisao;const cheio=cot[m.segmento]!=null&&(conf[m.segmento]||0)>=cot[m.segmento]&&i.status!=='confirmada';
-    const chip=i.status==='encerrada'?'<span class="status n">Não dessa vez (avisado)</span>':i.status==='confirmada'?(i.pago?'<span class="status ok">Pago</span>':'<span class="status ok">Confirmado</span>'):d==='reserva'?'<span class="status">Na sua reserva</span>':d==='nao_desta_vez'?'<span class="status n">Não dessa vez</span>':cheio?'<span class="status t">Segmento completo</span>':'<span class="status">Nova</span>';
+    const chip=i.status==='encerrada'?'<span class="status n">Não dessa vez (avisado)</span>':i.status==='confirmada'?(i.pago?'<span class="status ok">Pago</span>':i.pago_sinal?'<span class="status t">Metade paga</span>':'<span class="status ok">Confirmado</span>'):d==='reserva'?'<span class="status">Na sua reserva</span>':d==='nao_desta_vez'?'<span class="status n">Não dessa vez</span>':cheio?'<span class="status t">Segmento completo</span>':'<span class="status">Nova</span>';
     const decidido=i.status==='confirmada'||d==='reserva'||d==='nao_desta_vez';
     const cls=i.status==='confirmada'?'conf':d==='reserva'?'res':(d==='nao_desta_vez'||i.status==='encerrada')?'nao':'nova';
     return `<div class="sel ${cls}"><div class="t" data-perfil="${i.id}" role="button" tabindex="0" aria-label="Ver perfil de ${esc(m.nome)}"><div class="th" style="border-radius:50%">${(m.logo_url||m.fotos?.[0])?`<img src="${esc(m.logo_url||m.fotos[0])}" alt="Logo de ${esc(m.nome)}">`:''}<span>#${n+1}</span></div>
     <div style="flex:1;min-width:0"><div class="nm">${esc(m.nome)} <span style="color:var(--verde);font-size:13px;font-weight:600;white-space:nowrap">Ver perfil ›</span></div><div class="sub" style="margin:2px 0 6px;font-size:13px">${esc(segNome(m.segmento))} · ${tamCurto(i.tamanho)}${i.dia_unico?' · só '+dataBR(i.dia_unico):''}${m.instagram?' · '+esc(m.instagram):''}</div>${chip}</div></div>
     ${i.status==='encerrada'?`<div class="ex"><button class="mini" data-dec="convidar" data-id="${i.id}">Convidar (abriu vaga)</button></div>`:
       !decidido||S.mudar===i.id?`<div class="ac"><button class="mini pri" data-dec="confirmada" data-id="${i.id}">Confirmar</button><button class="mini" data-dec="reserva" data-id="${i.id}">Reserva</button><button class="mini" data-dec="nao_desta_vez" data-id="${i.id}">Não dessa vez</button></div>`:''}
-    ${i.status==='confirmada'?`<div class="ex">${!i.pago&&i.comprovante_path?`<span class="status" style="background:var(--laranja-soft);color:var(--ink)">Comprovante enviado</span>${urls[i.comprovante_path]?`<a class="mini" href="${esc(urls[i.comprovante_path])}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Ver comprovante</a>`:''}`:''}<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> Pagamento recebido</label></div>`:''}
+    ${i.status==='confirmada'?`<div class="ex">${!i.pago&&i.comprovante_path?`<span class="status" style="background:var(--laranja-soft);color:var(--ink)">Comprovante enviado</span>${urls[i.comprovante_path]?`<a class="mini" href="${esc(urls[i.comprovante_path])}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Ver comprovante</a>`:''}`:''}${e.permite_sinal?`<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-sinal="${i.id}" ${i.pago_sinal||i.pago?'checked':''} ${i.pago?'disabled':''}> Metade recebida</label>`:''}<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> ${e.permite_sinal?'Pagamento total recebido':'Pagamento recebido'}</label></div>`:''}
     ${decidido&&i.status!=='encerrada'&&S.mudar!==i.id?`<button class="mini" data-mudar="${i.id}" style="border:0;background:none;color:var(--ink-2);padding:0;margin-top:6px;min-height:32px">Mudar decisão</button>`:''}
     </div>`};
-    const todos=lista.map((i,n)=>({i,n})).filter(({i})=>{const f=S.filtroSel||'todas';return f==='todas'||(f==='novas'&&i.status==='recebida'&&!i.decisoes?.decisao)||(f==='confirmadas'&&i.status==='confirmada')||(f==='pagas'&&i.pago)});
+    const todos=lista.map((i,n)=>({i,n})).filter(({i})=>{const f=S.filtroSel||'todas';return f==='todas'||(f==='novas'&&i.status==='recebida'&&!i.decisoes?.decisao)||(f==='confirmadas'&&i.status==='confirmada')||(f==='pagas'&&garantiu(i))});
     if(!todos.length)return `<p class="sub">${lista.length?'Nada nesse filtro.':'Nenhuma inscrição ainda.'}</p>`;
     if((S.filtroSel||'todas')!=='todas')return `<div class="lista-sel">${todos.map(itemSel).join('')}</div>`;
-    const G=[['Novas','nova',x=>x.i.status==='recebida'&&!x.i.decisoes?.decisao,'#FF9900'],['Confirmadas, não pagas','np',x=>x.i.status==='confirmada'&&!x.i.pago,'#EE8CA3'],['Pagas','pg',x=>x.i.status==='confirmada'&&x.i.pago,'#47470C'],['Reserva e não dessa vez','rs',x=>!(x.i.status==='confirmada')&&!(x.i.status==='recebida'&&!x.i.decisoes?.decisao),'#C9BFA8']];
+    const G=[['Novas','nova',x=>x.i.status==='recebida'&&!x.i.decisoes?.decisao,'#FF9900'],['Confirmadas, não pagas','np',x=>x.i.status==='confirmada'&&!garantiu(x.i),'#EE8CA3'],['Pagas','pg',x=>x.i.status==='confirmada'&&garantiu(x.i),'#47470C'],['Reserva e não dessa vez','rs',x=>!(x.i.status==='confirmada')&&!(x.i.status==='recebida'&&!x.i.decisoes?.decisao),'#C9BFA8']];
     return G.map(([t,k,f,c])=>{const l=todos.filter(f);if(!l.length&&k==='rs')return '';
       return `<details class="grupo" ${k==='rs'?'':'open'} style="border-top:6px solid ${c}"><summary><span>${t}</span><b>${l.length}</b></summary><div class="lista-sel">${l.map(itemSel).join('')||'<p class="sub" style="margin:0">Ninguém aqui.</p>'}</div></details>`}).join('')})()}
   <p class="sub" style="margin-top:14px">O expositor só vê "inscrição recebida". Quando você encerrar a seleção, quem não foi confirmado recebe a mensagem de vagas preenchidas.</p>
@@ -739,7 +765,7 @@ TELAS['org-selecao']=async()=>{
 const IG='<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6"/>';
 const ZAP='<path d="M4 20l1.3-4A8 8 0 1 1 8 18.7z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2z"/>';
 TELAS['org-inscrito']=async()=>{
-  const {data:i,error}=await sb.from('inscricoes').select('*, marcas(*), decisoes(decisao), edicoes(titulo,data,data_fim)').eq('id',S.perfilId).single();if(error)throw error;
+  const {data:i,error}=await sb.from('inscricoes').select('*, marcas(*), decisoes(decisao), edicoes(titulo,data,data_fim,permite_sinal)').eq('id',S.perfilId).single();if(error)throw error;
   const m=i.marcas||{},d=i.decisoes?.decisao;
   const [pos,hist,cz,conf]=await Promise.all([
     sb.from('inscricoes').select('id',{count:'exact',head:true}).eq('edicao_id',i.edicao_id).lte('criado_em',i.criado_em),
@@ -750,7 +776,7 @@ TELAS['org-inscrito']=async()=>{
   const ig=(m.instagram||'').replace(/^@/,'').trim(),zap=(m.whatsapp||'').replace(/\D/g,'');
   const lim=cz.data?.limite,nconf=conf.count||0,cheio=lim!=null&&nconf>=lim&&i.status!=='confirmada';
   const quando=new Date(i.criado_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-  const chip=i.status==='encerrada'?'<span class="status n">Não dessa vez (avisado)</span>':i.status==='confirmada'?(i.pago?'<span class="status ok">Pago</span>':'<span class="status ok">Confirmado</span>'):d==='reserva'?'<span class="status">Na sua reserva</span>':d==='nao_desta_vez'?'<span class="status n">Não dessa vez</span>':'<span class="status">Aguardando sua decisão</span>';
+  const chip=i.status==='encerrada'?'<span class="status n">Não dessa vez (avisado)</span>':i.status==='confirmada'?(i.pago?'<span class="status ok">Pago</span>':i.pago_sinal?'<span class="status t">Metade paga</span>':'<span class="status ok">Confirmado</span>'):d==='reserva'?'<span class="status">Na sua reserva</span>':d==='nao_desta_vez'?'<span class="status n">Não dessa vez</span>':'<span class="status">Aguardando sua decisão</span>';
   const fotos=(m.fotos||[]);
   return `<button class="mini" data-go="org-selecao" style="border:0;background:none;padding:0">← Seleção</button>
   ${fotos.length?`<div class="galeria" style="margin-top:8px">${fotos.map((f,k)=>`<a href="${esc(f)}" target="_blank" rel="noopener" aria-label="Abrir foto ${k+1}"><img src="${esc(f)}" alt="Foto ${k+1} do trabalho de ${esc(m.nome)}" loading="lazy"></a>`).join('')}</div>${fotos.length>1?`<p class="sub" style="margin:-6px 0 10px;font-size:12px;text-align:center">${fotos.length} fotos · arraste pro lado</p>`:''}`:`<div class="vazio">${berg(72)}<p class="sub">Sem fotos cadastradas.</p></div>`}
@@ -768,9 +794,9 @@ TELAS['org-inscrito']=async()=>{
     <div class="kv"><span>Já participou</span><b>${hist.count?hist.count+(hist.count>1?' edições':' edição'):'Primeira vez'}</b></div>
     <div class="kv"><span>${esc(segNome(m.segmento))} confirmados</span><b style="${cheio?'color:var(--tomate)':''}">${nconf}${lim!=null?' de '+lim:''}${cheio?' · completo':''}</b></div>
   </div>
-  ${i.status==='confirmada'?`<div class="painel"><b class="secao">Pagamento</b>${comp?`<p style="margin:6px 0 10px">Comprovante anexado.</p><a class="btn sec" href="${esc(comp)}" target="_blank" rel="noopener" style="text-decoration:none;margin-bottom:10px">Ver comprovante</a>`:'<p class="sub" style="margin:6px 0 10px">Ainda sem comprovante.</p>'}<label class="check"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> Pagamento recebido</label>
-    <label class="btn sec" for="comp-org" style="margin-top:10px;font-weight:600">${comp?'Trocar comprovante':'Anexar comprovante'}</label><input id="comp-org" type="file" accept="image/*,application/pdf" data-ins="${i.id}" data-dono="${i.dono}" data-pagoja="${i.pago?1:''}" hidden>
-    <p class="sub" style="margin:6px 0 0;font-size:12px">Recebeu o comprovante pelo WhatsApp? Anexe aqui. Ao anexar, o pagamento já fica marcado como recebido.</p></div>`:''}
+  ${i.status==='confirmada'?`<div class="painel"><b class="secao">Pagamento</b>${comp?`<p style="margin:6px 0 10px">Comprovante anexado.</p><a class="btn sec" href="${esc(comp)}" target="_blank" rel="noopener" style="text-decoration:none;margin-bottom:10px">Ver comprovante</a>`:'<p class="sub" style="margin:6px 0 10px">Ainda sem comprovante.</p>'}${i.edicoes?.permite_sinal?`<label class="check"><input type="checkbox" data-sinal="${i.id}" ${i.pago_sinal||i.pago?'checked':''} ${i.pago?'disabled':''}> Metade recebida (vaga garantida)</label>`:''}<label class="check"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> ${i.edicoes?.permite_sinal?'Pagamento total recebido':'Pagamento recebido'}</label>
+    <label class="btn sec" for="comp-org" style="margin-top:10px;font-weight:600">${comp?'Trocar comprovante':'Anexar comprovante'}</label><input id="comp-org" type="file" accept="image/*,application/pdf" data-ins="${i.id}" data-dono="${i.dono}" data-pagoja="${i.pago?1:''}" data-semauto="${i.edicoes?.permite_sinal?1:''}" hidden>
+    <p class="sub" style="margin:6px 0 0;font-size:12px">Recebeu o comprovante pelo WhatsApp? Anexe aqui. ${i.edicoes?.permite_sinal?'Depois de anexar, marque se foi a metade ou o total.':'Ao anexar, o pagamento já fica marcado como recebido.'}</p></div>`:''}
   ${i.status==='encerrada'?`<div class="decisao"><button class="btn sec" data-dec="convidar" data-id="${i.id}">Convidar (abriu vaga)</button></div>`:`<div class="decisao"><button class="btn pri" data-dec="confirmada" data-id="${i.id}">${i.status==='confirmada'?'Presença confirmada ✓':'Confirmar presença'}</button><div class="row" style="margin-top:8px"><button class="mini" data-dec="reserva" data-id="${i.id}" style="min-height:44px">Reserva</button><button class="mini" data-dec="nao_desta_vez" data-id="${i.id}" style="min-height:44px">Não dessa vez</button></div></div>`}`;
 };
 /* leitura automática das vagas na planta */
@@ -911,7 +937,10 @@ function desenhaEditor(){
   a.innerHTML=v?`<b>Vaga ${v.numero}</b><div class="row" style="margin-top:8px"><button class="mini" data-vnum="${v.id}">Mudar número</button><button class="mini" data-vdel="${v.id}" style="color:var(--tomate)">Apagar</button></div><div class="row" style="margin-top:6px"><button class="mini" data-vesc="${v.id}" data-f="0.85">Desenho menor</button><button class="mini" data-vesc="${v.id}" data-f="1.15">Desenho maior</button></div>`:`<span class="sub">${S.vagasEd.length} vagas · toque numa vaga pra editar</span>`;
 }
 AFTER['org-mapas']=desenhaEditor;
-AFTER['org-edicao-form']=()=>atualizaConferir();
+function dicaVenc(){const dt=$('#e-data')?.value,dc=$('#e-venc-dica'),vi=$('#e-venc');if(!dc||!vi)return;const sg=sugereVenc(dt);
+  if(!vi.value&&sg){vi.value=sg;vi.dataset.auto='1';vi.dispatchEvent(new Event('input'))}
+  dc.innerHTML=sg?`Sugestão: <b>${dataBR(sg)}</b>, o 5º dia útil do mês mais próximo antes da feira (segunda a sexta, sem feriados nacionais). Dá pra mudar.`:'Informe a data da feira pra sugerir o vencimento.'}
+AFTER['org-edicao-form']=()=>{atualizaConferir();dicaVenc()};
 /* exportar mapa em JPEG */
 function carregaImg(url){return new Promise((ok,err)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>ok(i);i.onerror=err;i.src=url})}
 function rr(cx,x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath()}
@@ -1154,7 +1183,7 @@ document.addEventListener('click',async ev=>{
     if(r.error){$('#p-err').textContent=erroMsg(r.error);return}toast('Proposta enviada. Obrigada!');location.hash='';go(S.sessao?'inicio':'auth');return}
   if(b.id==='ed-salvar'){b.disabled=true;const r=await sb.rpc('atualizar_inscricao',{p_inscricao:S.ins.id,p_produtos:$('#ed-prod').value,p_estrutura:$('#ed-estr').value});b.disabled=false;toast(r.error?erroMsg(r.error):'Salvo');return}
   if(d.novotam){if(d.novotam===S.ins?.tamanho)return;const r=await sb.rpc('inscrever',{p_edicao:S.edicao.id,p_tamanho:d.novotam});if(r.error){toast(erroMsg(r.error));return}toast(`Tamanho trocado pra ${d.novotam.replace('m',' m')}`);render();return}
-  if(b.id==='sair-edicao'){const e=S.edicao;if(!confirm(`Sair da ${e.titulo} de ${periodo(e)}?${S.ins.pago?'\n\nPagamento realizado: não é possível devolução. Qualquer coisa, entre em contato com a organização.\n':''}${S.ins.vaga_id?' Sua vaga no mapa fica livre pra outra pessoa.':''} Seus dados de montagem dessa edição também são apagados, e as mesas e cadeiras que você pediu voltam pra conta de disponíveis.`))return;
+  if(b.id==='sair-edicao'){const e=S.edicao;if(!confirm(`Sair da ${e.titulo} de ${periodo(e)}?${garantiu(S.ins)?'\n\nPagamento realizado: não é possível devolução. Qualquer coisa, entre em contato com a organização.\n':''}${S.ins.vaga_id?' Sua vaga no mapa fica livre pra outra pessoa.':''} Seus dados de montagem dessa edição também são apagados, e as mesas e cadeiras que você pediu voltam pra conta de disponíveis.`))return;
     b.disabled=true;const r=await sb.rpc('sair_da_edicao',{p_inscricao:S.ins.id});b.disabled=false;if(r.error){toast(erroMsg(r.error));return}
     S.ins=null;S.tamEscolhido=null;toast('Você saiu da edição');go('inicio');return}
   if(d.ig!==undefined){try{await navigator.clipboard.writeText(d.ig);toast(d.ig.includes(' ')?`${d.ig.split(' ').length} @ copiados`:`${d.ig} copiado`)}catch{prompt('Copie os @:',d.ig)}return}
@@ -1203,7 +1232,7 @@ document.addEventListener('click',async ev=>{
     const num=id=>{const v=$(id).value;return v===''?null:Number(v)};const prazo=$('#e-prazo').value;
     const fimV=$('#e-fim').value||null;
     if($('#e-diaun')?.checked){const dl=$('#e-dialib').value;if(!dl){err.textContent='Informe o dia liberado pra participação avulsa.';return}if(dl<data||dl>(fimV||data)){err.textContent='O dia liberado precisa estar dentro do período da feira.';return}}if(fimV&&fimV<data){err.textContent='O último dia não pode ser antes do início.';return}
-    const reg={titulo:($('#e-tit').value.trim()||'FEIRA BÊRGA').toUpperCase(),endereco:$('#e-end').value.trim()||null,whatsapp_organizacao:$('#e-zap').value.trim()||null,video_estacionamento_url:S.videoForm||null,permite_dia_unico:!!$('#e-diaun')?.checked&&!!$('#e-dialib')?.value,dia_unico_liberado:$('#e-diaun')?.checked&&$('#e-dialib')?.value?$('#e-dialib').value:null,preco_dia:$('#e-pdia')?moedaNum($('#e-pdia').value):null,vagas_dia_unico:$('#e-diaun')?.checked&&$('#e-vdia')?.value!==''?+$('#e-vdia').value:null,data,data_fim:fimV&&fimV!==data?fimV:null,local:$('#e-local').value.trim(),data_montagem:$('#e-dm').value&&$('#e-dm').value!==data?$('#e-dm').value:null,horario_montagem:faixa($('#e-hm1').value,$('#e-hm2').value),horario_feira:faixa($('#e-hf1').value,$('#e-hf2').value),horario_desmontagem:$('#e-hd1').value?'a partir das '+hfmt($('#e-hd1').value):'',preco_2m:moedaNum($('#e-p2').value),preco_unico:moedaNum($('#e-pu').value),preco_3m:moedaNum($('#e-p3').value),valor_estacionamento:moedaNum($('#e-est').value),mapa_id:$('#e-mapa').value||null,prazo_escolha_vaga:prazo?new Date(prazo).toISOString():null,regras:$('#e-regras').value.trim(),link_fotos:$('#e-fotos')?($('#e-fotos').value.trim()||null):(S.edForm?.link_fotos??null),capa_url:S.capaForm||null,chave_pix:$('#e-pix').value.trim()||null,total_espacos:$('#e-total').value===''?null:+$('#e-total').value,max_3m:$('#e-m3').value===''?null:+$('#e-m3').value,mesas_total:$('#e-mesas').value===''?null:+$('#e-mesas').value,cadeiras_total:$('#e-cads').value===''?null:+$('#e-cads').value,inscricoes_abertas:$('#e-aberta').checked,abre_inscricoes_em:!$('#e-aberta').checked&&$('#e-abre').value?new Date($('#e-abre').value).toISOString():null};
+    const reg={titulo:($('#e-tit').value.trim()||'FEIRA BÊRGA').toUpperCase(),endereco:$('#e-end').value.trim()||null,whatsapp_organizacao:$('#e-zap').value.trim()||null,video_estacionamento_url:S.videoForm||null,permite_dia_unico:!!$('#e-diaun')?.checked&&!!$('#e-dialib')?.value,dia_unico_liberado:$('#e-diaun')?.checked&&$('#e-dialib')?.value?$('#e-dialib').value:null,preco_dia:$('#e-pdia')?moedaNum($('#e-pdia').value):null,vagas_dia_unico:$('#e-diaun')?.checked&&$('#e-vdia')?.value!==''?+$('#e-vdia').value:null,data,data_fim:fimV&&fimV!==data?fimV:null,local:$('#e-local').value.trim(),data_montagem:$('#e-dm').value&&$('#e-dm').value!==data?$('#e-dm').value:null,horario_montagem:faixa($('#e-hm1').value,$('#e-hm2').value),horario_feira:faixa($('#e-hf1').value,$('#e-hf2').value),horario_desmontagem:$('#e-hd1').value?'a partir das '+hfmt($('#e-hd1').value):'',preco_2m:moedaNum($('#e-p2').value),preco_unico:moedaNum($('#e-pu').value),preco_3m:moedaNum($('#e-p3').value),valor_estacionamento:moedaNum($('#e-est').value),mapa_id:$('#e-mapa').value||null,prazo_escolha_vaga:prazo?new Date(prazo).toISOString():null,regras:$('#e-regras').value.trim(),link_fotos:$('#e-fotos')?($('#e-fotos').value.trim()||null):(S.edForm?.link_fotos??null),capa_url:S.capaForm||null,chave_pix:$('#e-pix').value.trim()||null,permite_sinal:!!$('#e-sinal')?.checked,vencimento_restante:$('#e-sinal')?.checked?($('#e-venc')?.value||sugereVenc(data)):null,total_espacos:$('#e-total').value===''?null:+$('#e-total').value,max_3m:$('#e-m3').value===''?null:+$('#e-m3').value,mesas_total:$('#e-mesas').value===''?null:+$('#e-mesas').value,cadeiras_total:$('#e-cads').value===''?null:+$('#e-cads').value,inscricoes_abertas:$('#e-aberta').checked,abre_inscricoes_em:!$('#e-aberta').checked&&$('#e-abre').value?new Date($('#e-abre').value).toISOString():null};
     b.disabled=true;const r=S.edForm?.id?await sb.from('edicoes').update(reg).eq('id',S.edForm.id).select().single():await sb.from('edicoes').insert(reg).select().single();
     if(r.error){b.disabled=false;err.textContent=erroMsg(r.error);return}
     const eid=r.data.id;await sb.from('edicao_cotas').delete().eq('edicao_id',eid);
@@ -1279,6 +1308,9 @@ document.addEventListener('input',ev=>{const t=ev.target;
   if(t.dataset.mtn)S.montadores[+t.dataset.mtn].nome=t.value;
   if(t.dataset.mtc)S.montadores[+t.dataset.mtc].cpf=t.value;});
 document.addEventListener('change',async ev=>{const t=ev.target;
+  if(t.id==='e-sinal'){const w=$('#e-venc-w');if(w)w.hidden=!t.checked;dicaVenc();return}
+  if(t.id==='e-venc'){t.dataset.auto='';return}
+  if(t.id==='e-data'){const vi=$('#e-venc');if(vi&&vi.dataset.auto==='1')vi.value='';dicaVenc()}
   if(t.id==='e-diaun'){const w=$('#e-pdia-w');if(w)w.hidden=!t.checked;return}
   if(t.id==='e-hf2'&&t.value){const d=$('#e-hd1');if(d&&(!d.value||d.dataset.auto==='1')){d.value=t.value;d.dataset.auto='1'}return}
   if(t.id==='e-hd1'){t.dataset.auto='0';return}
@@ -1290,6 +1322,7 @@ document.addEventListener('change',async ev=>{const t=ev.target;
   if(t.id==='fb-ed'){S.fbEd=t.value;render();return}
   if(t.id==='mp-sel'){S.mapaSel=t.value;S.vagaSel=null;S.mapaEdSel=null;render();return}
   if(t.id==='mp-ed'){S.mapaEdSel=t.value;render();return}
+  if(t.dataset.sinal){const r=await sb.from('inscricoes').update({pago_sinal:t.checked}).eq('id',t.dataset.sinal);toast(r.error?erroMsg(r.error):t.checked?'Metade registrada. O mapa foi liberado pro expositor.':'Metade desmarcada');if(!r.error){const y=window.scrollY;await render();window.scrollTo(0,y)}return}
   if(t.dataset.pago){const r=await sb.from('inscricoes').update({pago:t.checked}).eq('id',t.dataset.pago);toast(r.error?erroMsg(r.error):t.checked?'Pagamento registrado. O mapa foi liberado pro expositor.':'Pagamento desmarcado');if(!r.error)render();return}
   if(t.dataset.pst){await sb.from('propostas_espacos').update({status:t.value}).eq('id',t.dataset.pst);toast('Status atualizado');return}
   if(t.id==='e-video'){const f=t.files[0];if(!f)return;if(!/^video\//.test(f.type)){toast('Escolha um vídeo');return}if(f.size>50*1024*1024){toast('O vídeo passa de 50 MB. Grave mais curto ou em qualidade menor.');return}
@@ -1317,8 +1350,8 @@ document.addEventListener('change',async ev=>{const t=ev.target;
     const tipos=['image/jpeg','image/png','image/webp','image/heic','application/pdf'];if(f.type&&!tipos.includes(f.type)){toast('Use foto (JPG, PNG) ou PDF');return}
     toast('Anexando comprovante…');const path=`${t.dataset.dono}/${t.dataset.ins}-org-${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;
     const r=await sb.storage.from('comprovantes').upload(path,f,{contentType:f.type||undefined});if(r.error){toast(erroMsg(r.error));return}
-    const r2=await sb.from('inscricoes').update({comprovante_path:path,comprovante_em:new Date().toISOString(),pago:true}).eq('id',t.dataset.ins);
-    if(r2.error){toast(erroMsg(r2.error));return}toast(t.dataset.pagoja?'Comprovante anexado':'Comprovante anexado e pagamento marcado como recebido');const y=window.scrollY;await render();window.scrollTo(0,y);return}
+    const r2=await sb.from('inscricoes').update({comprovante_path:path,comprovante_em:new Date().toISOString(),...(t.dataset.semauto?{}:{pago:true})}).eq('id',t.dataset.ins);
+    if(r2.error){toast(erroMsg(r2.error));return}toast(t.dataset.pagoja||t.dataset.semauto?'Comprovante anexado':'Comprovante anexado e pagamento marcado como recebido');const y=window.scrollY;await render();window.scrollTo(0,y);return}
   if(t.id==='mp-file'){const f=t.files[0];if(!f)return;toast('Enviando planta…');const path=`${S.mapaSel}/${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;
     const r=await sb.storage.from('mapas').upload(path,f);if(r.error){toast(erroMsg(r.error));return}
     const url=sb.storage.from('mapas').getPublicUrl(path).data.publicUrl;const r2=await sb.from('mapas').update({imagem_url:url}).eq('id',S.mapaSel);if(r2.error){toast(erroMsg(r2.error));return}toast('Planta atualizada');await render();if(!S.vagasEd?.length)await criarVagasDaPlanta(true);return}

@@ -406,7 +406,8 @@ async function render(){
   try{const h=await T();$('#tela').innerHTML=(S.sessao&&!['auth','novasenha'].includes(S.tela)?topo():'')+h}catch(e){$('#tela').innerHTML=`<h1>Ops</h1><p class="sub">${esc(erroMsg(e))}</p><button class="btn sec" data-go="inicio">Voltar</button>`}
   window.scrollTo(0,0);enfeitaDatas();if(AFTER[S.tela])AFTER[S.tela]();
 }
-function go(t){if(S.canal){sb.removeChannel(S.canal);S.canal=null}S.tela=t;render()}
+document.addEventListener('toggle',ev=>{const d=ev.target;if(!d.dataset||!d.dataset.grupo)return;S.gAbertos=S.gAbertos||new Set();if(d.open)S.gAbertos.add(d.dataset.grupo);else S.gAbertos.delete(d.dataset.grupo)},true);
+function go(t){if(t==='org-selecao')S.gAbertos=new Set();if(S.canal){sb.removeChannel(S.canal);S.canal=null}S.tela=t;render()}
 
 /* ================= AUTENTICAÇÃO ================= */
 let modoAuth='entrar';
@@ -751,7 +752,7 @@ TELAS['org-selecao']=async()=>{
   if(paths.length){const {data:su}=await sb.storage.from('comprovantes').createSignedUrls(paths,3600);(su||[]).forEach(x=>{if(x.signedUrl)urls[x.path]=x.signedUrl})}
   const pres=pre.data||[];let marcasLivres=[];
   if(pres.length){const {data:mk}=await sb.from('marcas').select('id,nome').order('nome');const ja=new Set((ins.data||[]).map(i=>i.marca_id));marcasLivres=(mk||[]).filter(m=>!ja.has(m.id))}
-  const blocoPre=pres.length?`<details class="grupo" open style="border-top:6px solid #752E3D"><summary><span>Inscritas antes do app, ainda sem conta</span><b>${pres.length}</b></summary>
+  const blocoPre=pres.length?`<details class="grupo" data-grupo="pre" ${S.gAbertos?.has('pre')?'open':''} style="border-top:6px solid #752E3D"><summary><span>Inscritas antes do app, ainda sem conta</span><b>${pres.length}</b></summary>
     <p class="sub" style="margin:0 0 8px;font-size:13px">Quando a pessoa criar a conta e cadastrar a marca com o mesmo nome, a inscrição entra sozinha. Se o nome vier diferente, vincule aqui.</p>
     <div class="lista-sel">${pres.map(r=>`<div class="sel conf"><div style="flex:1"><div class="nm">${esc(r.nome)}</div><div class="sub" style="margin:2px 0 6px;font-size:13px">${r.segmento_txt?esc(r.segmento_txt)+' · ':''}${tamCurto(r.tamanho)}${r.dia_unico?' · só '+dataBR(r.dia_unico):''}${r.ordem_pagamento?' · '+r.ordem_pagamento+'º a pagar':''}</div>${r.pago?`<span class="status ok">Pago ${r.valor_pago!=null?money(r.valor_pago):''}</span>`:r.pago_sinal?`<span class="status t">Metade paga ${r.valor_pago!=null?money(r.valor_pago):''}</span>`:'<span class="status">Sem pagamento</span>'}</div>
       <div class="row" style="margin-top:10px"><select data-previnc="${r.id}" aria-label="Marca de ${esc(r.nome)}" style="flex:3"><option value="">Vincular a uma marca cadastrada…</option>${marcasLivres.map(m=>`<option value="${m.id}">${esc(m.nome)}</option>`).join('')}</select><button class="mini pri" data-prevok="${r.id}">Vincular</button></div>
@@ -780,11 +781,11 @@ TELAS['org-selecao']=async()=>{
     </div>`};
     const todos=lista.map((i,n)=>({i,n})).filter(({i})=>{const f=S.filtroSel||'todas';return f==='todas'||(f==='novas'&&i.status==='recebida'&&!i.decisoes?.decisao)||(f==='confirmadas'&&i.status==='confirmada')||(f==='pagas'&&garantiu(i))});
     if(!todos.length)return `<p class="sub">${lista.length?'Nada nesse filtro.':'Nenhuma inscrição ainda.'}</p>`;
-    if((S.filtroSel||'todas')!=='todas')return `<div class="lista-sel">${todos.map(itemSel).join('')}</div>`;
+    const fsel=S.filtroSel||'todas';if(fsel==='novas')return `<div class="lista-sel">${todos.map(itemSel).join('')}</div>`;
     const cf=x=>x.i.status==='confirmada',novoC=x=>cf(x)&&x.i.comprovante_novo;
     const G=[['📎 Comprovante novo pra conferir','cmp',novoC,'#F06521'],['Novas inscrições','nova',x=>x.i.status==='recebida'&&!x.i.decisoes?.decisao,'#FF9900'],['Confirmadas · não pagou','np',x=>cf(x)&&!novoC(x)&&!x.i.pago&&!x.i.pago_sinal,'#EE8CA3'],...(e.permite_sinal||lista.some(i=>i.pago_sinal&&!i.pago)?[['Confirmadas · pagou metade','mt',x=>cf(x)&&!novoC(x)&&x.i.pago_sinal&&!x.i.pago,'#FF9900']]:[]),['Confirmadas · pagou tudo','pg',x=>cf(x)&&!novoC(x)&&x.i.pago,'#47470C'],['Reserva e não dessa vez','rs',x=>!(x.i.status==='confirmada')&&!(x.i.status==='recebida'&&!x.i.decisoes?.decisao),'#C9BFA8']];
-    return G.map(([t,k,f,c])=>{const l=todos.filter(f);if(!l.length&&(k==='rs'||k==='cmp'))return '';
-      return `<details class="grupo" ${k==='rs'?'':'open'} style="border-top:6px solid ${c}"><summary><span>${t}</span><b>${l.length}</b></summary><div class="lista-sel">${l.map(itemSel).join('')||'<p class="sub" style="margin:0">Ninguém aqui.</p>'}</div></details>`}).join('')})()}
+    return G.map(([t,k,f,c])=>{const l=todos.filter(f);if(!l.length&&(k==='rs'||k==='cmp'||fsel!=='todas'))return '';
+      return `<details class="grupo" data-grupo="${k}" ${S.gAbertos?.has(k)?'open':''} style="border-top:6px solid ${c}"><summary><span>${t}</span><b>${l.length}</b></summary><div class="lista-sel">${l.map(itemSel).join('')||'<p class="sub" style="margin:0">Ninguém aqui.</p>'}</div></details>`}).join('')})()}
   <p class="sub" style="margin-top:14px">O expositor só vê "inscrição recebida". Quando você encerrar a seleção, quem não foi confirmado recebe a mensagem de vagas preenchidas.</p>
   ${e?.inscricoes_abertas||lista.some(i=>i.status==='recebida')?`<button class="btn sec" id="encerrar">Encerrar seleção</button>`:''}`;
 };
@@ -1322,7 +1323,7 @@ document.addEventListener('click',async ev=>{
       r=await up(alvo.id,vid);if(!r.error&&atual&&velha)r=await up(atual.id,velha)}
     b.disabled=false;if(r?.error){toast(erroMsg(r.error));return}toast(b.id==='ov-liberar'?'Vaga liberada':'Mapa atualizado');S.vagaOrg=null;await renderMantendo();return}
   if(d.conferido){const r=await sb.from('inscricoes').update({comprovante_novo:false}).eq('id',d.conferido);if(r.error){toast(erroMsg(r.error));return}toast('Marcado como conferido');await contaComprovantes();const y=window.scrollY;await render();window.scrollTo(0,y);return}
-  if(b.id==='atualizar'){if(b.classList.contains('gira'))return;b.classList.add('gira');await contaComprovantes();await renderMantendo();toast('Tela atualizada');return}
+  if(b.id==='atualizar'){if(b.classList.contains('gira'))return;b.classList.add('gira');S.gAbertos=new Set();await contaComprovantes();await renderMantendo();toast('Tela atualizada');return}
   if(b.id==='mp-export'){b.disabled=true;await exportarMapa();b.disabled=false;return}
   if(b.id==='mp-detectar'){b.disabled=true;await criarVagasDaPlanta(false,false);b.disabled=false;return}
   if(b.id==='mp-refazer'){await criarVagasDaPlanta(false,true);return}

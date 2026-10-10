@@ -277,6 +277,9 @@ nav.baixo button[aria-current="page"]{background:var(--oliva);color:#F3EBDE}
 .aviso b#av-t{display:block;font-family:var(--display);font-size:22px;line-height:1.15;margin-bottom:6px}
 .aviso p{margin:6px 0 0;font-size:15px;line-height:1.4}
 .aviso .btn.pri{margin-top:16px}
+.badge{position:absolute;top:2px;right:calc(50% - 22px);min-width:18px;height:18px;border-radius:9px;background:var(--verde);color:#fff;font-style:normal;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 0 0 2px var(--card)}
+#navin button{position:relative}
+.aviso-comp{display:block;width:100%;margin-top:12px;border:0;border-radius:14px;padding:10px 14px;background:#FF9900;color:#23200A;font:inherit;font-weight:800;font-size:14px;text-align:left;cursor:pointer;position:relative;z-index:1}
 .cabeca .atualiza{position:relative;z-index:1;flex:none;width:36px;height:36px;border-radius:50%;border:0;background:rgba(243,235,222,.14);color:#F3EBDE;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .cabeca .atualiza svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .cabeca .atualiza.gira svg{animation:gira .8s linear infinite}
@@ -364,7 +367,7 @@ function erroMsg(e){const m=(e&&e.message)||String(e);if(/Invalid login/i.test(m
 
 function berg(t=28){return `<svg class="berg" width="${t}" height="${t}" viewBox="0 0 40 40" aria-hidden="true"><path d="M21 9c3-5 9-6 12-4-2 4-7 6-12 4z" fill="#47470C"/><path d="M20 10c0-2 0-3-1-5" stroke="#2E2E07" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="20" cy="23" r="13" fill="#F28A35"/><path d="M12 20c2-4 6-6 10-5" stroke="#F6B27A" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".8"/><circle cx="20" cy="11.5" r="1.6" fill="#B85A18"/><g fill="#C9601F" opacity=".5"><circle cx="15" cy="27" r=".9"/><circle cx="24" cy="29" r=".9"/><circle cx="27" cy="22" r=".9"/><circle cx="19" cy="31" r=".9"/></g></svg>`}
 const wm=(c='')=>`<span class="wm ${c}"><small>FEIRA</small><b>BÊRGA</b></span>`;
-const topo=()=>`<div class="cabeca"><span class="cacho" aria-hidden="true"><span class="c1">${berg(46)}</span><span class="c2">${berg(30)}</span></span><div class="linha1">${wm()}<button class="papel" data-go="conta" style="border:0;color:inherit">${S.papel==='organizadora'?'Organização':'Expositor'} · Conta</button><button class="atualiza" id="atualizar" aria-label="Atualizar a tela" title="Atualizar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg></button></div><div class="ola">${S.papel!=='organizadora'&&S.marca?.logo_url?`<img class="logo" src="${esc(S.marca.logo_url)}" alt="" width="26" height="26" style="width:26px;height:26px;border-width:1.5px">`:''}${S.papel==='organizadora'?'Painel da organização':S.marca?'Olá, '+esc(S.marca.nome)+'!':'Que bom te ver por aqui!'}</div></div>`;
+const topo=()=>`<div class="cabeca"><span class="cacho" aria-hidden="true"><span class="c1">${berg(46)}</span><span class="c2">${berg(30)}</span></span><div class="linha1">${wm()}<button class="papel" data-go="conta" style="border:0;color:inherit">${S.papel==='organizadora'?'Organização':'Expositor'} · Conta</button><button class="atualiza" id="atualizar" aria-label="Atualizar a tela" title="Atualizar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg></button></div><div class="ola">${S.papel!=='organizadora'&&S.marca?.logo_url?`<img class="logo" src="${esc(S.marca.logo_url)}" alt="" width="26" height="26" style="width:26px;height:26px;border-width:1.5px">`:''}${S.papel==='organizadora'?'Painel da organização'+(S.compNovos&&S.tela!=='org-selecao'?`</div><button class="aviso-comp" data-go="org-selecao">📎 ${S.compNovos} comprovante${S.compNovos>1?'s':''} novo${S.compNovos>1?'s':''} pra conferir ›</button><div style="display:none">`:''):S.marca?'Olá, '+esc(S.marca.nome)+'!':'Que bom te ver por aqui!'}</div></div>`;
 const S={sessao:null,papel:'expositor',marca:null,segs:[],tela:'inicio',edicao:null,orgEdicao:null,canal:null,mapaSel:null,vagaSel:null};
 
 async function iniciar(){
@@ -374,13 +377,21 @@ async function iniciar(){
   const r=await sb.from('segmentos').select('*').order('ordem');S.segs=r.data||[];
   await carregarUsuario();
 }
+async function contaComprovantes(){if(S.papel!=='organizadora')return;const {count}=await sb.from('inscricoes').select('id',{count:'exact',head:true}).eq('comprovante_novo',true).eq('status','confirmada');S.compNovos=count||0;nav()}
+function ouveComprovantes(){if(S.canalComp)return;S.canalComp=sb.channel('org-comprovantes').on('postgres_changes',{event:'UPDATE',schema:'public',table:'inscricoes'},async p=>{
+  const n=p.new||{};const antes=S.compNovos||0;await contaComprovantes();
+  if(n.comprovante_novo&&S.compNovos>antes){let nome='';try{const {data}=await sb.from('marcas').select('nome').eq('id',n.marca_id).maybeSingle();nome=data?.nome||''}catch{}
+    toast(`📎 Comprovante novo${nome?' de '+nome:''}`);try{navigator.vibrate&&navigator.vibrate(200)}catch{}
+    if(['org-selecao','org-edicoes','org-mapas','org-lista','org-feedback','org-propostas'].includes(S.tela)){const y=window.scrollY;await renderMantendo();window.scrollTo(0,y)}}}).subscribe()}
 async function carregarUsuario(){
   if(LINK.recuperar&&S.sessao){LINK.recuperar=false;S.tela='novasenha';try{history.replaceState(null,'',location.pathname)}catch{}return render()}
   if(!S.sessao){S.papel='expositor';S.marca=null;S.tela=location.hash==='#proposta'?'proposta':'auth';return render()}
   const uid=S.sessao.user.id;
   const [p,m]=await Promise.all([sb.from('perfis').select('papel').eq('id',uid).maybeSingle(),sb.from('marcas').select('*').eq('dono',uid).maybeSingle()]);
   S.papel=p.data?.papel||'expositor';S.marca=m.data;
-  S.tela=S.papel==='organizadora'?'org-edicoes':'inicio';render();
+  S.tela=S.papel==='organizadora'?'org-edicoes':'inicio';
+  if(S.papel==='organizadora'){await contaComprovantes();ouveComprovantes()}
+  render();
 }
 const segNome=s=>S.segs.find(x=>x.slug===s)?.nome||s;
 
@@ -388,7 +399,7 @@ const NI={inicio:'<path d="M4 8h16v12H4z"/><path d="M4 8l2-4h12l2 4M9 20v-6h6v6"
 function nav(){
   const n=$('#nav');if(!S.sessao){n.hidden=true;return}n.hidden=false;
   const itens=S.papel==='organizadora'?[['org-edicoes','Edições'],['org-selecao','Seleção'],['org-mapas','Mapas'],['org-lista','Lista'],['org-feedback','Feedback'],['org-propostas','Espaços']]:[['inicio','Feira'],['marca','Minha marca'],['conta','Conta']];
-  $('#navin').innerHTML=itens.map(([t,l])=>`<button data-go="${t}" ${S.tela===t||(t==='inicio'&&['edicao','mapa','montagem','feedback'].includes(S.tela))||(t==='org-selecao'&&S.tela==='org-inscrito')||(t==='org-edicoes'&&S.tela==='org-edicao-form')?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${NI[t]||''}</svg>${l}</button>`).join('');
+  $('#navin').innerHTML=itens.map(([t,l])=>`<button data-go="${t}" ${S.tela===t||(t==='inicio'&&['edicao','mapa','montagem','feedback'].includes(S.tela))||(t==='org-selecao'&&S.tela==='org-inscrito')||(t==='org-edicoes'&&S.tela==='org-edicao-form')?'aria-current="page"':''}><svg viewBox="0 0 24 24" aria-hidden="true">${NI[t]||''}</svg>${l}${t==='org-selecao'&&S.compNovos?`<i class="badge">${S.compNovos}</i>`:''}</button>`).join('');
 }
 async function render(){
   nav();const T=TELAS[S.tela]||TELAS.inicio;
@@ -764,14 +775,15 @@ TELAS['org-selecao']=async()=>{
     <div style="flex:1;min-width:0"><div class="nm">${esc(m.nome)} <span style="color:var(--verde);font-size:13px;font-weight:600;white-space:nowrap">Ver perfil ›</span></div><div class="sub" style="margin:2px 0 6px;font-size:13px">${esc(segNome(m.segmento))} · ${tamCurto(i.tamanho)}${i.dia_unico?' · só '+dataBR(i.dia_unico):''}${m.instagram?' · '+esc(m.instagram):''}</div>${chip}${i.valor_pago!=null?`<span class="sub" style="font-size:12px;margin-left:6px">pagou ${money(i.valor_pago)}${i.ordem_pagamento?' · '+i.ordem_pagamento+'º':''}</span>`:''}</div></div>
     ${i.status==='encerrada'?`<div class="ex"><button class="mini" data-dec="convidar" data-id="${i.id}">Convidar (abriu vaga)</button></div>`:
       !decidido||S.mudar===i.id?`<div class="ac"><button class="mini pri" data-dec="confirmada" data-id="${i.id}">Confirmar</button><button class="mini" data-dec="reserva" data-id="${i.id}">Reserva</button><button class="mini" data-dec="nao_desta_vez" data-id="${i.id}">Não dessa vez</button></div>`:''}
-    ${i.status==='confirmada'?`<div class="ex">${!i.pago&&i.comprovante_path?`<span class="status" style="background:var(--laranja-soft);color:var(--ink)">Comprovante enviado</span>`:''}${urls[i.comprovante_path]?`<a class="mini" href="${esc(urls[i.comprovante_path])}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Ver comprovante</a>`:''}<label class="mini" for="cs-${i.id}" style="display:inline-flex;align-items:center;cursor:pointer">📎 ${i.comprovante_path?'Trocar comprovante':'Anexar comprovante'}</label><input id="cs-${i.id}" type="file" accept="image/*,application/pdf" data-comporg="1" data-ins="${i.id}" data-dono="${i.dono}" data-pagoja="${i.pago?1:''}" data-semauto="${e.permite_sinal?1:''}" hidden>${e.permite_sinal?`<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-sinal="${i.id}" ${i.pago_sinal||i.pago?'checked':''} ${i.pago?'disabled':''}> Metade recebida</label>`:''}<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> ${e.permite_sinal?'Pagamento total recebido':'Pagamento recebido'}</label></div>`:''}
+    ${i.status==='confirmada'?`<div class="ex">${i.comprovante_novo?`<span class="status" style="background:var(--verde);color:#fff">📎 Comprovante novo</span>`:''}${urls[i.comprovante_path]?`<a class="mini" href="${esc(urls[i.comprovante_path])}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Ver comprovante</a>`:''} ${i.comprovante_novo?`<button class="mini" data-conferido="${i.id}">✓ Conferido</button>`:''}<label class="mini" for="cs-${i.id}" style="display:inline-flex;align-items:center;cursor:pointer">📎 ${i.comprovante_path?'Trocar comprovante':'Anexar comprovante'}</label><input id="cs-${i.id}" type="file" accept="image/*,application/pdf" data-comporg="1" data-ins="${i.id}" data-dono="${i.dono}" data-pagoja="${i.pago?1:''}" data-semauto="${e.permite_sinal?1:''}" hidden>${e.permite_sinal?`<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-sinal="${i.id}" ${i.pago_sinal||i.pago?'checked':''} ${i.pago?'disabled':''}> Metade recebida</label>`:''}<label class="check" style="font-size:14px;margin:0"><input type="checkbox" data-pago="${i.id}" ${i.pago?'checked':''}> ${e.permite_sinal?'Pagamento total recebido':'Pagamento recebido'}</label></div>`:''}
     ${decidido&&i.status!=='encerrada'&&S.mudar!==i.id?`<button class="mini" data-mudar="${i.id}" style="border:0;background:none;color:var(--ink-2);padding:0;margin-top:6px;min-height:32px">Mudar decisão</button>`:''}
     </div>`};
     const todos=lista.map((i,n)=>({i,n})).filter(({i})=>{const f=S.filtroSel||'todas';return f==='todas'||(f==='novas'&&i.status==='recebida'&&!i.decisoes?.decisao)||(f==='confirmadas'&&i.status==='confirmada')||(f==='pagas'&&garantiu(i))});
     if(!todos.length)return `<p class="sub">${lista.length?'Nada nesse filtro.':'Nenhuma inscrição ainda.'}</p>`;
     if((S.filtroSel||'todas')!=='todas')return `<div class="lista-sel">${todos.map(itemSel).join('')}</div>`;
-    const G=[['Novas','nova',x=>x.i.status==='recebida'&&!x.i.decisoes?.decisao,'#FF9900'],['Confirmadas, não pagas','np',x=>x.i.status==='confirmada'&&!garantiu(x.i),'#EE8CA3'],['Pagas','pg',x=>x.i.status==='confirmada'&&garantiu(x.i),'#47470C'],['Reserva e não dessa vez','rs',x=>!(x.i.status==='confirmada')&&!(x.i.status==='recebida'&&!x.i.decisoes?.decisao),'#C9BFA8']];
-    return G.map(([t,k,f,c])=>{const l=todos.filter(f);if(!l.length&&k==='rs')return '';
+    const cf=x=>x.i.status==='confirmada',novoC=x=>cf(x)&&x.i.comprovante_novo;
+    const G=[['📎 Comprovante novo pra conferir','cmp',novoC,'#F06521'],['Novas inscrições','nova',x=>x.i.status==='recebida'&&!x.i.decisoes?.decisao,'#FF9900'],['Confirmadas · não pagou','np',x=>cf(x)&&!novoC(x)&&!x.i.pago&&!x.i.pago_sinal,'#EE8CA3'],...(e.permite_sinal||lista.some(i=>i.pago_sinal&&!i.pago)?[['Confirmadas · pagou metade','mt',x=>cf(x)&&!novoC(x)&&x.i.pago_sinal&&!x.i.pago,'#FF9900']]:[]),['Confirmadas · pagou tudo','pg',x=>cf(x)&&!novoC(x)&&x.i.pago,'#47470C'],['Reserva e não dessa vez','rs',x=>!(x.i.status==='confirmada')&&!(x.i.status==='recebida'&&!x.i.decisoes?.decisao),'#C9BFA8']];
+    return G.map(([t,k,f,c])=>{const l=todos.filter(f);if(!l.length&&(k==='rs'||k==='cmp'))return '';
       return `<details class="grupo" ${k==='rs'?'':'open'} style="border-top:6px solid ${c}"><summary><span>${t}</span><b>${l.length}</b></summary><div class="lista-sel">${l.map(itemSel).join('')||'<p class="sub" style="margin:0">Ninguém aqui.</p>'}</div></details>`}).join('')})()}
   <p class="sub" style="margin-top:14px">O expositor só vê "inscrição recebida". Quando você encerrar a seleção, quem não foi confirmado recebe a mensagem de vagas preenchidas.</p>
   ${e?.inscricoes_abertas||lista.some(i=>i.status==='recebida')?`<button class="btn sec" id="encerrar">Encerrar seleção</button>`:''}`;
@@ -1309,7 +1321,8 @@ document.addEventListener('click',async ev=>{
       const velha=alvo.vaga;if(atual){r=await up(atual.id,null);if(r.error){b.disabled=false;toast(erroMsg(r.error));return}}
       r=await up(alvo.id,vid);if(!r.error&&atual&&velha)r=await up(atual.id,velha)}
     b.disabled=false;if(r?.error){toast(erroMsg(r.error));return}toast(b.id==='ov-liberar'?'Vaga liberada':'Mapa atualizado');S.vagaOrg=null;await renderMantendo();return}
-  if(b.id==='atualizar'){if(b.classList.contains('gira'))return;b.classList.add('gira');await renderMantendo();toast('Tela atualizada');return}
+  if(d.conferido){const r=await sb.from('inscricoes').update({comprovante_novo:false}).eq('id',d.conferido);if(r.error){toast(erroMsg(r.error));return}toast('Marcado como conferido');await contaComprovantes();const y=window.scrollY;await render();window.scrollTo(0,y);return}
+  if(b.id==='atualizar'){if(b.classList.contains('gira'))return;b.classList.add('gira');await contaComprovantes();await renderMantendo();toast('Tela atualizada');return}
   if(b.id==='mp-export'){b.disabled=true;await exportarMapa();b.disabled=false;return}
   if(b.id==='mp-detectar'){b.disabled=true;await criarVagasDaPlanta(false,false);b.disabled=false;return}
   if(b.id==='mp-refazer'){await criarVagasDaPlanta(false,true);return}
@@ -1363,8 +1376,8 @@ document.addEventListener('change',async ev=>{const t=ev.target;
   if(t.id==='fb-ed'){S.fbEd=t.value;render();return}
   if(t.id==='mp-sel'){S.mapaSel=t.value;S.vagaSel=null;S.mapaEdSel=null;render();return}
   if(t.id==='mp-ed'){S.mapaEdSel=t.value;render();return}
-  if(t.dataset.sinal){const r=await sb.from('inscricoes').update({pago_sinal:t.checked}).eq('id',t.dataset.sinal);toast(r.error?erroMsg(r.error):t.checked?'Metade registrada. O mapa foi liberado pro expositor.':'Metade desmarcada');if(!r.error){const y=window.scrollY;await render();window.scrollTo(0,y)}return}
-  if(t.dataset.pago){const r=await sb.from('inscricoes').update({pago:t.checked}).eq('id',t.dataset.pago);toast(r.error?erroMsg(r.error):t.checked?'Pagamento registrado. O mapa foi liberado pro expositor.':'Pagamento desmarcado');if(!r.error)render();return}
+  if(t.dataset.sinal){const r=await sb.from('inscricoes').update({pago_sinal:t.checked,...(t.checked?{comprovante_novo:false}:{})}).eq('id',t.dataset.sinal);await contaComprovantes();toast(r.error?erroMsg(r.error):t.checked?'Metade registrada. O mapa foi liberado pro expositor.':'Metade desmarcada');if(!r.error){const y=window.scrollY;await render();window.scrollTo(0,y)}return}
+  if(t.dataset.pago){const r=await sb.from('inscricoes').update({pago:t.checked,...(t.checked?{comprovante_novo:false}:{})}).eq('id',t.dataset.pago);await contaComprovantes();toast(r.error?erroMsg(r.error):t.checked?'Pagamento registrado. O mapa foi liberado pro expositor.':'Pagamento desmarcado');if(!r.error)render();return}
   if(t.dataset.pst){await sb.from('propostas_espacos').update({status:t.value}).eq('id',t.dataset.pst);toast('Status atualizado');return}
   if(t.id==='e-video'){const f=t.files[0];if(!f)return;if(!/^video\//.test(f.type)){toast('Escolha um vídeo');return}if(f.size>50*1024*1024){toast('O vídeo passa de 50 MB. Grave mais curto ou em qualidade menor.');return}
     toast('Enviando vídeo… pode levar um tempinho');const path=`${Date.now()}-${f.name.replace(/[^\w.]/g,'_')}`;const r=await sb.storage.from('videos').upload(path,f,{contentType:f.type});if(r.error){toast(erroMsg(r.error));return}
@@ -1403,7 +1416,7 @@ document.addEventListener('change',async ev=>{const t=ev.target;
 let ultAtualiza=Date.now();
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible'||!S.sessao)return;if(Date.now()-ultAtualiza<30000)return;
   if(!['org-selecao','org-mapas','org-lista','org-feedback','org-inscrito','org-edicoes','inicio','edicao','mapa'].includes(S.tela))return;
-  const f=document.activeElement;if(f&&f.closest&&f.closest('#tela')&&/INPUT|TEXTAREA|SELECT/.test(f.tagName))return;ultAtualiza=Date.now();renderMantendo()});
+  const f=document.activeElement;if(f&&f.closest&&f.closest('#tela')&&/INPUT|TEXTAREA|SELECT/.test(f.tagName))return;ultAtualiza=Date.now();contaComprovantes().then(renderMantendo)});
 document.addEventListener('keydown',ev=>{const t=ev.target.closest&&ev.target.closest('[data-perfil]');if(t&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();S.perfilId=t.dataset.perfil;go('org-inscrito')}});
 document.addEventListener('click',ev=>{const sg=$('#loc-sug');if(sg&&!sg.hidden&&!ev.target.closest('#loc-sug')&&ev.target.id!=='e-local')sg.hidden=true},true);
 window.addEventListener('hashchange',()=>{if(location.hash==='#proposta')go('proposta')});

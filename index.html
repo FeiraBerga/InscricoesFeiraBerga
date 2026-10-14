@@ -200,9 +200,12 @@ details.segs .corpo{padding-bottom:10px}
 .rl-rm{border:0;background:none;font-size:16px;min-width:40px;min-height:36px;color:var(--ink-2);cursor:pointer}
 .rl-campos{display:grid;grid-template-columns:1fr 84px;gap:8px}.rl-campos input{margin:0}
 @media print{body.imprimindo>*:not(#impressao){display:none!important}body.imprimindo{background:#fff!important}#impressao{display:block}@page{size:A4;margin:8mm}
-.cartoes{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
-.cartao{height:44mm;background:#fff;border:1px dashed #888;padding:3mm 4mm;break-inside:avoid;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1.5mm;color:#000;font-family:Arial,sans-serif}
-.cartao small{font-size:8pt;font-weight:700;letter-spacing:1px}.cartao b{font-size:13pt;line-height:1.15}.cartao span{font-size:11pt;font-weight:700;text-transform:uppercase}.cartao i{font-size:7pt;color:#555;font-style:normal}}
+.tiras{display:block;color:#000;font-family:Arial,sans-serif}
+.tira{display:flex;align-items:center;gap:4mm;min-height:13mm;padding:2mm 3mm;border-bottom:1px dashed #888;break-inside:avoid;page-break-inside:avoid;background:#fff}
+.tira:first-child{border-top:1px dashed #888}
+.tira small{flex:0 0 22mm;font-size:8pt;font-weight:700;letter-spacing:.5px}
+.tira b{flex:1;font-size:12pt;line-height:1.2}
+.tira span{flex:0 0 auto;max-width:55mm;font-size:10pt;font-weight:700;text-transform:uppercase;text-align:right}}
 .aviso-monta{margin-top:8px;padding:12px 14px;border-radius:14px;background:var(--tomate-soft);border:1.5px solid var(--tomate);font-size:14px;line-height:1.45}
 .seg-q{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .seg-n{display:inline-flex;align-items:baseline;gap:5px;font-size:13px;font-weight:600;padding:5px 10px;border-radius:999px;background:#F6DCE2;color:var(--ink);cursor:pointer}
@@ -504,9 +507,9 @@ const blocoRoleta=(ins,e)=>{const lim=limRoleta(e),fechado=hojeLocal()>lim;
 const rlLista=()=>{const it=S.rlItens||[];if(!it.length)return '<p class="sub" style="margin:4px 0;font-size:13px">Nenhum ainda. Toque em + Desconto ou + Brinde 👇</p>';
   return it.map((x,k)=>`<div class="rl-it"><div class="rl-top"><span class="rl-tag ${x.tipo}">${x.tipo==='brinde'?'🎁 Brinde':'🏷️ Desconto'}</span><button class="rl-rm" data-rlrm="${k}" aria-label="Remover">✕</button></div>
    <div class="rl-campos"><input data-rltxt="${k}" value="${esc(x.txt)}" placeholder="${x.tipo==='brinde'?'Ex.: 1 sachê perfumado':'Ex.: 20% em qualquer vela'}" aria-label="O que é"><input data-rlqtd="${k}" type="number" inputmode="numeric" min="1" value="${x.qtd}" placeholder="Qtd" aria-label="Quantidade"></div></div>`).join('')};
-function imprimirRoleta(){const it=S.roletaItens||[];if(!it.length){toast('Nenhum cartão pra imprimir');return}
+function imprimirRoleta(){const it=S.roletaItens||[];if(!it.length){toast('Nenhuma tira pra imprimir');return}
   document.getElementById('impressao')?.remove();const w=document.createElement('div');w.id='impressao';
-  w.innerHTML=`<div class="cartoes">${it.map(c=>`<div class="cartao"><small>${c.tipo==='Brinde'?'🎁 BRINDE':'🏷️ DESCONTO'}</small><b>${esc(c.txt)}</b><span>${esc(c.marca)}</span><i>Roleta premiada · Feira Bêrga</i></div>`).join('')}</div>`;
+  w.innerHTML=`<div class="tiras">${it.map(c=>`<div class="tira"><small>${c.tipo==='Brinde'?'🎁 BRINDE':'🏷️ DESCONTO'}</small><b>${esc(c.txt)}</b><span>${esc(c.marca)}</span></div>`).join('')}</div>`;
   document.body.appendChild(w);document.body.classList.add('imprimindo');const fim=()=>{document.body.classList.remove('imprimindo');w.remove();window.removeEventListener('afterprint',fim)};window.addEventListener('afterprint',fim);setTimeout(()=>window.print(),150)}
 const montaAntes=e=>!!(e&&e.data_montagem&&e.data_montagem<e.data);
 const avisoMonta=e=>`<b>⚠️ Muito importante:</b> a montagem dessa edição é no dia <b>${dataBR(e.data_montagem)}</b>${e.horario_montagem?', '+esc(e.horario_montagem):''}, e é muito importante que ela seja feita nesse dia. Só marque essa opção se realmente não tiver como. Se marcar, chegue bem cedo no dia ${dataBR(e.data)} pra deixar tudo pronto antes de a feira abrir${e.horario_feira?' ('+esc(e.horario_feira)+')':''}.`;
@@ -888,6 +891,7 @@ TELAS['org-inscrito']=async()=>{
   <div class="painel">
     <div class="kv"><span>Edição</span><b>${esc(i.edicoes?.titulo||'')} · ${i.edicoes?periodo(i.edicoes):''}</b></div>
     ${m.cidade?`<div class="kv"><span>Cidade</span><b>${esc(m.cidade)}</b></div>`:''}
+    <div class="kv" style="align-items:center"><span>Segmento</span><select id="org-seg" data-marca="${m.id}" data-atual="${esc(m.segmento||'')}" aria-label="Alterar segmento" style="width:auto;max-width:60%;min-height:40px">${S.segs.map(s=>`<option value="${s.slug}" ${m.segmento===s.slug?'selected':''}>${esc(s.nome)}</option>`).join('')}</select></div>
     ${m.segmento==='outro'&&m.segmento_outro?`<div class="kv"><span>Segmento (outro)</span><b>${esc(m.segmento_outro)}</b></div>`:''}
     ${i.edicoes?.permite_dia_unico&&i.edicoes?.dia_unico_liberado?`<div class="kv"><span>Participação</span><b style="${i.dia_unico?'color:var(--verde)':''}">${i.dia_unico?'Só '+dataBR(i.dia_unico):'Todos os dias'}</b></div><div class="opcoes" style="margin:4px 0 8px">${[['','Todos os dias'],[i.edicoes.dia_unico_liberado,'Só '+dataBR(i.edicoes.dia_unico_liberado)]].map(([v,l])=>`<button class="op" data-orgdia="${v||'todos'}" data-id="${i.id}" aria-pressed="${(i.dia_unico||'')===v}" style="min-height:44px"><b style="font-size:15px;font-family:var(--body)">${l}</b></button>`).join('')}</div>`:i.dia_unico?`<div class="kv"><span>Participação</span><b style="color:var(--verde)">Só ${dataBR(i.dia_unico)}</b></div>`:''}
     ${i.monta_no_dia?`<div class="kv"><span>Montagem</span><b style="color:var(--tomate)">Monta no dia da feira</b></div>`:''}
@@ -1114,7 +1118,7 @@ TELAS['org-lista']=async()=>{
     S.roletaItens=[];rl.forEach(i=>{const n=i.marcas?.nome||'';(i.roleta_itens||[]).forEach(x=>{for(let k=0;k<(x.qtd||1);k++)S.roletaItens.push({marca:n,tipo:x.tipo==='brinde'?'Brinde':'Desconto',txt:x.txt})})});
     S.roletaTitulo=edA?`${edA.titulo} · ${periodo(edA)}`:'';
     if(!edA?.roleta&&!rl.length)return '';
-    return `<details class="segs" data-grupo="roleta" ${S.gAbertos?.has('roleta')?'open':''}><summary>🎡 Roleta premiada (${rl.length} ${rl.length===1?'marca':'marcas'})</summary><div class="corpo">${edA?`<p style="margin:0 0 6px;font-size:13px;font-weight:700">Prazo pros expositores: ${dataBR(limRoleta(edA))}${hojeLocal()>limRoleta(edA)?' · encerrado, pode imprimir':''}</p>`:''}${rl.length?`<p class="sub" style="margin:0 0 6px;font-size:13px">${S.roletaItens.length} cartões pra recortar: um pra cada desconto ou brinde.</p>${rl.map(i=>`<div class="pessoa"><b>${esc(i.marcas?.nome||'')}</b>${(i.roleta_itens||[]).map(x=>`<small>${x.tipo==='brinde'?'🎁 Brinde':'🏷️ Desconto'}: ${esc(x.txt)} · ${x.qtd}×</small>`).join('')}</div>`).join('')}<button class="btn pri" id="rl-imprimir" style="margin-top:10px">Imprimir cartões pra recortar</button><p class="sub" style="margin:6px 0 0;font-size:12px">Abre a impressão. Dá pra imprimir direto ou salvar em PDF. No computador fica mais fácil.</p>`:'<p class="sub" style="margin:0">Ninguém entrou na roleta ainda. Os confirmados veem a opção dentro da edição.</p>'}</div></details>`})()}
+    return `<details class="segs" data-grupo="roleta" ${S.gAbertos?.has('roleta')?'open':''}><summary>🎡 Roleta premiada (${rl.length} ${rl.length===1?'marca':'marcas'})</summary><div class="corpo">${edA?`<p style="margin:0 0 6px;font-size:13px;font-weight:700">Prazo pros expositores: ${dataBR(limRoleta(edA))}${hojeLocal()>limRoleta(edA)?' · encerrado, pode imprimir':''}</p>`:''}${rl.length?`<p class="sub" style="margin:0 0 6px;font-size:13px">${S.roletaItens.length} tiras pra recortar: uma linha pra cada desconto ou brinde.</p>${rl.map(i=>`<div class="pessoa"><b>${esc(i.marcas?.nome||'')}</b>${(i.roleta_itens||[]).map(x=>`<small>${x.tipo==='brinde'?'🎁 Brinde':'🏷️ Desconto'}: ${esc(x.txt)} · ${x.qtd}×</small>`).join('')}</div>`).join('')}<button class="btn pri" id="rl-imprimir" style="margin-top:10px">Imprimir tiras pra recortar</button><p class="sub" style="margin:6px 0 0;font-size:12px">Abre a impressão. Dá pra imprimir direto ou salvar em PDF. No computador fica mais fácil.</p>`:'<p class="sub" style="margin:0">Ninguém entrou na roleta ainda. Os confirmados veem a opção dentro da edição.</p>'}</div></details>`})()}
   <div class="painel">${S.listaLinhas.map(l=>`<div class="pessoa"><b>${esc(l[0]||'Só estacionamento')}</b>${l[1]?` · ${esc(l[1])}`:''}<small>${esc(l[2])}${l[3]!==''?' · vaga '+esc(l[3]):''}${l[4]?' · placa '+esc(l[4]):''}</small></div>`).join('')||'<p class="sub" style="margin:0">Nada ainda.</p>'}</div>
   <button class="btn pri" id="baixar">Baixar planilha (CSV)</button>
   <button class="btn sec" id="apagar-sens" style="margin-top:8px">Apagar CPFs e placas desta edição</button>`+await blocoInstagram();
@@ -1468,6 +1472,10 @@ document.addEventListener('input',ev=>{const t=ev.target;
   if(t.dataset.mtc)S.montadores[+t.dataset.mtc].cpf=t.value;});
 document.addEventListener('input',ev=>{const t=ev.target;if(t.dataset?.rltxt!=null&&S.rlItens?.[+t.dataset.rltxt])S.rlItens[+t.dataset.rltxt].txt=t.value;else if(t.dataset?.rlqtd!=null&&S.rlItens?.[+t.dataset.rlqtd])S.rlItens[+t.dataset.rlqtd].qtd=t.value});
 document.addEventListener('change',async ev=>{const t=ev.target;
+  if(t.id==='org-seg'){const novo=t.value,ant=t.dataset.atual;if(novo===ant)return;
+    if(!confirm(`Mudar o segmento de ${segNome(ant)} pra ${segNome(novo)}? Isso vale pra marca em todas as edições.`)){t.value=ant;return}
+    t.disabled=true;const {error}=await sb.from('marcas').update({segmento:novo,...(novo!=='outro'?{segmento_outro:null}:{})}).eq('id',t.dataset.marca);t.disabled=false;
+    if(error){t.value=ant;toast(erroMsg(error));return}toast(`Segmento alterado pra ${segNome(novo)}`);const y=window.scrollY;await render();window.scrollTo(0,y);return}
   if(t.id==='rl-sim'){const w=$('#rl-w');if(w)w.hidden=!t.checked;return}
   if(t.id==='ins-monta'||t.id==='ed-monta'){const av=t.closest('.monta-q')?.querySelector('.aviso-monta');if(av)av.hidden=!t.checked;
     if(t.id==='ed-monta'){t.disabled=true;const r=await sb.rpc('definir_monta_no_dia',{p_inscricao:S.ins.id,p_valor:t.checked});t.disabled=false;if(r.error){t.checked=!t.checked;if(av)av.hidden=!t.checked;toast(erroMsg(r.error));return}S.ins.monta_no_dia=t.checked;toast(t.checked?'Anotado: você monta no dia da feira':'Anotado: você monta no dia da montagem')}return}
